@@ -2,7 +2,7 @@
 $logFile = "rfid_log.txt";
 
 // Track final state
-$roomKeys    = ["ROOM1","ROOM2","ROOM3"];
+$roomKeys    = ["ROOM1","ROOM2"];
 $roomCounts  = array_fill_keys($roomKeys, 0);
 $userLoc     = [];   // user => last place (ENTRY/ROOMx), EXIT unsets
 $insideTotal = 0;
@@ -55,6 +55,14 @@ foreach ($userLoc as $loc) {
         $roomCounts[$loc]++;
     }
 }
+// Count registered visitors
+$regCount = 0;
+$regFile = 'rfid_register.txt';
+if (file_exists($regFile)) {
+    $lines = file($regFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $regCount = count($lines);
+}
+
 $insideTotal = count($userLoc); // users still inside (ENTRY or any ROOM)
 ?>
 <!DOCTYPE html>
@@ -80,19 +88,23 @@ $insideTotal = count($userLoc); // users still inside (ENTRY or any ROOM)
     <div class="grid">
         <div class="card">
             <div class="label">Room 1</div>
-            <div class="count"><?= $roomCounts['ROOM1'] ?></div>
+            <div class="count"><?= isset($roomCounts['ROOM1']) ? $roomCounts['ROOM1'] : 0 ?></div>
         </div>
         <div class="card">
             <div class="label">Room 2</div>
-            <div class="count"><?= $roomCounts['ROOM2'] ?></div>
+            <div class="count"><?= isset($roomCounts['ROOM2']) ? $roomCounts['ROOM2'] : 0 ?></div>
         </div>
         <div class="card">
             <div class="label">Room 3</div>
-            <div class="count"><?= $roomCounts['ROOM3'] ?></div>
+            <div class="count"><?= isset($roomCounts['ROOM3']) ? $roomCounts['ROOM3'] : 0 ?></div>
         </div>
         <div class="card">
             <div class="label">Inside Department (total)</div>
             <div class="count total"><?= $insideTotal ?></div>
+        </div>
+        <div class="card">
+            <div class="label">Registered Visitors</div>
+            <div class="count" style="color:#b60;"><?= $regCount ?></div>
         </div>
     </div>
 </body>

@@ -31,7 +31,7 @@ if ($reader && $tag) {
 
     if (file_exists($logFile)) {
         $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $lines = array_reverse($lines);
+        // Show in original order (oldest first)
         echo "<pre>" . htmlspecialchars(implode("\n", $lines)) . "</pre>";
     } else {
         echo "No entries yet.";
