@@ -24,15 +24,26 @@ if ($reader && $tag) {
     echo "<script>
         setTimeout(function(){
             window.location.reload();
-        }, 1000); // refresh every 5 seconds
+        }, 1000); // refresh every second
     </script>";
 
     echo "<h2>RFID Log</h2>";
 
     if (file_exists($logFile)) {
         $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        // Show in original order (oldest first)
-        echo "<pre>" . htmlspecialchars(implode("\n", $lines)) . "</pre>";
+        echo '<table border="1" cellpadding="6" style="border-collapse:collapse;margin:20px auto;min-width:400px;">';
+        echo '<tr style="background:#007bff;color:#fff;"><th>Timestamp</th><th>Tag ID</th><th>Location/Reader</th></tr>';
+        foreach ($lines as $line) {
+            $parts = array_map('trim', explode(',', $line));
+            if (count($parts) >= 3) {
+                echo '<tr>';
+                echo '<td>' . htmlspecialchars($parts[0]) . '</td>';
+                echo '<td>' . htmlspecialchars($parts[1]) . '</td>';
+                echo '<td>' . htmlspecialchars($parts[2]) . '</td>';
+                echo '</tr>';
+            }
+        }
+        echo '</table>';
     } else {
         echo "No entries yet.";
     }
