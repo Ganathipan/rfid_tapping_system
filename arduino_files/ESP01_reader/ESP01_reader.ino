@@ -14,11 +14,11 @@
 #include <rdm6300.h>
 
 // ===== WiFi Credentials =====
-const char* ssid = "Gana iPhone";
-const char* password = "12345679";
+const char* ssid = "Redmi Note 10 Pro";
+const char* password = "12349876";
 
 // ===== Server Endpoint =====
-const char* serverName = "http://172.20.10.3/rfid/rfid.php";
+const char* serverName = "http://10.57.209.45/rfid/rfid.php";
 
 // ===== Reader Unique ID =====
 const char* readerID = "REGISTER";  // change per device (e.g., Reader02, Reader03...)
