@@ -3,7 +3,7 @@ import { api } from '../api';
 import MemberAssignment from './MemberAssignment';
 
 export default function RegistrationForm() {
-  const [desk, setDesk] = useState('');
+  const [portal, setPortal] = useState('');
   const [name, setName] = useState('');
   const [count, setCount] = useState(1);
   const [pendingLeaderId, setPendingLeaderId] = useState(null);
@@ -22,7 +22,7 @@ export default function RegistrationForm() {
 
       // 1) Register leader if not already created
       if (!leaderId) {
-        if (!desk.trim()) throw new Error('Desk is required');
+  if (!portal.trim()) throw new Error('Portal is required');
         if (!name.trim()) throw new Error('Name is required');
         if (!Number.isInteger(Number(count)) || Number(count) < 1) {
           throw new Error('Count must be >= 1');
@@ -31,7 +31,7 @@ export default function RegistrationForm() {
         const reg = await api('/api/tags/register', {
           method: 'POST',
           body: {
-            desk,
+            portal,
             name,
             group_size: Number(count),
             // all other fields → null
@@ -52,15 +52,15 @@ export default function RegistrationForm() {
       // 2) Link last REGISTER tap from this desk to leader
       const link = await api('/api/tags/link', {
         method: 'POST',
-        body: { desk, leaderId, asLeader: true }
+        body: { portal, leaderId, asLeader: true }
       });
 
       setMsg(`✅ ${count > 1 ? 'Group leader' : 'Individual'} #${leaderId} linked with tag ${link.tagId}`);
       if (Number(count) > 1) {
-        setLeaderIdForMembers(leaderId);
-        setMemberCount(Number(count) - 1);
-        setShowMemberAssign(true);
-        return;
+  setLeaderIdForMembers(leaderId);
+  setMemberCount(Number(count) - 1);
+  setShowMemberAssign(true);
+  return;
       }
 
       // Reset form
@@ -73,8 +73,8 @@ export default function RegistrationForm() {
   }
 
   function resetForm() {
-    setPendingLeaderId(null);
-    setDesk('');
+  setPendingLeaderId(null);
+  setPortal('');
     setName('');
     setCount(1);
     setMsg('🔁 Reset — you can create a new registration now.');
@@ -83,7 +83,7 @@ export default function RegistrationForm() {
   if (showMemberAssign && leaderIdForMembers) {
     return (
       <MemberAssignment
-        desk={desk}
+        portal={portal}
         leaderId={leaderIdForMembers}
         memberCount={memberCount}
         onDone={() => {
@@ -98,11 +98,11 @@ export default function RegistrationForm() {
     <>
       <h3>RFID Registration</h3>
 
-      <label>Desk</label>
+      <label>Portal</label>
       <input
-        value={desk}
-        onChange={e => setDesk(e.target.value)}
-        placeholder="Desk name (e.g., desk1)"
+        value={portal}
+        onChange={e => setPortal(e.target.value)}
+        placeholder="Portal name (e.g., portal1)"
         disabled={!!pendingLeaderId}
       />
 
