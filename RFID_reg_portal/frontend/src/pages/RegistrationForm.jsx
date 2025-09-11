@@ -3,9 +3,9 @@ import { api } from '../api';
 import MemberAssignment from './MemberAssignment';
 
 export default function RegistrationForm() {
-  const [desk, setDesk] = useState('');
+  const [portal, setPortal] = useState('');
   const [name, setName] = useState('');
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(0); // Start at 0, increment as tags are assigned
   const [pendingLeaderId, setPendingLeaderId] = useState(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -19,22 +19,15 @@ export default function RegistrationForm() {
     setBusy(true);
     try {
       let leaderId = pendingLeaderId;
-
-      // 1) Register leader if not already created
       if (!leaderId) {
-        if (!desk.trim()) throw new Error('Desk is required');
+        if (!portal.trim()) throw new Error('Portal is required');
         if (!name.trim()) throw new Error('Name is required');
-        if (!Number.isInteger(Number(count)) || Number(count) < 1) {
-          throw new Error('Count must be >= 1');
-        }
-
         const reg = await api('/api/tags/register', {
           method: 'POST',
           body: {
-            desk,
+            portal,
             name,
-            group_size: Number(count),
-            // all other fields → null
+            group_size: 1,
             province: null,
             district: null,
             school: null,
@@ -44,27 +37,15 @@ export default function RegistrationForm() {
             lang: null
           }
         });
-
         leaderId = reg.id;
         setPendingLeaderId(leaderId);
       }
-
-      // 2) Link last REGISTER tap from this desk to leader
       const link = await api('/api/tags/link', {
         method: 'POST',
-        body: { desk, leaderId, asLeader: true }
+        body: { portal, leaderId, asLeader: true }
       });
-
-      setMsg(`✅ ${count > 1 ? 'Group leader' : 'Individual'} #${leaderId} linked with tag ${link.tagId}`);
-      if (Number(count) > 1) {
-        setLeaderIdForMembers(leaderId);
-        setMemberCount(Number(count) - 1);
-        setShowMemberAssign(true);
-        return;
-      }
-
-      // Reset form
-      resetForm();
+      setMsg(`✅ Tag #${leaderId} linked with tag ${link.tagId}`);
+      setCount(prev => prev + 1);
     } catch (e) {
       setMsg(`❌ ${e.message}${pendingLeaderId ? ` (kept as #${pendingLeaderId})` : ''}`);
     } finally {
@@ -74,16 +55,42 @@ export default function RegistrationForm() {
 
   function resetForm() {
     setPendingLeaderId(null);
-    setDesk('');
+    setCount(0);
     setName('');
-    setCount(1);
     setMsg('🔁 Reset — you can create a new registration now.');
+  }
+
+  async function confirmAndExit() {
+    if (busy || count === 0) return;
+    setBusy(true);
+    setMsg('');
+    try {
+      await api('/api/tags/updateCount', {
+        method: 'POST',
+        body: {
+          portal,
+          count,
+        },
+      });
+      setMsg('✅ Count updated and exiting...');
+      setTimeout(() => {
+        setPortal('');
+        setName('');
+        setCount(0);
+        setPendingLeaderId(null);
+        setBusy(false);
+        setMsg('');
+      }, 1500);
+    } catch (err) {
+      setMsg('❌ Error updating count: ' + err.message);
+      setBusy(false);
+    }
   }
 
   if (showMemberAssign && leaderIdForMembers) {
     return (
       <MemberAssignment
-        desk={desk}
+        portal={portal}
         leaderId={leaderIdForMembers}
         memberCount={memberCount}
         onDone={() => {
@@ -95,14 +102,14 @@ export default function RegistrationForm() {
   }
 
   return (
-    <>
+    <div>
       <h3>RFID Registration</h3>
 
-      <label>Desk</label>
+      <label>Portal</label>
       <input
-        value={desk}
-        onChange={e => setDesk(e.target.value)}
-        placeholder="Desk name (e.g., desk1)"
+        value={portal}
+        onChange={e => setPortal(e.target.value)}
+        placeholder="Portal name (e.g., portal1)"
         disabled={!!pendingLeaderId}
       />
 
@@ -113,26 +120,23 @@ export default function RegistrationForm() {
         placeholder="Leader/Individual name"
         disabled={!!pendingLeaderId}
       />
-
-      <label>Count</label>
-      <input
-        type="number"
-        min="1"
-        value={count}
-        onChange={e => setCount(e.target.value)}
-        disabled={!!pendingLeaderId}
-      />
+      <div style={{ margin: '10px 0', fontWeight: 'bold' }}>
+        Tags assigned: <span style={{ color: 'blue' }}>{count}</span>
+      </div>
 
       <div className="row" style={{ marginTop: 10 }}>
-        <button className="btn primary" onClick={registerAndLink} disabled={busy}>
-          {pendingLeaderId ? 'Retry Linking' : 'Submit & Assign Tag'}
+  <button className="btn primary" onClick={registerAndLink} disabled={busy || !name.trim()}>
+    {msg.startsWith('❌') ? 'Retry Linking' : 'Submit & Assign Tag'}
+  </button>
+        <button className="btn" onClick={confirmAndExit} disabled={busy || count === 0} style={{ marginLeft: 10 }}>
+          Confirm and Exit
         </button>
-        {pendingLeaderId && (
-          <div className="right">
-            <button className="btn" onClick={resetForm} disabled={busy}>Start New Registration</button>
-          </div>
-        )}
       </div>
+      {pendingLeaderId && (
+        <div className="right">
+          <button className="btn" onClick={resetForm} disabled={busy}>Start New Registration</button>
+        </div>
+      )}
 
       <div className="hr" />
 
@@ -140,6 +144,7 @@ export default function RegistrationForm() {
         {pendingLeaderId && <>Pending Registration: <b>#{pendingLeaderId}</b> • </>}
         {msg}
       </div>
-    </>
+    </div>
   );
 }
+
