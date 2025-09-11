@@ -302,10 +302,12 @@ router.get('/list-cards', async (_req, res) => {
 // ===================================================================
 // Background EXITOUT watcher (every 3s)
 // ===================================================================
+// Track last processed log_time per portal
 let lastProcessedExitout = {};
 
 async function checkAndReleaseOnNewExitout() {
   try {
+    // Get latest EXITOUT/EXIT logs per portal
     const { rows } = await pool.query(`
       SELECT DISTINCT ON (portal) rfid_card_id, portal, log_time
       FROM logs
@@ -313,15 +315,22 @@ async function checkAndReleaseOnNewExitout() {
       ORDER BY portal, log_time DESC
     `);
 
+    const now = new Date();
     for (const row of rows) {
       const { rfid_card_id: tagId, portal, log_time } = row;
-      if (lastProcessedExitout[portal] !== tagId) {
+      const logDate = new Date(log_time);
+      // Only process if log_time is newer than last processed for this portal
+      // AND the tag was assigned within the last 3 minutes
+      if (
+        (!lastProcessedExitout[portal] || logDate > new Date(lastProcessedExitout[portal])) &&
+        (now - logDate <= 180000)
+      ) {
         const client = await pool.connect();
         try {
           await client.query('BEGIN');
           await releaseTag(client, tagId, portal);
           await client.query('COMMIT');
-          lastProcessedExitout[portal] = tagId;
+          lastProcessedExitout[portal] = log_time;
           console.log(`[EXITOUT watcher] Released tag: ${tagId} from ${portal} at ${log_time}`);
         } catch (e) {
           await client.query('ROLLBACK');

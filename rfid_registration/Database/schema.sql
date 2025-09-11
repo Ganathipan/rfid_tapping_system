@@ -17,7 +17,6 @@ CREATE TABLE logs (
 CREATE TABLE registration (
     id SERIAL PRIMARY KEY,
     portal TEXT NOT NULL,                     -- portal where registration happened
-    name TEXT,
     province TEXT,
     district TEXT,
     school TEXT,
@@ -34,7 +33,6 @@ CREATE TABLE registration (
 CREATE TABLE members (
     id SERIAL PRIMARY KEY,
     registration_id INT NOT NULL REFERENCES registration(id) ON DELETE CASCADE,
-    name TEXT,
     rfid_card_id VARCHAR(32) UNIQUE NOT NULL,
     role TEXT CHECK (role IN ('LEADER','MEMBER','INDIVIDUAL')) NOT NULL,
     portal TEXT
