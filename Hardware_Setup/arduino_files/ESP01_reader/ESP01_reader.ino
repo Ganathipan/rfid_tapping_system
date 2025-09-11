@@ -14,16 +14,16 @@
 #include <rdm6300.h>
 
 // ===== WiFi Credentials =====
-const char* ssid = "Redmi Note 10 Pro";
-const char* password = "12349876";
+const char* ssid = "Gana iPhone";
+const char* password = "12345679";
 
 // ===== Server Endpoint =====
 // Change to your Node.js server IP:port
-const char* serverName = "http://10.57.209.45:3000/rfidRead";
+const char* serverName = "http://172.20.10.3:4000/api/tags/rfidRead";
 
 // ===== Reader Unique ID =====
-const char* readerID = "REGISTER";   // which device/scanner
-const char* portal   = "Portal1";   // which portal/location
+const char* readerID = "EXITOUT";   // which device/scanner
+const char* portal   = "Desk";   // which portal/location
 
 // ===== LED Config =====
 #define READ_LED_PIN LED_BUILTIN
