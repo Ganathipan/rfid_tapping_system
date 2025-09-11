@@ -13,10 +13,36 @@ async function syncRfidCardsFromLogs() {
     console.error('[syncRfidCardsFromLogs] Error:', e.message || e);
   }
 }
-// routes/tags.js
+
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
+
+// ===================================================================
+// POST /api/tags/updateCount
+// Update the group_size for the latest registration for a portal
+// ===================================================================
+router.post('/updateCount', async (req, res) => {
+  const { portal, count } = req.body || {};
+  if (!portal) return badReq(res, 'Portal is required');
+  if (!count || isNaN(count) || count < 1) return badReq(res, 'Count must be >= 1');
+  try {
+    // Update the latest registration for this portal
+    const result = await pool.query(
+      `UPDATE registration
+       SET group_size = $1
+       WHERE id = (
+         SELECT id FROM registration WHERE portal = $2 ORDER BY id DESC LIMIT 1
+       )
+       RETURNING id`,
+      [count, portal]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'No registration found for portal' });
+    return res.status(200).json({ success: true, id: result.rows[0].id });
+  } catch (e) {
+    return handleError(res, e);
+  }
+});
 
 // ===================================================================
 // POST /api/tags/register
@@ -72,7 +98,43 @@ function handleError(res, err) {
 }
 
 // ---------- log query ----------
+// Helper: Get the latest available tag for a portal
+// Helper: Get the last REGISTERed tag from logs for a portal, only if available
+async function getLastRegisterLogAvailableTag(portal) {
+  // Get last REGISTER log for portal
+  const { rows } = await pool.query(
+    `SELECT rfid_card_id
+       FROM logs
+      WHERE label = 'REGISTER' AND portal = $1
+      ORDER BY log_time DESC
+      LIMIT 1`,
+    [portal]
+  );
+  if (rows.length === 0) throw new Error('No REGISTER log found for this portal');
+  const tagId = rows[0].rfid_card_id;
+  // Check if tag is available
+  const card = await pool.query(
+    `SELECT status FROM rfid_cards WHERE rfid_card_id = $1`, [tagId]
+  );
+  if (card.rowCount === 0 || card.rows[0].status !== 'available') {
+    throw new Error('Last REGISTERed tag is not available');
+  }
+  return tagId;
+}
 async function getLastTagFromDB(wantedLabels, portal) {
+// Helper: Get the latest available tag for a portal
+async function getLastAvailableTagFromDB(portal) {
+  const { rows } = await pool.query(
+    `SELECT rfid_card_id
+       FROM rfid_cards
+      WHERE portal = $1 AND status = 'available'
+      ORDER BY rfid_card_id DESC
+      LIMIT 1`,
+    [portal]
+  );
+  if (rows.length === 0) throw new Error('No available tag for this portal');
+  return rows[0].rfid_card_id;
+}
   const { rows } = await pool.query(
     `SELECT rfid_card_id
        FROM logs
@@ -199,7 +261,7 @@ router.post('/link', async (req, res) => {
 
   try {
     await syncRfidCardsFromLogs();
-    tagId = await getLastTagFromDB(['REGISTER'], portal);
+    tagId = await getLastRegisterLogAvailableTag(portal);
   } catch (e) {
     return handleError(res, e);
   }
