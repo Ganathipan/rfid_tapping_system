@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Stalls Points Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+  <header>
+    <h1>Stalls Points Admin</h1>
+    <p>Edit base points for each stall. Changes apply to future taps immediately.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Existing Stalls</h2>
+      <div class="toolbar">
+        <button id="btn-refresh">Refresh</button>
+      </div>
+      <table id="tbl-stalls">
+        <thead>
+          <tr>
+            <th style="width:70px">ID</th>
+            <th>Name</th>
+            <th style="width:160px">Base Points</th>
+            <th style="width:220px">Actions</th>
+          </tr>
+        </thead>
+        <tbody><!-- rows injected --></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Add Stall</h2>
+      <div class="row">
+        <label>
+          Name
+          <input id="new-name" placeholder="e.g., Robotics" />
+        </label>
+        <label>
+          Base Points
+          <input id="new-points" type="number" min="0" step="1" value="20" />
+        </label>
+      </div>
+      <button id="btn-add">Add Stall</button>
+      <pre id="add-out" class="out"></pre>
+    </section>
+
+    <section class="card muted">
+      <h3>Notes</h3>
+      <ul>
+        <li><strong>Base Points</strong> = S in your rule. Awarded per tap as <code>S × floor(N/10)</code>.</li>
+        <li>Editing here updates <code>stalls.base_points</code> in PostgreSQL.</li>
+        <li>Registration (groups & members) continues on your separate flow.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="./admin.js"></script>
+</body>
+</html>

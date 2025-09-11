@@ -5,7 +5,7 @@
 -- Log of every tap from all desks
 CREATE TABLE logs (
     id SERIAL PRIMARY KEY,
-    log_time TIMESTAMP NOT NULL,
+    log_time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     rfid_card_id VARCHAR(32) NOT NULL,
     desk TEXT NOT NULL,                     -- which desk saw the tap
     label VARCHAR(50) NOT NULL              -- REGISTER, EXITOUT, Z1, etc.

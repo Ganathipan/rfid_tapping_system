@@ -1,9 +1,9 @@
 /*
  * NodeMCU ESP8266 + RDM6300 RFID (Hardware UART version)
- * Connects to WiFi, reads RFID tags via RX (GPIO3), and uploads IDs to a web server.
+ * Connects to WiFi, reads RFID tags via RX (GPIO3), and uploads IDs to a Node.js server.
  *
  * Wiring:
- *   RDM6300 VCC → NodeMCU 3.3V  (⚠️ NOT 5V, NodeMCU is 3.3V only!)
+ *   RDM6300 VCC → NodeMCU 3.3V
  *   RDM6300 GND → NodeMCU GND
  *   RDM6300 TX  → NodeMCU RX (GPIO3 / D9)
  */
@@ -18,10 +18,12 @@ const char* ssid = "Redmi Note 10 Pro";
 const char* password = "12349876";
 
 // ===== Server Endpoint =====
-const char* serverName = "http://10.57.209.45/rfid/rfid.php";
+// Change to your Node.js server IP:port
+const char* serverName = "http://10.57.209.45:3000/rfidRead";
 
 // ===== Reader Unique ID =====
-const char* readerID = "REGISTER";  // change per device (e.g., Reader02, Reader03...)
+const char* readerID = "REGISTER";   // which device/scanner
+const char* portal   = "Portal1";   // which portal/location
 
 // ===== LED Config =====
 #define READ_LED_PIN LED_BUILTIN
@@ -29,14 +31,12 @@ const char* readerID = "REGISTER";  // change per device (e.g., Reader02, Reader
 Rdm6300 rdm6300;
 
 void setup() {
-  // Start hardware UART (used by RDM6300)
   Serial.begin(9600);   // RDM6300 default baud is 9600
   delay(200);
 
   pinMode(READ_LED_PIN, OUTPUT);
   digitalWrite(READ_LED_PIN, HIGH);
 
-  // Initialize RDM6300 on hardware Serial
   rdm6300.begin(&Serial);
 
   // Connect WiFi
@@ -57,14 +57,24 @@ void loop() {
       HTTPClient http;
       WiFiClient client;
 
-      // Build URL with ReaderID + TagID
-      String url = String(serverName) + "?reader=" + readerID + "&tag=" + String(tag, HEX);
+      http.begin(client, serverName);
+      http.addHeader("Content-Type", "application/json");
 
-      if (http.begin(client, url)) {
-        int httpCode = http.GET();
+      // JSON payload
+      String payload = "{\"reader\":\"" + String(readerID) +
+                 "\", \"portal\":\"" + String(portal) +
+                 "\", \"tag\":\"" + String(tag, HEX) + "\"}";
 
-        http.end();
+      int httpCode = http.POST(payload);
+
+      if (httpCode > 0) {
+        String response = http.getString();
+        Serial.println("Server response: " + response);
+      } else {
+        Serial.println("Error sending POST: " + String(httpCode));
       }
+
+      http.end();
     }
 
     // LED OFF after sending
