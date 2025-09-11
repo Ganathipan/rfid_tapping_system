@@ -51,7 +51,6 @@ router.post('/updateCount', async (req, res) => {
 router.post('/register', async (req, res) => {
   const {
     portal,
-    name,
     group_size,
     province = null,
     district = null,
@@ -61,26 +60,23 @@ router.post('/register', async (req, res) => {
     sex = null,
     lang = null
   } = req.body || {};
+
   if (!portal) return badReq(res, 'Portal is required');
-  if (!name) return badReq(res, 'Name is required');
   if (!group_size || isNaN(group_size) || group_size < 1) return badReq(res, 'Group size must be >= 1');
 
   try {
     await syncRfidCardsFromLogs();
     const result = await pool.query(
-      `INSERT INTO registration (portal, name, group_size, school, university, province, district, age_range, sex, lang)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO registration (portal, group_size, school, university, province, district, age_range, sex, lang)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
-      [portal, name, group_size, school, university, province, district, age_range, sex, lang]
+      [portal, group_size, school, university, province, district, age_range, sex, lang]
     );
     return res.status(200).json({ id: result.rows[0].id });
   } catch (e) {
     return handleError(res, e);
   }
 });
-
-// ---------- small utils ----------
-const badReq = (res, msg) => res.status(400).json({ error: msg });
 
 function handleError(res, err) {
   // Log full error for debugging
@@ -174,16 +170,16 @@ async function assignTagToLeader(client, tagId, leaderId, portal) {
   if (card.status.toLowerCase() === 'assigned') throw new Error('Tag already assigned');
 
   const r = await client.query(
-    `SELECT id, name FROM registration WHERE id=$1 AND portal=$2 FOR UPDATE`,
+    `SELECT id FROM registration WHERE id=$1 AND portal=$2 FOR UPDATE`,
     [leaderId, portal]
   );
   if (r.rowCount === 0) throw new Error('Leader not found');
 
   // Insert leader into members table with role 'LEADER'
   await client.query(
-    `INSERT INTO members (registration_id, name, rfid_card_id, role, portal)
-     VALUES ($1, $2, $3, 'LEADER', $4)`,
-    [leaderId, r.rows[0].name, tagId, portal]
+    `INSERT INTO members (registration_id, rfid_card_id, role, portal)
+     VALUES ($1, $2, 'LEADER', $3)`,
+    [leaderId, tagId, portal]
   );
   await client.query(`UPDATE rfid_cards SET status='assigned', portal=$2 WHERE rfid_card_id=$1`, [tagId, portal]);
 }
@@ -200,8 +196,8 @@ async function assignTagToMember(client, tagId, leaderId, portal) {
 
   // Insert member into members table with role 'MEMBER'
   await client.query(
-    `INSERT INTO members (registration_id, name, rfid_card_id, role, portal)
-     VALUES ($1, NULL, $2, 'MEMBER', $3)`,
+    `INSERT INTO members (registration_id, rfid_card_id, role, portal)
+     VALUES ($1, $2, 'MEMBER', $3)`,
     [leaderId, tagId, portal]
   );
   await client.query(`UPDATE rfid_cards SET status='assigned', portal=$2 WHERE rfid_card_id=$1`, [tagId, portal]);
@@ -215,40 +211,7 @@ async function releaseTag(client, tagId, portal) {
 }
 
 // ===================================================================
-// POST /api/tags/register
-// Create a new leader/individual row
-// ===================================================================
-router.post('/register', async (req, res) => {
-  const {
-    portal,
-    name,
-    group_size,
-    province = null,
-    district = null,
-    school = null,
-    university = null,
-    age_range = null,
-    sex = null,
-    lang = null
-  } = req.body || {};
-
-  if (!portal) return badReq(res, 'portal is required');
-  if (!name) return badReq(res, 'Name is required');
-  if (!group_size || isNaN(group_size) || group_size < 1) return badReq(res, 'Group size must be >= 1');
-
-  try {
-    const result = await pool.query(
-      `INSERT INTO registration
-       (portal, name, group_size, rfid_card_id, school, university, province, district, age_range, sex, lang)
-       VALUES ($1,$2,$3,NULL,$4,$5,$6,$7,$8,$9,$10)
-       RETURNING id`,
-      [portal, name, group_size, school, university, province, district, age_range, sex, lang]
-    );
-    res.status(200).json({ id: result.rows[0].id });
-  } catch (e) {
-    return handleError(res, e);
-  }
-});
+// ...existing code...
 
 // ===================================================================
 // POST /api/tags/link
@@ -302,10 +265,12 @@ router.get('/list-cards', async (_req, res) => {
 // ===================================================================
 // Background EXITOUT watcher (every 3s)
 // ===================================================================
+// Track last processed log_time per portal
 let lastProcessedExitout = {};
 
 async function checkAndReleaseOnNewExitout() {
   try {
+    // Get latest EXITOUT/EXIT logs per portal
     const { rows } = await pool.query(`
       SELECT DISTINCT ON (portal) rfid_card_id, portal, log_time
       FROM logs
@@ -313,15 +278,22 @@ async function checkAndReleaseOnNewExitout() {
       ORDER BY portal, log_time DESC
     `);
 
+    const now = new Date();
     for (const row of rows) {
       const { rfid_card_id: tagId, portal, log_time } = row;
-      if (lastProcessedExitout[portal] !== tagId) {
+      const logDate = new Date(log_time);
+      // Only process if log_time is newer than last processed for this portal
+      // AND the tag was assigned within the last 3 minutes
+      if (
+        (!lastProcessedExitout[portal] || logDate > new Date(lastProcessedExitout[portal])) &&
+        (now - logDate <= 180000)
+      ) {
         const client = await pool.connect();
         try {
           await client.query('BEGIN');
           await releaseTag(client, tagId, portal);
           await client.query('COMMIT');
-          lastProcessedExitout[portal] = tagId;
+          lastProcessedExitout[portal] = log_time;
           console.log(`[EXITOUT watcher] Released tag: ${tagId} from ${portal} at ${log_time}`);
         } catch (e) {
           await client.query('ROLLBACK');
@@ -335,6 +307,8 @@ async function checkAndReleaseOnNewExitout() {
     // no EXITOUT found
   }
 }
+
+
 setInterval(checkAndReleaseOnNewExitout, 3000);
 
 module.exports = router;
