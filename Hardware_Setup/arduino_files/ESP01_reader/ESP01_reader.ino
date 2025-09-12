@@ -22,8 +22,8 @@ const char* password = "12345679";
 const char* serverName = "http://172.20.10.3:4000/api/tags/rfidRead";
 
 // ===== Reader Unique ID =====
-const char* readerID = "EXITOUT";   // which device/scanner
-const char* portal   = "Desk";   // which portal/location
+const char* readerID = "REGISTER";   // which device/scanner
+const char* portal   = "portal1";   // which portal/location
 
 // ===== LED Config =====
 #define READ_LED_PIN LED_BUILTIN

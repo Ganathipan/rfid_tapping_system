@@ -259,9 +259,9 @@ router.post("/rfidRead", async (req, res) => {
 
   try {
     const query = `
-      INSERT INTO logs (log_time, rfid_card_id, portal, label)
+      INSERT INTO logs (log_time, rfid_card_id, desk, label)
       VALUES (NOW(), $1, $2, $3)
-      RETURNING id, log_time, rfid_card_id, portal, label
+      RETURNING id, log_time, rfid_card_id, desk, label
     `;
     const values = [tag, portal, reader];
 
