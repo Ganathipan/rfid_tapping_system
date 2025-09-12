@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api';
 
-export default function MemberAssignment({ desk, leaderId, memberCount, onDone }) {
+export default function MemberAssignment({ portal, leaderId, memberCount, onDone }) {
   const [assigned, setAssigned] = useState(0);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -13,7 +13,7 @@ export default function MemberAssignment({ desk, leaderId, memberCount, onDone }
     try {
       const link = await api('/api/tags/link', {
         method: 'POST',
-        body: { desk, leaderId, asLeader: false }
+        body: { portal, leaderId, asLeader: false }
       });
       setAssigned(a => a + 1);
       setMsg(`✅ Member ${assigned + 1} assigned tag ${link.tagId}`);
