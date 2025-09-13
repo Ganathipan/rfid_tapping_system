@@ -28,6 +28,13 @@ header h1{
 }
 
 main{
+header{
+  padding:16px 20px;
+  border-bottom:1px solid #1f2942;
+  display:flex;gap:10px;
+  align-items:center;
+  justify-content: space-between;
+}
   max-width:1100px;
   margin:24px auto;
   padding:0 16px;
@@ -36,6 +43,11 @@ main{
   gap:16px
 }
 
+main{
+  max-width:1100px;
+  margin:24px auto;
+  padding:0 16px;
+}
 .card{
   background:var(--card);
   border:1px solid #1f2942;
@@ -45,6 +57,21 @@ main{
 
 .mut{
   color:var(--mut)
+.pill{
+  display:inline-flex;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#0d1426;
+  border:1px solid #273358;
+  gap:6px;
+  align-items:center;
+}
+
+.pill.ok {
+  background: #0d2a1b;
+  border-color: #1a9448;
+  color: var(--ok);
+}
 }
 
 .small{font-size:12px}
@@ -54,20 +81,91 @@ main{
   padding:3px 8px;
   border-radius:999px;
   background:#0d1426;
+ .btn{
+  appearance:none;
+  border:1px solid #2a375d;
+  background:#0f182d;color:#e6eefc;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
   border:1px solid #273358;
   gap:6px;
   align-items:center
 }
 
 .mono{
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #e6eefc;
+}
   font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace
 }
 
 .btn{
   appearance:none;
+.tabbar{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.tab {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #0f182d;
+  border: 1px solid #2a375d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: #101c39;
+}
+
+.tab.active {
+  background: #0c2b55;
+  border-color: #2674d6;
+  color: var(--pri);
+}
   border:1px solid #2a375d;
   background:#0f182d;color:#e6eefc;
+.list table{width:100%;border-collapse:collapse}
+.list table th {
+  color: var(--mut);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.list table td {
+  color: #e6eefc;
+}
+
+.portal-card:hover {
+  background: #101c39 !important;
+  transform: translateY(-1px);
+}
+
+.portal-card.selected {
+  box-shadow: 0 0 0 2px var(--pri);
+}
   padding:10px 14px;
+footer{
+  text-align: center;
+  padding: 20px;
+  color: var(--mut);
+  font-size: 12px;
+}
   border-radius:10px;
   cursor:pointer;
   font-weight:600

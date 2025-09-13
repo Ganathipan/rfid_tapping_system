@@ -89,6 +89,8 @@ function handleError(res, err) {
   if (/^Leader\s+not\s+found$/i.test(msg)) return res.status(404).json({ error: 'Leader not found' });
   if (/^Tag\s+already\s+assigned$/i.test(msg)) return res.status(409).json({ error: 'Tag already assigned' });
   if (/^No\s+matching\s+entry\s+in\s+log$/i.test(msg)) return res.status(404).json({ error: 'No matching entry in log' });
+  if (/^No\s+card\s+tapped\s+for\s+registration$/i.test(msg)) return res.status(400).json({ error: 'No card tapped for registration' });
+  if (/^Tapped\s+card\s+is\s+not\s+available\s+for\s+registration$/i.test(msg)) return res.status(400).json({ error: 'Tapped card is not available for registration' });
   // Return the actual error message for server errors
   return res.status(500).json({ error: 'Server error: ' + msg });
 }
@@ -106,14 +108,19 @@ async function getLastRegisterLogAvailableTag(portal) {
       LIMIT 1`,
     [portal]
   );
-  if (rows.length === 0) throw new Error('No REGISTER log found for this portal');
-  const tagId = rows[0].rfid_card_id;
-  // Check if tag is available
-  const card = await pool.query(
-    `SELECT status FROM rfid_cards WHERE rfid_card_id = $1`, [tagId]
-  );
-  if (card.rowCount === 0 || card.rows[0].status !== 'available') {
-    throw new Error('Last REGISTERed tag is not available');
+  let tagId;
+  if (rows.length === 0) {
+    // No card tapped for registration
+    throw new Error('No card tapped for registration');
+  } else {
+    tagId = rows[0].rfid_card_id;
+    // Check if tag is available
+    const card = await pool.query(
+      `SELECT status FROM rfid_cards WHERE rfid_card_id = $1`, [tagId]
+    );
+    if (card.rowCount === 0 || card.rows[0].status !== 'available') {
+      throw new Error('Tapped card is not available for registration');
+    }
   }
   return tagId;
 }
@@ -166,16 +173,18 @@ async function lockOrCreateCard(client, tagId, portal) {
 }
 
 async function assignTagToLeader(client, tagId, leaderId, portal) {
-  const card = await lockOrCreateCard(client, tagId, portal);
-  if (card.status.toLowerCase() === 'assigned') throw new Error('Tag already assigned');
-
+  // Only assign if card is available and was tapped (checked in getLastRegisterLogAvailableTag)
+  const card = await client.query(
+    `SELECT status FROM rfid_cards WHERE rfid_card_id = $1 FOR UPDATE`, [tagId]
+  );
+  if (card.rowCount === 0 || card.rows[0].status.toLowerCase() !== 'available') {
+    throw new Error('Tapped card is not available for registration');
+  }
   const r = await client.query(
     `SELECT id FROM registration WHERE id=$1 AND portal=$2 FOR UPDATE`,
     [leaderId, portal]
   );
   if (r.rowCount === 0) throw new Error('Leader not found');
-
-  // Insert leader into members table with role 'LEADER'
   await client.query(
     `INSERT INTO members (registration_id, rfid_card_id, role, portal)
      VALUES ($1, $2, 'LEADER', $3)`,
@@ -185,16 +194,18 @@ async function assignTagToLeader(client, tagId, leaderId, portal) {
 }
 
 async function assignTagToMember(client, tagId, leaderId, portal) {
-  const card = await lockOrCreateCard(client, tagId, portal);
-  if (card.status.toLowerCase() === 'assigned') throw new Error('Tag already assigned');
-
+  // Only assign if card is available and was tapped (checked in getLastRegisterLogAvailableTag)
+  const card = await client.query(
+    `SELECT status FROM rfid_cards WHERE rfid_card_id = $1 FOR UPDATE`, [tagId]
+  );
+  if (card.rowCount === 0 || card.rows[0].status.toLowerCase() !== 'available') {
+    throw new Error('Tapped card is not available for registration');
+  }
   const r = await client.query(
     `SELECT id FROM registration WHERE id=$1 AND portal=$2 FOR UPDATE`,
     [leaderId, portal]
   );
   if (r.rowCount === 0) throw new Error('Leader not found');
-
-  // Insert member into members table with role 'MEMBER'
   await client.query(
     `INSERT INTO members (registration_id, rfid_card_id, role, portal)
      VALUES ($1, $2, 'MEMBER', $3)`,

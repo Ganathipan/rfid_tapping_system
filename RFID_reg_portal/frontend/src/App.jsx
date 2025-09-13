@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import { api } from './api';
-import RegistrationForm from './pages/RegistrationForm';
-import AdminPanel from './pages/AdminPanel';
+import PortalSelection from './pages/PortalSelection';
+import RegistrationFlow from './pages/RegistrationFlow';
+import TagAssignment from './pages/TagAssignment';
+// AdminDashboard is navigated from RegistrationFlow when chosen
 
 export default function App() {
-  // Remove tab state, not needed for combined form
   const [health, setHealth] = useState('checking…');
+  const [currentView, setCurrentView] = useState('portal-selection'); // portal-selection, registration, tag-assignment, admin
+  const [selectedPortal, setSelectedPortal] = useState(localStorage.getItem('portal') || '');
+  const [registrationData, setRegistrationData] = useState(null);
 
   async function refreshHealth() {
     try {
@@ -23,21 +27,75 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    if (selectedPortal) {
+      localStorage.setItem('portal', selectedPortal);
+    }
+  }, [selectedPortal]);
+
+  function handlePortalSelect(portal) {
+    setSelectedPortal(portal);
+    setCurrentView('registration');
+  }
+
+  function handleRegistrationComplete(regData) {
+    setRegistrationData(regData);
+    setCurrentView('tag-assignment');
+  }
+
+  function handleTagAssignmentComplete() {
+    setCurrentView('registration');
+    setRegistrationData(null);
+  }
+
+  function handleBackToPortalSelection() {
+    setCurrentView('registration');
+  }
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'portal-selection':
+        return <PortalSelection onPortalSelect={handlePortalSelect} />;
+      case 'registration':
+        return (
+          <RegistrationFlow 
+            selectedPortal={selectedPortal}
+            onRegistrationComplete={handleRegistrationComplete}
+            onBack={handleBackToPortalSelection}
+          />
+        );
+      case 'tag-assignment':
+        return (
+          <TagAssignment 
+            registrationData={registrationData}
+            selectedPortal={selectedPortal}
+            onComplete={handleTagAssignmentComplete}
+            onBack={handleBackToPortalSelection}
+          />
+        );
+      case 'admin':
+        return <AdminDashboard onBack={handleBackToPortalSelection} />;
+      default:
+        return <PortalSelection onPortalSelect={handlePortalSelect} />;
+    }
+  };
+
   return (
     <>
       <header>
-        <h1>RFID Registration Portal</h1>
+        <h1>RFID Registration System</h1>
+        <div className="pill">
+          <span className="small">Health: {health}</span>
+        </div>
       </header>
 
-      <main>
+      <main style={{ maxWidth: '1100px', margin: '24px auto', padding: '0 16px' }}>
         <section className="card">
-          <RegistrationForm/>
+          {renderCurrentView()}
         </section>
-
-        <AdminPanel/>
       </main>
 
-      <footer>Frontend  <span className="mono">{import.meta.env.VITE_API_BASE}</span></footer>
+      <footer>Frontend <span className="mono">{import.meta.env.VITE_API_BASE}</span></footer>
     </>
   );
 }
