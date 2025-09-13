@@ -1,3 +1,20 @@
+
+const express = require('express');
+const router = express.Router();
+const pool = require('../db/pool');
+
+// ===================================================================
+// GET /api/admin/registrations
+// Returns all registration records for admin portal
+// ===================================================================
+router.get('/admin/registrations', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM registration ORDER BY id DESC');
+    res.status(200).json(result.rows);
+  } catch (e) {
+    return handleError(res, e);
+  }
+});
 // Utility: Ensure all REGISTERed cards in logs are present in rfid_cards
 async function syncRfidCardsFromLogs() {
   try {
@@ -14,9 +31,6 @@ async function syncRfidCardsFromLogs() {
   }
 }
 
-const express = require('express');
-const router = express.Router();
-const pool = require('../db/pool');
 
 // ===================================================================
 // POST /api/tags/updateCount

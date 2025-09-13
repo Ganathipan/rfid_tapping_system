@@ -14,7 +14,7 @@ export default function AdminPortal() {
       setMsg('');
       try {
         const [regs, rfid] = await Promise.all([
-          api('/api/admin/registrations'),
+          api('/api/tags/admin/registrations'),
           api('/api/tags/list-cards'),
         ]);
         setRegistrations(regs || []);
