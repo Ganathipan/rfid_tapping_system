@@ -343,8 +343,6 @@ async function checkAndReleaseOnNewExitout() {
 setInterval(checkAndReleaseOnNewExitout, 3000);
 
 
-<<<<<<< HEAD
-=======
   const { reader, portal, tag } = req.body;
   console.log(`[RFID DECODE] Received:`, { reader, portal, tag });
 
@@ -369,9 +367,7 @@ setInterval(checkAndReleaseOnNewExitout, 3000);
   } catch (err) {
     console.error("DB Error:", err);
     res.status(500).json({ error: "Database insert failed" });
-  }
-});
+  };
 
 
 module.exports = router;
->>>>>>> 435e1a6e85e1b45e34ff8366e3fe9be299ea141b
