@@ -87,6 +87,8 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [batchCount, setBatchCount] = useState(0);
   const [pendingBatchPayload, setPendingBatchPayload] = useState(null);
+  // Store pending individual registration data
+  const [pendingIndividualPayload, setPendingIndividualPayload] = useState(null);
   
   // UI states
   const [busy, setBusy] = useState(false);
@@ -181,10 +183,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   const handleIndividualSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedProvince || !selectedDistrict || !ageRange || !sex || !language) {
-      setMsg("Please fill in all required fields");
-      return;
-    }
+    // Language is now optional
 
     setBusy(true);
     setMsg('');
@@ -199,24 +198,9 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         lang: language,
         group_size: 1
       };
-
-      const result = await api('/api/tags/register', {
-        method: 'POST',
-        body: payload
-      });
-
-      const registrationData = {
-        id: result.id,
-        type: 'individual',
-        portal: selectedPortal,
-        ...payload
-      };
-
-      setMsg('✅ Registration successful! Proceeding to tag assignment...');
-      setTimeout(() => {
-        onRegistrationComplete(registrationData);
-      }, 1500);
-
+      setPendingIndividualPayload(payload);
+      setMsg('Please tap RFID card to complete registration.');
+      setCurrentStep('individual-tap');
     } catch (error) {
       setMsg(`❌ Registration failed: ${error.message}`);
     } finally {
@@ -231,9 +215,6 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     let payload = { portal: selectedPortal };
 
     if (batchType === "school") {
-      if (!selectedProvince || !selectedDistrict || !selectedSchool || selectedLanguages.length === 0) {
-        isValid = false;
-      }
       payload = {
         ...payload,
         province: selectedProvince,
@@ -242,18 +223,12 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         lang: selectedLanguages.join(', ')
       };
     } else if (batchType === "university") {
-      if (!selectedUniversity || selectedLanguages.length === 0) {
-        isValid = false;
-      }
       payload = {
         ...payload,
         university: selectedUniversity,
         lang: selectedLanguages.join(', ')
       };
     } else if (batchType === "general") {
-      if (!selectedProvince || !selectedDistrict || selectedLanguages.length === 0) {
-        isValid = false;
-      }
       payload = {
         ...payload,
         province: selectedProvince,
@@ -262,10 +237,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
       };
     }
 
-    if (!isValid) {
-      setMsg("Please fill in all required fields");
-      return;
-    }
+    // Language is now optional
 
     // Move to RFID tap count step instead of asking for manual count
     setPendingBatchPayload(payload);
@@ -279,27 +251,57 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     setBusy(true);
     setMsg('');
     try {
-      let leaderId = pendingBatchPayload?.registrationId || pendingBatchPayload?.id;
-      // If registration not created yet, create it now
-      if (!leaderId) {
-        const payload = { ...pendingBatchPayload, group_size: batchCount + 1 };
+      if (currentStep === 'individual-tap') {
+        // Create registration and assign RFID card as LEADER
         const result = await api('/api/tags/register', {
           method: 'POST',
-          body: payload
+          body: pendingIndividualPayload
         });
-        leaderId = result.id;
-        setPendingBatchPayload(prev => ({ ...prev, registrationId: result.id }));
-      }
-      const res = await api('/api/tags/link', {
-        method: 'POST',
-        body: {
-          portal: selectedPortal,
-          leaderId,
-          asLeader: false
+        await api('/api/tags/link', {
+          method: 'POST',
+          body: {
+            portal: selectedPortal,
+            leaderId: result.id,
+            asLeader: true
+          }
+        });
+        await api('/api/tags/updateCount', {
+          method: 'POST',
+          body: { portal: selectedPortal, count: 1 }
+        });
+        setMsg('✅ Registration and RFID card assignment complete!');
+        setTimeout(() => {
+          onRegistrationComplete({
+            id: result.id,
+            type: 'individual',
+            portal: selectedPortal,
+            ...pendingIndividualPayload
+          });
+        }, 1200);
+      } else {
+        // ...existing code for batch registration...
+        let leaderId = pendingBatchPayload?.registrationId || pendingBatchPayload?.id;
+        if (!leaderId) {
+          const payload = { ...pendingBatchPayload, group_size: 1 };
+          const result = await api('/api/tags/register', {
+            method: 'POST',
+            body: payload
+          });
+          leaderId = result.id;
+          setPendingBatchPayload(prev => ({ ...prev, registrationId: result.id }));
         }
-      });
-      setBatchCount(prev => prev + 1);
-      setMsg(`✅ RFID card assigned: ${res.tagId}`);
+        const isFirstTap = batchCount === 0;
+        const res = await api('/api/tags/link', {
+          method: 'POST',
+          body: {
+            portal: selectedPortal,
+            leaderId,
+            asLeader: isFirstTap
+          }
+        });
+        setBatchCount(prev => prev + 1);
+        setMsg(`✅ RFID card assigned: ${res.tagId}${isFirstTap ? ' (LEADER)' : ''}`);
+      }
     } catch (e) {
       setMsg(`❌ ${e.message}`);
     } finally {
@@ -316,25 +318,25 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     setBusy(true);
     setMsg('');
     try {
-      const payload = { ...pendingBatchPayload, group_size: batchCount };
-      const result = await api('/api/tags/register', {
+      // Update group_size for the existing registration
+      const leaderId = pendingBatchPayload?.registrationId || pendingBatchPayload?.id;
+      await api('/api/tags/updateCount', {
         method: 'POST',
-        body: payload
+        body: { portal: selectedPortal, count: batchCount }
       });
       const registrationData = {
-        id: result.id,
+        id: leaderId,
         type: 'batch',
         portal: selectedPortal,
-        ...payload
+        ...pendingBatchPayload,
+        group_size: batchCount
       };
-      // Store registration ID for RFID assignment
-      setPendingBatchPayload(prev => ({ ...prev, registrationId: result.id }));
-      setMsg('✅ Registration successful! Proceeding to tag assignment...');
+      setMsg('✅ Registration updated! Proceeding to tag assignment...');
       setTimeout(() => {
         onRegistrationComplete(registrationData);
       }, 1200);
     } catch (error) {
-      setMsg(`❌ Registration failed: ${error.message}`);
+      setMsg(`❌ Registration update failed: ${error.message}`);
     } finally {
       setBusy(false);
     }
@@ -655,6 +657,18 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         return renderTypeSelection();
       case 'individual-form':
         return renderIndividualForm();
+      case 'individual-tap':
+        return (
+          <div>
+            <h3>Tap RFID Card</h3>
+            <div style={{ textAlign: 'center', margin: '24px 0' }}>
+              <button className="btn primary" onClick={handleRfidTap} disabled={busy}>Tap RFID Card</button>
+            </div>
+            {msg && (
+              <div className="small mut" style={{ marginTop: 12, textAlign: 'center' }}>{msg}</div>
+            )}
+          </div>
+        );
       case 'batch-form':
         return renderBatchForm();
       case 'batch-count':
