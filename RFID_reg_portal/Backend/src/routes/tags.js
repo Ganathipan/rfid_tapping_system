@@ -301,36 +301,45 @@ let lastProcessedExitout = {};
 
 async function checkAndReleaseOnNewExitout() {
   try {
-    // Get latest EXITOUT/EXIT logs per portal
+    const now = new Date();
+    // For each portal, process all new EXITOUT/EXIT logs since last processed
     const { rows } = await pool.query(`
-      SELECT DISTINCT ON (portal) rfid_card_id, portal, log_time
+      SELECT rfid_card_id, portal, log_time
       FROM logs
       WHERE label IN ('EXITOUT','EXIT')
-      ORDER BY portal, log_time DESC
+      ORDER BY portal, log_time ASC
     `);
 
-    const now = new Date();
+    // Group logs by portal
+    const logsByPortal = {};
     for (const row of rows) {
-      const { rfid_card_id: tagId, portal, log_time } = row;
-      const logDate = new Date(log_time);
-      // Only process if log_time is newer than last processed for this portal
-      // AND the tag was assigned within the last 3 minutes
-      if (
-        (!lastProcessedExitout[portal] || logDate > new Date(lastProcessedExitout[portal])) &&
-        (now - logDate <= 180000)
-      ) {
-        const client = await pool.connect();
-        try {
-          await client.query('BEGIN');
-          await releaseTag(client, tagId, portal);
-          await client.query('COMMIT');
-          lastProcessedExitout[portal] = log_time;
-          console.log(`[EXITOUT watcher] Released tag: ${tagId} from ${portal} at ${log_time}`);
-        } catch (e) {
-          await client.query('ROLLBACK');
-          console.error('[EXITOUT watcher] Error:', e.message || e);
-        } finally {
-          client.release();
+      if (!logsByPortal[row.portal]) logsByPortal[row.portal] = [];
+      logsByPortal[row.portal].push(row);
+    }
+
+    for (const portal in logsByPortal) {
+      for (const row of logsByPortal[portal]) {
+        const { rfid_card_id: tagId, log_time } = row;
+        const logDate = new Date(log_time);
+        // Only process if log_time is newer than last processed for this portal
+        // AND the tag was assigned within the last 3 minutes
+        if (
+          (!lastProcessedExitout[portal] || logDate > new Date(lastProcessedExitout[portal])) &&
+          (now - logDate <= 180000)
+        ) {
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+            await releaseTag(client, tagId, portal);
+            await client.query('COMMIT');
+            lastProcessedExitout[portal] = log_time;
+            console.log(`[EXITOUT watcher] Released tag: ${tagId} from ${portal} at ${log_time}`);
+          } catch (e) {
+            await client.query('ROLLBACK');
+            console.error('[EXITOUT watcher] Error:', e.message || e);
+          } finally {
+            client.release();
+          }
         }
       }
     }
