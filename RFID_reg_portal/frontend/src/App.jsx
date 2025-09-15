@@ -52,14 +52,7 @@ export default function App() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'portal-selection':
-        return (
-          <>
-            <PortalSelection onPortalSelect={handlePortalSelect} />
-            <div style={{ textAlign: 'center', marginTop: 24 }}>
-              <button className="btn" onClick={() => setCurrentView('admin-config')}>Admin Portal Config</button>
-            </div>
-          </>
-        );
+        return <PortalSelection onPortalSelect={handlePortalSelect} />;
 
       case 'registration':
         return (
@@ -151,11 +144,18 @@ export default function App() {
 
   return (
     <>
-      <header>
+      <header style={{ position: 'relative' }}>
         <h1>RFID Registration System</h1>
         <div className="pill">
           <span className="small">Health: {health}</span>
         </div>
+        <button
+          className="btn"
+          onClick={() => setCurrentView('admin-config')}
+          style={{ position: 'absolute', right: 16, top: 16 }}
+        >
+          Admin Game Scoring
+        </button>
         <nav style={{ marginTop: '12px' }}>
           <button onClick={() => setCurrentView('portal-selection')}>
             Portal Selection
