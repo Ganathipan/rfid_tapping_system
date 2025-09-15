@@ -290,16 +290,18 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         leaderId = result.id;
         setPendingBatchPayload(prev => ({ ...prev, registrationId: result.id }));
       }
+      // First tap assigns LEADER, subsequent taps assign MEMBER
+      const isFirstTap = batchCount === 0;
       const res = await api('/api/tags/link', {
         method: 'POST',
         body: {
           portal: selectedPortal,
           leaderId,
-          asLeader: false
+          asLeader: isFirstTap
         }
       });
       setBatchCount(prev => prev + 1);
-      setMsg(`✅ RFID card assigned: ${res.tagId}`);
+      setMsg(`✅ RFID card assigned: ${res.tagId}${isFirstTap ? ' (LEADER)' : ''}`);
     } catch (e) {
       setMsg(`❌ ${e.message}`);
     } finally {
