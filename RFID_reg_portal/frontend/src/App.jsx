@@ -144,29 +144,37 @@ export default function App() {
 
   return (
     <>
-      <header style={{ position: 'relative' }}>
+      <header className="app-header">
         <h1>RFID Registration System</h1>
         <div className="pill">
           <span className="small">Health: {health}</span>
         </div>
         <button
-          className="btn"
+          type="button"
+          className="btn admin-score-btn"
           onClick={() => setCurrentView('admin-config')}
-          style={{ position: 'absolute', right: 16, top: 16 }}
         >
           Admin Game Scoring
         </button>
-        <nav style={{ marginTop: '12px' }}>
-          <button onClick={() => setCurrentView('portal-selection')}>
+        <nav className="header-tabs">
+          <button
+            type="button"
+            className={`btn tab-btn ${currentView === 'portal-selection' ? 'active' : ''}`}
+            onClick={() => setCurrentView('portal-selection')}
+          >
             Portal Selection
           </button>
-          <button onClick={() => setCurrentView('game-portal')}>
+          <button
+            type="button"
+            className={`btn tab-btn ${currentView === 'game-portal' ? 'active' : ''}`}
+            onClick={() => setCurrentView('game-portal')}
+          >
             Game Interface
           </button>
         </nav>
       </header>
 
-      <main style={{ maxWidth: '1100px', margin: '24px auto', padding: '0 16px' }}>
+      <main className="app-main">
         <section className="card">{renderCurrentView()}</section>
       </main>
 

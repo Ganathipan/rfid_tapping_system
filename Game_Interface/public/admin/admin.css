@@ -22,11 +22,102 @@ td.actions { display: flex; gap: 8px; align-items: center; }
 .inp { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: #0d1117; color: var(--fg); }
 .inp:focus { outline: none; border-color: var(--accent); }
 
-.btn { padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #111622; color: var(--fg); cursor: pointer; }
-.btn:hover { border-color: var(--accent); }
-.btn.danger { border-color: var(--danger); color: #fff; }
-.btn.danger:hover { background: #1c0d0d; }
+/* Button style refresh */
+.btn {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(82, 96, 126, 0.6);
+  background-color: #141a27;
+  color: var(--fg);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #1b2334;
+  border-color: rgba(99, 128, 185, 0.75);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  background-color: #151d2b;
+  border-color: rgba(76, 105, 158, 0.75);
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn.danger {
+  border-color: rgba(217, 70, 70, 0.85);
+  background-color: #2a1616;
+  color: #fef2f2;
+}
+
+.btn.danger:hover:not(:disabled) {
+  background-color: #371c1c;
+  border-color: rgba(239, 68, 68, 0.9);
+}
 
 .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
 .out { background:#0d1117; border:1px solid var(--border); border-radius:10px; padding:10px; max-height:180px; overflow:auto; }
 .muted { color: var(--muted); }
+
+@media (max-width: 900px) {
+  header {
+    padding: 16px 12px;
+  }
+
+  main {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  table {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 700px) {
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+  }
+
+  .toolbar .btn {
+    flex: 1 1 140px;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  table thead,
+  table tbody,
+  table tr,
+  table th,
+  table td {
+    display: table;
+    width: 100%;
+  }
+}
