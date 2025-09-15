@@ -282,7 +282,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
       let leaderId = pendingBatchPayload?.registrationId || pendingBatchPayload?.id;
       // If registration not created yet, create it now
       if (!leaderId) {
-        const payload = { ...pendingBatchPayload, group_size: batchCount + 1 };
+        const payload = { ...pendingBatchPayload, group_size: 1 };
         const result = await api('/api/tags/register', {
           method: 'POST',
           body: payload
@@ -316,25 +316,25 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     setBusy(true);
     setMsg('');
     try {
-      const payload = { ...pendingBatchPayload, group_size: batchCount };
-      const result = await api('/api/tags/register', {
+      // Update group_size for the existing registration
+      const leaderId = pendingBatchPayload?.registrationId || pendingBatchPayload?.id;
+      await api('/api/tags/updateCount', {
         method: 'POST',
-        body: payload
+        body: { portal: selectedPortal, count: batchCount }
       });
       const registrationData = {
-        id: result.id,
+        id: leaderId,
         type: 'batch',
         portal: selectedPortal,
-        ...payload
+        ...pendingBatchPayload,
+        group_size: batchCount
       };
-      // Store registration ID for RFID assignment
-      setPendingBatchPayload(prev => ({ ...prev, registrationId: result.id }));
-      setMsg('✅ Registration successful! Proceeding to tag assignment...');
+      setMsg('✅ Registration updated! Proceeding to tag assignment...');
       setTimeout(() => {
         onRegistrationComplete(registrationData);
       }, 1200);
     } catch (error) {
-      setMsg(`❌ Registration failed: ${error.message}`);
+      setMsg(`❌ Registration update failed: ${error.message}`);
     } finally {
       setBusy(false);
     }
