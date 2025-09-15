@@ -4,7 +4,7 @@ import { api } from './api';
 import PortalSelection from './pages/PortalSelection';
 import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
-import GamePortal from './pages/GamePortal';
+import AdminPortalConfig from './pages/AdminPortalConfig';
 
 
 export default function App() {
@@ -52,7 +52,14 @@ export default function App() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'portal-selection':
-        return <PortalSelection onPortalSelect={handlePortalSelect} />;
+        return (
+          <>
+            <PortalSelection onPortalSelect={handlePortalSelect} />
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <button className="btn" onClick={() => setCurrentView('admin-config')}>Admin Portal Config</button>
+            </div>
+          </>
+        );
 
       case 'registration':
         return (
@@ -72,6 +79,9 @@ export default function App() {
             onBack={handleBackToPortalSelection}
           />
         );
+
+      case 'admin-config':
+        return <AdminPortalConfig />;
 
       case 'admin':
         return <AdminDashboard onBack={handleBackToPortalSelection} />;
@@ -131,9 +141,6 @@ export default function App() {
               <option value="Cluster3">Cluster 3</option>
               <option value="Cluster4">Cluster 4</option>
             </select>
-            <div style={{ width: '100%' }}>
-              <GamePortal selectedPortal={selectedPortal} />
-            </div>
           </div>
         );
 
