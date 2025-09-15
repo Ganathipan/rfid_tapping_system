@@ -1,26 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../api";
 
-export default function GamePortal({ selectedPortal, onBack }) {
+export default function GamePortal() {
+  const [selectedCluster, setSelectedCluster] = useState("");
   const [status, setStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [tapCount, setTapCount] = useState(0);
 
   // Poll backend for team score every 2 seconds
   useEffect(() => {
-    if (!selectedPortal) return;
-
+    if (!selectedCluster) return;
     const interval = setInterval(async () => {
       try {
-        const data = await api(`/api/tags/teamScore/${selectedPortal}`);
+        const data = await api(`/api/tags/teamScore/${selectedCluster}`);
         setStatus(data);
       } catch (err) {
         console.error("Error fetching team score:", err);
       }
     }, 2000);
-
     return () => clearInterval(interval);
-  }, [selectedPortal]);
+  }, [selectedCluster]);
 
   // Auto-close modal after 5 seconds when shown
   useEffect(() => {
@@ -30,6 +29,84 @@ export default function GamePortal({ selectedPortal, onBack }) {
     }
   }, [showModal, tapCount]);
 
+  // UI: cluster selection or game interface
+  if (!selectedCluster) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '70vh',
+          background: 'linear-gradient(135deg, #2d3748 0%, #6366f1 100%)',
+          boxShadow: '0 8px 32px rgba(60,60,120,0.12)',
+          borderRadius: '24px',
+          maxWidth: '500px',
+          margin: '40px auto',
+          padding: '48px 32px',
+        }}
+      >
+        <img
+          src={import.meta.env.BASE_URL + 'src/assets/react.svg'}
+          alt="Cluster Selection"
+          style={{
+            width: '120px',
+            height: '120px',
+            objectFit: 'contain',
+            marginBottom: '24px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 16px rgba(60,60,120,0.12)'
+          }}
+        />
+        <h2
+          style={{
+            fontSize: '2.5rem',
+            fontWeight: 700,
+            marginBottom: '16px',
+            color: '#fff',
+            letterSpacing: '0.02em',
+            textShadow: '0 2px 8px rgba(60,60,120,0.08)',
+          }}
+        >
+          Select Cluster
+        </h2>
+        <p style={{ color: '#e0e7ff', fontSize: '1.2rem', marginBottom: '24px' }}>
+          Please choose your cluster to start the game interface!
+        </p>
+        <select
+          id="cluster-select"
+          value={selectedCluster}
+          onChange={e => setSelectedCluster(e.target.value)}
+          style={{
+            padding: '18px 32px',
+            fontSize: '1.5rem',
+            borderRadius: '12px',
+            border: '2px solid #6366f1',
+            background: '#fff',
+            color: '#2d3748',
+            fontWeight: 700,
+            boxShadow: '0 2px 8px rgba(60,60,120,0.08)',
+            marginBottom: '32px',
+            outline: 'none',
+            transition: 'border-color 0.2s',
+            zIndex: 2,
+            position: 'relative',
+          }}
+        >
+          <option value="" disabled>
+            -- Choose Cluster --
+          </option>
+          <option value="Cluster1">Cluster 1</option>
+          <option value="Cluster2">Cluster 2</option>
+          <option value="Cluster3">Cluster 3</option>
+          <option value="Cluster4">Cluster 4</option>
+        </select>
+      </div>
+    );
+  }
+
+  // ...existing game interface and modal code...
   return (
     <div
       style={{
@@ -44,8 +121,8 @@ export default function GamePortal({ selectedPortal, onBack }) {
         position: "relative",
       }}
     >
-  {/* Modal popup for eligibility */}
-  {status && showModal && (
+      {/* Modal popup for eligibility */}
+      {status && showModal && (
         <div
           style={{
             position: "absolute",
@@ -155,7 +232,7 @@ export default function GamePortal({ selectedPortal, onBack }) {
             fontWeight: 500,
             cursor: "pointer",
           }}
-          onClick={onBack}
+          onClick={() => setSelectedCluster("")}
         >
           Back
         </button>

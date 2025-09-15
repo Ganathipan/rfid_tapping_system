@@ -77,67 +77,7 @@ export default function App() {
         return <AdminDashboard onBack={handleBackToPortalSelection} />;
 
       case 'game-portal':
-        return (
-          !selectedPortal ? (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '70vh',
-                background: 'linear-gradient(135deg, #2d3748 0%, #2d3748 100%)',
-                boxShadow: '0 8px 32px rgba(60,60,120,0.12)',
-                borderRadius: '24px',
-                maxWidth: '500px',
-                margin: '40px auto',
-                padding: '48px 32px',
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: '2.5rem',
-                  fontWeight: 700,
-                  marginBottom: '32px',
-                  color: '#2d3748',
-                  letterSpacing: '0.02em',
-                  textShadow: '0 2px 8px rgba(60,60,120,0.08)',
-                }}
-              >
-                Select Cluster
-              </h2>
-              <select
-                id="cluster-select"
-                value={selectedPortal}
-                onChange={e => setSelectedPortal(e.target.value)}
-                style={{
-                  padding: '18px 32px',
-                  fontSize: '1.5rem',
-                  borderRadius: '12px',
-                  border: '2px solid #2d3748',
-                  background: '#fff',
-                  color: '#2d3748',
-                  fontWeight: 500,
-                  boxShadow: '0 2px 8px rgba(60,60,120,0.08)',
-                  marginBottom: '32px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-              >
-                <option value="" disabled>
-                  -- Choose Cluster --
-                </option>
-                <option value="Cluster1">Cluster 1</option>
-                <option value="Cluster2">Cluster 2</option>
-                <option value="Cluster3">Cluster 3</option>
-                <option value="Cluster4">Cluster 4</option>
-              </select>
-            </div>
-          ) : (
-            <GamePortal selectedPortal={selectedPortal} onBack={() => setSelectedPortal("")} />
-          )
-        );
-
+        return <GamePortal />;
       default:
         return <PortalSelection onPortalSelect={handlePortalSelect} />;
     }
