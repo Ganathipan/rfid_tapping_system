@@ -4,11 +4,12 @@ import { api } from './api';
 import PortalSelection from './pages/PortalSelection';
 import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
+import GamePortal from '../../Game_Interface/frontend/src/pages/GamePortal';
 // AdminDashboard is navigated from RegistrationFlow when chosen
 
 export default function App() {
   const [health, setHealth] = useState('checking…');
-  const [currentView, setCurrentView] = useState('portal-selection'); // portal-selection, registration, tag-assignment, admin
+  const [currentView, setCurrentView] = useState('portal-selection'); // portal-selection, registration, tag-assignment, admin, game-portal
   const [selectedPortal, setSelectedPortal] = useState(localStorage.getItem('portal') || '');
   const [registrationData, setRegistrationData] = useState(null);
 
@@ -75,6 +76,8 @@ export default function App() {
         );
       case 'admin':
         return <AdminDashboard onBack={handleBackToPortalSelection} />;
+      case 'game-portal':
+        return <GamePortal />;
       default:
         return <PortalSelection onPortalSelect={handlePortalSelect} />;
     }
@@ -87,6 +90,10 @@ export default function App() {
         <div className="pill">
           <span className="small">Health: {health}</span>
         </div>
+        <nav style={{ marginTop: '12px' }}>
+          <button onClick={() => setCurrentView('portal-selection')}>Portal Selection</button>
+          <button onClick={() => setCurrentView('game-portal')}>Game Interface</button>
+        </nav>
       </header>
 
       <main style={{ maxWidth: '1100px', margin: '24px auto', padding: '0 16px' }}>
