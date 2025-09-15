@@ -181,8 +181,8 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   const handleIndividualSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedProvince || !selectedDistrict || !ageRange || !sex || !language) {
-      setMsg("Please fill in all required fields");
+    if (!language) {
+      setMsg("Please select a language");
       return;
     }
 
@@ -231,9 +231,6 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     let payload = { portal: selectedPortal };
 
     if (batchType === "school") {
-      if (!selectedProvince || !selectedDistrict || !selectedSchool || selectedLanguages.length === 0) {
-        isValid = false;
-      }
       payload = {
         ...payload,
         province: selectedProvince,
@@ -242,18 +239,12 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         lang: selectedLanguages.join(', ')
       };
     } else if (batchType === "university") {
-      if (!selectedUniversity || selectedLanguages.length === 0) {
-        isValid = false;
-      }
       payload = {
         ...payload,
         university: selectedUniversity,
         lang: selectedLanguages.join(', ')
       };
     } else if (batchType === "general") {
-      if (!selectedProvince || !selectedDistrict || selectedLanguages.length === 0) {
-        isValid = false;
-      }
       payload = {
         ...payload,
         province: selectedProvince,
@@ -262,8 +253,8 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
       };
     }
 
-    if (!isValid) {
-      setMsg("Please fill in all required fields");
+    if (selectedLanguages.length === 0) {
+      setMsg("Please select at least one language");
       return;
     }
 
