@@ -60,15 +60,14 @@ export default function TagAssignment({ registrationData, selectedPortal, onComp
     <div>
       <h3 style={{ marginTop: 0 }}>RFID Tag Assignment</h3>
 
-      <div className="row" style={{ marginTop: 10 }}>
-        <button className="btn primary" onClick={submitAndAssign} disabled={busy}>
-          {busy ? 'Assigning…' : 'Submit & Assign'}
-        </button>
+  <div className="row" style={{ marginTop: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <button className="btn" onClick={confirmAndExit} disabled={busy}>Confirm and Exit</button>
       </div>
 
       <div style={{ marginTop: 10 }}>
-        <button className="btn" onClick={startNewRegistration} disabled={busy}>Start New Registration</button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+          <button className="btn" onClick={startNewRegistration} disabled={busy}>Start New Registration</button>
+        </div>
       </div>
 
       <div className="small mut" style={{ marginTop: 10 }}>{msg}</div>
