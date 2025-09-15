@@ -7,6 +7,33 @@ const pool = require('../db/pool');
 const rfidHardwareRouter = require('./rfidHardware');
 router.use(rfidHardwareRouter);
 
+// ===================================================================
+// GET /api/tags/status/:rfid
+// Returns total points and eligibility for Lego game
+// ===================================================================
+router.get('/status/:rfid', async (req, res) => {
+  const { rfid } = req.params;
+  const threshold = 3; // change as needed
+
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(DISTINCT portal) AS points
+         FROM logs
+        WHERE rfid_card_id = $1
+          AND label LIKE 'CLUSTER%'`,
+      [rfid]
+    );
+
+    const points = parseInt(result.rows[0].points, 10) || 0;
+    const eligible = points >= threshold;
+
+    res.status(200).json({ rfid, points, eligible });
+  } catch (e) {
+    console.error('[status API error]', e);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 module.exports = router;
 
 // ===================================================================
