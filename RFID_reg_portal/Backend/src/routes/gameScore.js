@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
+const { getWeightedClusterScore } = require('../services/scoring');
+
 // ===================================================================
 // GET /api/tags/teamScore/:portal
 // Returns the team score based on the last tap at this portal
+// Uses weighted clusters defined in the admin portal configuration
 // ===================================================================
 router.get('/teamScore/:portal', async (req, res) => {
   const { portal } = req.params;
-  const threshold = 3; // points needed for eligibility
 
   try {
     // Find the last tap at this portal
@@ -47,19 +49,28 @@ router.get('/teamScore/:portal', async (req, res) => {
     );
     const memberIds = membersRes.rows.map(r => r.rfid_card_id);
 
-    // Calculate score = number of distinct clusters visited by team
-    const pointsRes = await pool.query(
-      `SELECT COUNT(DISTINCT portal) AS points
+    // Calculate weighted score based on distinct clusters visited by team
+    const clustersRes = await pool.query(
+      `SELECT DISTINCT label
          FROM logs
         WHERE rfid_card_id = ANY($1)
           AND label LIKE 'CLUSTER%'`,
       [memberIds]
     );
 
-    const points = parseInt(pointsRes.rows[0].points, 10) || 0;
+    const uniqueClusters = Array.from(new Set(clustersRes.rows.map(r => r.label)));
+    const { points, breakdown, threshold } = getWeightedClusterScore(uniqueClusters);
     const eligible = points >= threshold;
 
-    res.json({ portal, teamId, points, eligible, lastTap: rows[0].log_time });
+    res.json({
+      portal,
+      teamId,
+      points,
+      eligible,
+      threshold,
+      lastTap: rows[0].log_time,
+      breakdown
+    });
   } catch (e) {
     console.error("[teamScore API error]", e);
     res.status(500).json({ error: "Database error" });

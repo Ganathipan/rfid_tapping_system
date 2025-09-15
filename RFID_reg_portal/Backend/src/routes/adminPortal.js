@@ -1,27 +1,25 @@
 const express = require('express');
 const router = express.Router();
 
-// In-memory storage for admin portals
-let portals = [];
-let nextId = 1;
+const {
+  addPortalConfig,
+  getPortals
+} = require('../store/adminConfigStore');
 
-// Get all admin portals
-router.get('/portals', (req, res) => {
-  res.json(portals);
+// Get all admin portal configurations
+router.get('/portals', (_req, res) => {
+  res.json(getPortals());
 });
 
-// Add/update portal config
+// Add/update portal config with weighted clusters
 router.post('/portal-config', (req, res) => {
-  const { clusters, exhibits, threshold } = req.body;
-  const portal = {
-    id: nextId++,
-    name: `Admin Portal ${Date.now()}`,
-    clusters,
-    exhibits,
-    threshold
-  };
-  portals.push(portal);
-  res.json(portal);
+  try {
+    const portal = addPortalConfig(req.body || {});
+    res.json(portal);
+  } catch (err) {
+    console.error('[adminPortal] Failed to save config', err);
+    res.status(400).json({ error: err.message || 'Invalid configuration payload' });
+  }
 });
 
 module.exports = router;
