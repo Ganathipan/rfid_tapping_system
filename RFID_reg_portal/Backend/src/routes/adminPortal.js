@@ -1,89 +1,87 @@
 const express = require('express');
 const router = express.Router();
 const { adminUser } = require('../adminLogin');
+const {
+  addPortalConfig,
+  getPortals
+} = require('../store/adminConfigStore');
 
-// In-memory storage for admin portals
-let portals = [];
-let nextId = 1;
-
-// Helpers
-function toNumber(n) {
-  if (n === null || n === undefined || n === '') return NaN;
-  const num = typeof n === 'number' ? n : Number(n);
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return NaN;
+  const num = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(num) ? num : NaN;
 }
 
-function toInt(n) {
-  const num = toNumber(n);
+function toInt(value) {
+  const num = toNumber(value);
   return Number.isFinite(num) ? Math.trunc(num) : NaN;
 }
 
-function validatePortalConfig(body) {
+function normalizeClusterForStore(cluster, index) {
+  const name = (cluster && typeof cluster.name === 'string') ? cluster.name.trim() : '';
+  const label = name || `Cluster ${index + 1}`;
+  const points = toNumber(cluster && cluster.points);
+  const selected = !!(cluster && cluster.selected);
+
+  return {
+    name: label,
+    label,
+    points: Number.isFinite(points) && points >= 0 ? points : 0,
+    selected
+  };
+}
+
+function validateAndNormalizeConfig(body) {
   const errors = [];
 
-  // clusters
+  const groupSize = toInt(body.groupSize);
+  if (!Number.isFinite(groupSize) || groupSize < 0) {
+    errors.push({ field: 'groupSize', message: 'groupSize must be a non-negative integer' });
+  }
+
   if (!Array.isArray(body.clusters)) {
     errors.push({ field: 'clusters', message: 'clusters must be an array' });
   }
 
-  // groupSize
-  const groupSizeInt = toInt(body.groupSize);
-  if (!Number.isFinite(groupSizeInt) || groupSizeInt < 0) {
-    errors.push({ field: 'groupSize', message: 'groupSize must be a non-negative integer' });
-  }
+  const normalizedClusters = Array.isArray(body.clusters)
+    ? body.clusters.map(normalizeClusterForStore)
+    : [];
 
-  // exhibits removed from feature set
+  normalizedClusters.forEach((cluster, index) => {
+    if (!cluster.name) {
+      errors.push({ field: `clusters[${index}].name`, message: 'name is required' });
+    }
+    if (!Number.isFinite(cluster.points) || cluster.points < 0) {
+      errors.push({ field: `clusters[${index}].points`, message: 'points must be a non-negative number' });
+    }
+  });
 
-  let sanitizedClusters = [];
-  let selectedPointsTotal = 0;
+  const selectedPointsTotal = normalizedClusters.reduce((sum, cluster) => (
+    cluster.selected ? sum + (Number.isFinite(cluster.points) ? cluster.points : 0) : sum
+  ), 0);
 
-  if (Array.isArray(body.clusters)) {
-    sanitizedClusters = body.clusters.map((c, idx) => {
-      const name = (c && typeof c.name === 'string') ? c.name.trim() : '';
-      const points = toNumber(c && c.points);
-      const selected = !!(c && c.selected);
-
-      if (!name) {
-        errors.push({ field: `clusters[${idx}].name`, message: 'name is required' });
-      }
-      if (!Number.isFinite(points) || points < 0) {
-        errors.push({ field: `clusters[${idx}].points`, message: 'points must be a non-negative number' });
-      }
-
-      if (selected && Number.isFinite(points)) {
-        selectedPointsTotal += points;
-      }
-
-      return { name, points: Number.isFinite(points) ? points : 0, selected };
-    });
-  }
-
-  // Compute authoritative threshold
-  const computedThreshold = Number.isFinite(groupSizeInt)
-    ? groupSizeInt * selectedPointsTotal
+  const computedThreshold = Number.isFinite(groupSize)
+    ? groupSize * selectedPointsTotal
     : NaN;
 
-  // Threshold (client-provided) is ignored; we compute it
   if (!Number.isFinite(computedThreshold)) {
     errors.push({ field: 'threshold', message: 'threshold could not be computed from inputs' });
   }
 
   return {
     errors,
-    sanitized: {
-      clusters: sanitizedClusters,
-      groupSize: groupSizeInt,
+    normalized: {
+      groupSize,
       threshold: computedThreshold,
-    },
+      clusters: normalizedClusters
+    }
   };
 }
 
-// Get all admin portals (limited to one)
-router.get('/portals', (req, res) => {
-  res.json(portals.slice(0, 1));
+router.get('/portals', (_req, res) => {
+  res.json(getPortals());
 });
 
-// Simple login endpoint
 router.post('/login', (req, res) => {
   const { username, password } = req.body || {};
   if (username === adminUser.username && password === adminUser.password) {
@@ -92,26 +90,28 @@ router.post('/login', (req, res) => {
   return res.status(401).json({ message: 'Invalid credentials' });
 });
 
-// Add/update portal config with weighted clusters
 router.post('/portal-config', (req, res) => {
-  const { errors, sanitized } = validatePortalConfig(req.body || {});
+  const { errors, normalized } = validateAndNormalizeConfig(req.body || {});
 
   if (errors.length) {
     return res.status(400).json({ message: 'Invalid portal config', errors });
   }
 
-  const portal = {
-    id: portals.length ? portals[0].id : nextId++,
-    name: `Admin Portal ${Date.now()}`,
-    ...sanitized,
-  };
-  // keep only one admin portal; replace if exists
-  if (portals.length) {
-    portals[0] = portal;
-  } else {
-    portals = [portal];
+  try {
+    const portal = addPortalConfig({
+      name: `Admin Portal ${Date.now()}`,
+      groupSize: normalized.groupSize,
+      exhibits: normalized.groupSize,
+      threshold: normalized.threshold,
+      clusters: normalized.clusters,
+      clusterPoints: normalized.clusters
+    });
+
+    res.json(portal);
+  } catch (err) {
+    console.error('[adminPortal] Failed to save config', err);
+    res.status(500).json({ message: 'Failed to save config' });
   }
-  res.json(portal);
 });
 
 module.exports = router;

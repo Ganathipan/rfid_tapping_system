@@ -3,12 +3,12 @@ const {
   normalizeClusterKey
 } = require('../store/adminConfigStore');
 
-function buildClusterPointsMap(clusterPointsConfig) {
+function buildClusterPointsMap(entries) {
   const map = new Map();
 
-  for (const entry of clusterPointsConfig) {
+  for (const entry of entries) {
     if (!entry) continue;
-    const keySource = entry.key ? entry.key : entry.label;
+    const keySource = entry.key ? entry.key : entry.label ?? entry.name;
     const key = normalizeClusterKey(keySource);
     const points = Number(entry.points);
 
@@ -19,22 +19,44 @@ function buildClusterPointsMap(clusterPointsConfig) {
   return map;
 }
 
-function getWeightedClusterScore(labels = []) {
-  const activeConfig = getLatestPortalConfig();
-  const threshold = Number(activeConfig?.threshold) || 3;
-  const clusterPointsConfig = Array.isArray(activeConfig?.clusterPoints)
-    ? activeConfig.clusterPoints
+function selectClusterEntries(activeConfig) {
+  if (!activeConfig) return [];
+
+  const fromClusterPoints = Array.isArray(activeConfig.clusterPoints)
+    ? activeConfig.clusterPoints.filter(Boolean)
     : [];
 
-  const uniqueLabels = Array.from(new Set(labels.filter(Boolean)));
-
-  if (clusterPointsConfig.length === 0) {
-    const points = uniqueLabels.length;
-    const breakdown = uniqueLabels.map(label => ({ label, points: 1, source: 'default' }));
-    return { points, breakdown, threshold, configApplied: false };
+  if (fromClusterPoints.length > 0) {
+    return fromClusterPoints;
   }
 
-  const clusterPointsMap = buildClusterPointsMap(clusterPointsConfig);
+  if (Array.isArray(activeConfig.clusters)) {
+    return activeConfig.clusters
+      .filter(entry => entry && entry.selected !== false)
+      .map(entry => ({
+        label: entry.label ?? entry.name ?? entry.cluster,
+        points: entry.points
+      }));
+  }
+
+  return [];
+}
+
+function getWeightedClusterScore(labels = []) {
+  const activeConfig = getLatestPortalConfig();
+  const threshold = Number(activeConfig?.threshold);
+  const normalizedThreshold = Number.isFinite(threshold) && threshold > 0 ? threshold : 3;
+
+  const clusterEntries = selectClusterEntries(activeConfig);
+  const uniqueLabels = Array.from(new Set(labels.filter(Boolean)));
+
+  if (clusterEntries.length === 0) {
+    const points = uniqueLabels.length;
+    const breakdown = uniqueLabels.map(label => ({ label, points: 1, source: 'default' }));
+    return { points, breakdown, threshold: normalizedThreshold, configApplied: false };
+  }
+
+  const clusterPointsMap = buildClusterPointsMap(clusterEntries);
   let points = 0;
   const breakdown = [];
 
@@ -53,7 +75,7 @@ function getWeightedClusterScore(labels = []) {
   return {
     points,
     breakdown,
-    threshold,
+    threshold: normalizedThreshold,
     configApplied: clusterPointsMap.size > 0
   };
 }

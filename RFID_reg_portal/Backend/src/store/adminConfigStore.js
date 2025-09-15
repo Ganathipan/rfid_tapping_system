@@ -16,6 +16,12 @@ function toNumber(value, fallback = 0) {
 function normalizeClusterEntry(entry, index = 0) {
   if (entry == null) return null;
 
+  if (typeof entry === 'object') {
+    if (Object.prototype.hasOwnProperty.call(entry, 'selected') && entry.selected === false) {
+      return null;
+    }
+  }
+
   if (typeof entry === 'string') {
     const trimmed = entry.trim();
     if (!trimmed) return null;
@@ -48,7 +54,7 @@ function normalizeClusterEntry(entry, index = 0) {
       entry.id ??
       entry.cluster ??
       entry.clusterId ??
-      ''
+      `Cluster ${index + 1}`
     ).trim();
 
     if (!label) return null;
@@ -114,11 +120,55 @@ function parseClusterPoints(rawClusters) {
   return [];
 }
 
+function buildClusterList(rawClusters, clusterPoints) {
+  if (Array.isArray(rawClusters)) {
+    const pointsLookup = new Map(clusterPoints.map(entry => [entry.key, entry.points]));
+
+    return rawClusters.map((entry, index) => {
+      const name = String(
+        entry?.name ??
+        entry?.label ??
+        entry?.cluster ??
+        `Cluster ${index + 1}`
+      ).trim() || `Cluster ${index + 1}`;
+
+      const key = normalizeClusterKey(name);
+      const points = Number(
+        entry?.points ??
+        entry?.value ??
+        entry?.weight ??
+        entry?.score ??
+        pointsLookup.get(key)
+      );
+
+      const hasExplicitSelection = Object.prototype.hasOwnProperty.call(entry, 'selected');
+      const selected = hasExplicitSelection ? Boolean(entry.selected) : pointsLookup.has(key);
+
+      return {
+        name,
+        label: name,
+        points: Number.isFinite(points) ? points : 0,
+        selected
+      };
+    });
+  }
+
+  return clusterPoints.map((entry, index) => ({
+    name: entry.label || `Cluster ${index + 1}`,
+    label: entry.label || `Cluster ${index + 1}`,
+    points: entry.points,
+    selected: true
+  }));
+}
+
 function clonePortal(portal) {
   if (!portal) return null;
   return {
     ...portal,
-    clusterPoints: portal.clusterPoints.map(entry => ({ ...entry }))
+    clusterPoints: portal.clusterPoints.map(entry => ({ ...entry })),
+    clusters: Array.isArray(portal.clusters)
+      ? portal.clusters.map(entry => ({ ...entry }))
+      : portal.clusters
   };
 }
 
@@ -126,16 +176,20 @@ function addPortalConfig(rawConfig = {}) {
   const {
     name,
     exhibits,
+    groupSize,
     threshold,
-    clusterPoints
+    clusterPoints,
+    clusters
   } = normalizePortalConfig(rawConfig);
 
   const portal = {
     id: nextId++,
     name,
     exhibits,
+    groupSize,
     threshold,
-    clusters: clusterPoints.length,
+    clusterCount: clusterPoints.length,
+    clusters,
     clusterPoints,
     createdAt: new Date().toISOString()
   };
@@ -146,16 +200,21 @@ function addPortalConfig(rawConfig = {}) {
 }
 
 function normalizePortalConfig(rawConfig) {
-  const clusterPoints = parseClusterPoints(rawConfig.clusterPoints ?? rawConfig.clusters);
-  const exhibits = toNumber(rawConfig.exhibits, 0);
+  const rawClustersInput = rawConfig.clusterPoints ?? rawConfig.clusters;
+  const clusterPoints = parseClusterPoints(rawClustersInput);
+  const exhibits = toNumber(rawConfig.exhibits ?? rawConfig.groupSize, 0);
+  const groupSize = toNumber(rawConfig.groupSize ?? rawConfig.exhibits, exhibits);
   const threshold = toNumber(rawConfig.threshold, 0);
   const name = rawConfig.name ? String(rawConfig.name) : `Admin Portal ${Date.now()}`;
+  const clusters = buildClusterList(rawClustersInput, clusterPoints);
 
   return {
     name,
     exhibits,
+    groupSize,
     threshold,
-    clusterPoints
+    clusterPoints,
+    clusters
   };
 }
 
