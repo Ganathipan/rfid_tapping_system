@@ -16,7 +16,8 @@ app.get('/health', (_req, res) =>
 // mount main router
 app.use('/api/tags', tagsRouter);
 
+const host = '192.168.8.2';
 const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`✅ RFID backend listening on http://localhost:${port}`);
+app.listen(port, host, () => {
+  console.log(`✅ RFID backend listening on http://${host}:${port}`);
 });
