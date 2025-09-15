@@ -124,17 +124,16 @@ export default function RegistrationForm() {
         Tags assigned: <span style={{ color: 'blue' }}>{count}</span>
       </div>
 
-      <div className="row" style={{ marginTop: 10 }}>
-  <button className="btn primary" onClick={registerAndLink} disabled={busy || !name.trim()}>
-    {msg.startsWith('❌') ? 'Retry Linking' : 'Submit & Assign Tag'}
-  </button>
+  <div className="row" style={{ marginTop: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <button className="btn" onClick={confirmAndExit} disabled={busy || count === 0} style={{ marginLeft: 10 }}>
           Confirm and Exit
         </button>
       </div>
       {pendingLeaderId && (
         <div className="right">
-          <button className="btn" onClick={resetForm} disabled={busy}>Start New Registration</button>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+            <button className="btn" onClick={resetForm} disabled={busy}>Start New Registration</button>
+          </div>
         </div>
       )}
 

@@ -33,7 +33,9 @@ export default function MemberAssignment({ portal, leaderId, memberCount, onDone
           {errors.map((err, i) => <li key={i} style={{ color: 'red' }}>{err}</li>)}
         </ul>
         <div className="row" style={{ marginTop: 10 }}>
-          <button className="btn primary" onClick={onDone}>Back to Home</button>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+            <button className="btn primary" onClick={onDone}>Back to Home</button>
+          </div>
         </div>
       </div>
     );
@@ -43,9 +45,11 @@ export default function MemberAssignment({ portal, leaderId, memberCount, onDone
     <div>
       <h3>Assign RFID Tag to Member {assigned + 1} of {memberCount}</h3>
       <div className="row" style={{ marginTop: 10 }}>
-        <button className="btn primary" onClick={assignMemberTag} disabled={busy}>
-          Assign Tag
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+          <button className="btn primary" onClick={assignMemberTag} disabled={busy}>
+            Assign Tag
+          </button>
+        </div>
       </div>
       <div className="small mut" style={{ marginTop: 10 }}>{msg}</div>
       <div className="hr" />
