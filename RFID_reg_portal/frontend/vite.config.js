@@ -5,8 +5,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',     // 👈 expose to LAN so phone can connect
+    port: 5173,          // optional, default 5173
     proxy: {
-      '/api': 'http://localhost:4000',
+      '/api': 'http://192.168.8.3:4000', // backend address
     },
   },
 })

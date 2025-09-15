@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://192.168.8.3:4000';
 
 export async function api(path, opts = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path.startsWith('/') ? path : '/' + path}`;
@@ -14,3 +14,8 @@ export async function api(path, opts = {}) {
   }
   return data;
 }
+
+export async function getStatus(rfid) {
+  return api(`/tags/status/${rfid}`);
+}
+
