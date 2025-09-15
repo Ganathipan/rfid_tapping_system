@@ -14,3 +14,9 @@ export async function api(path, opts = {}) {
   }
   return data;
 }
+
+export async function getStatus(rfid) {
+  if (!rfid) throw new Error("RFID is required");
+  return api(`/tags/status/${rfid}`);
+}
+
