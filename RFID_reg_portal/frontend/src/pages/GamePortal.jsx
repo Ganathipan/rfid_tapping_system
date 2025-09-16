@@ -1,265 +1,208 @@
-import React, { useEffect, useState } from "react";
-import { api } from "../api";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { api } from '../api';
+
+const FALLBACK_CLUSTERS = [
+  { key: 'cluster1', label: 'Cluster 1' },
+  { key: 'cluster2', label: 'Cluster 2' },
+  { key: 'cluster3', label: 'Cluster 3' },
+  { key: 'cluster4', label: 'Cluster 4' }
+];
+
+function normalizeKey(value = '') {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
 
 export default function GamePortal() {
-  const [selectedCluster, setSelectedCluster] = useState("");
+  const [clusterOptions, setClusterOptions] = useState(FALLBACK_CLUSTERS);
+  const [selectedCluster, setSelectedCluster] = useState('');
   const [status, setStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [lastTap, setLastTap] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const lastTapRef = useRef(null);
+  const lastSignatureRef = useRef(null);
 
-  // Poll backend for team score every 2 seconds
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadConfig() {
+      try {
+        const portals = await api('/api/admin/portals');
+        if (cancelled) return;
+        const config = portals[0];
+        if (!config) {
+          setClusterOptions(FALLBACK_CLUSTERS);
+          return;
+        }
+
+        const source = Array.isArray(config.clusters) && config.clusters.length
+          ? config.clusters
+          : Array.isArray(config.clusterPoints)
+            ? config.clusterPoints
+            : [];
+
+        const mapped = source
+          .filter(item => item && item.selected !== false)
+          .map((item, index) => {
+            const label = item.label || item.name || item.cluster || `Cluster ${index + 1}`;
+            const key = (item.key && String(item.key)) || normalizeKey(label);
+            return key ? { key, label, name: item.name || label } : null;
+          })
+          .filter(Boolean);
+
+        setClusterOptions(mapped.length ? mapped : FALLBACK_CLUSTERS);
+        setLoadError('');
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[GamePortal] Failed to load clusters', err);
+          setClusterOptions(FALLBACK_CLUSTERS);
+          setLoadError('Unable to load clusters from admin config. Using defaults.');
+        }
+      }
+    }
+
+    loadConfig();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    lastTapRef.current = null;
+    lastSignatureRef.current = null;
+    setStatus(null);
+    setShowModal(false);
     if (!selectedCluster) return;
-    const interval = setInterval(async () => {
+
+    let cancelled = false;
+
+    const fetchScore = async () => {
       try {
         const data = await api(`/api/tags/teamScore/${selectedCluster}`);
+        if (cancelled) return;
         setStatus(data);
-        // Show popup only when a new tap is detected
-        if (data.lastTap && data.lastTap !== lastTap) {
-          setShowModal(true);
-          setLastTap(data.lastTap);
+
+        const signature = JSON.stringify({
+          lastTap: data.lastTap || null,
+          eligible: data.eligible,
+          points: data.points,
+          message: data.message || null,
+          error: data.error || null
+        });
+
+        const newTap = data.lastTap && data.lastTap !== lastTapRef.current;
+        const newState = signature !== lastSignatureRef.current;
+
+        if (newTap || newState) {
+          lastTapRef.current = data.lastTap || lastTapRef.current;
+          lastSignatureRef.current = signature;
+          if (data.error || data.message || typeof data.eligible === 'boolean') {
+            setShowModal(true);
+          }
         }
       } catch (err) {
-        console.error("Error fetching team score:", err);
+        if (!cancelled) {
+          console.error('[GamePortal] teamScore fetch failed', err);
+        }
       }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [selectedCluster, lastTap]);
+    };
 
-  // Auto-close modal after 5 seconds when shown
+    fetchScore();
+    const interval = setInterval(fetchScore, 2000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [selectedCluster]);
+
   useEffect(() => {
-    if (showModal) {
-      const timer = setTimeout(() => setShowModal(false), 5000);
-      return () => clearTimeout(timer);
-    }
+    if (!showModal) return;
+    const timer = setTimeout(() => setShowModal(false), 5000);
+    return () => clearTimeout(timer);
   }, [showModal]);
 
-  // UI: cluster selection or game interface
+  const optionsToRender = useMemo(() => (
+    clusterOptions.length ? clusterOptions : FALLBACK_CLUSTERS
+  ), [clusterOptions]);
+
+  const currentCluster = clusterOptions.find(opt => opt.key === selectedCluster);
+  const currentClusterLabel = currentCluster?.name || currentCluster?.label || selectedCluster;
+
   if (!selectedCluster) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #6366f1 0%, #2d3748 100%)',
-          boxShadow: '0 8px 32px rgba(60,60,120,0.12)',
-          borderRadius: '24px',
-          maxWidth: '100vw',
-          margin: '0 auto',
-          padding: '32px 8vw',
-        }}
-      >
-        <img
-          src={import.meta.env.BASE_URL + 'src/assets/react.svg'}
-          alt="Cluster Selection"
-          style={{
-            width: '90px',
-            height: '90px',
-            objectFit: 'contain',
-            marginBottom: '18px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 16px rgba(60,60,120,0.12)'
-          }}
-        />
-        <h2
-          style={{
-            fontSize: '2rem',
-            fontWeight: 700,
-            marginBottom: '12px',
-            color: '#fff',
-            letterSpacing: '0.02em',
-            textShadow: '0 2px 8px rgba(60,60,120,0.08)',
-          }}
-        >
-          Select Cluster
-        </h2>
-        <p style={{ color: '#e0e7ff', fontSize: '1rem', marginBottom: '18px', textAlign: 'center' }}>
-          Please choose your cluster to start the game interface!
+      <div style={{ padding: '32px', textAlign: 'center' }}>
+        <h2 style={{ marginBottom: '12px' }}>Select Cluster</h2>
+        <p style={{ marginBottom: '16px' }}>
+          Choose the cluster that matches the RFID reader.
         </p>
+        {loadError && (
+          <div style={{ marginBottom: '12px', color: '#c53030', fontWeight: 600 }}>{loadError}</div>
+        )}
         <select
           id="cluster-select"
           value={selectedCluster}
-          onChange={e => setSelectedCluster(e.target.value)}
-          style={{
-            padding: '14px 18px',
-            fontSize: '1.1rem',
-            borderRadius: '10px',
-            border: '2px solid #6366f1',
-            background: '#fff',
-            color: '#2d3748',
-            fontWeight: 700,
-            boxShadow: '0 2px 8px rgba(60,60,120,0.08)',
-            marginBottom: '24px',
-            outline: 'none',
-            transition: 'border-color 0.2s',
-            zIndex: 2,
-            position: 'relative',
-            width: '100%',
-            maxWidth: '320px',
-          }}
+          onChange={(e) => setSelectedCluster(e.target.value)}
+          style={{ padding: '12px 16px', fontSize: '1rem', width: '100%', maxWidth: '320px' }}
         >
           <option value="" disabled>
             -- Choose Cluster --
           </option>
-          <option value="Cluster1">Cluster 1</option>
-          <option value="Cluster2">Cluster 2</option>
-          <option value="Cluster3">Cluster 3</option>
-          <option value="Cluster4">Cluster 4</option>
+          {optionsToRender.map(option => (
+            <option key={option.key} value={option.key}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </div>
     );
   }
 
-  // ...existing game interface and modal code...
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#fff",
-        fontSize: "2rem",
-        color: "#2d3748",
-        flexDirection: "column",
-        position: "relative",
-        padding: "0 4vw",
-      }}
-    >
-      {/* Modal popup for eligibility */}
-      {status && showModal && (
+    <div style={{ padding: '32px', textAlign: 'center' }}>
+      {showModal && status && (
         <div
           style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            background: "#f9fafb",
-            borderRadius: "18px",
-            boxShadow: "0 8px 32px rgba(60,60,120,0.18)",
-            padding: "32px 18px",
-            minWidth: "260px",
-            maxWidth: "90vw",
-            zIndex: 10,
-            textAlign: "center",
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: '#fff',
+            border: '1px solid #cbd5f5',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            padding: '24px',
+            minWidth: '260px',
+            maxWidth: '90vw',
+            zIndex: 10
           }}
         >
           {status.error ? (
-            <p style={{ fontSize: "1.5rem", color: "#e53e3e" }}>⚠️ {status.error}</p>
+            <p style={{ color: '#c53030', fontWeight: 600 }}>Server error: {status.error}</p>
+          ) : status.message ? (
+            <p>{status.message}</p>
           ) : status.eligible ? (
-            <>
-              <div style={{ fontSize: "2.2rem" }}>🎉✅</div>
-              <h3 style={{ fontWeight: 700, fontSize: "1.3rem", margin: "12px 0 8px" }}>
-                Eligible to play!
-              </h3>
-              <p style={{ fontSize: "1.1rem", marginBottom: "10px" }}>
-                You have earned{" "}
-                <span style={{ fontWeight: 700 }}>{status.points || 0}</span> points! 🏅
-              </p>
-              <p style={{ fontSize: "1rem", color: "#4a5568" }}>
-                Good luck and have fun! 😊
-              </p>
-            </>
+            <p style={{ fontWeight: 600 }}>Team is eligible to play!</p>
           ) : (
-            <>
-              <div style={{ fontSize: "2.2rem" }}>😔❌</div>
-              <h3 style={{ fontWeight: 700, fontSize: "1.3rem", margin: "12px 0 8px" }}>
-                Not eligible
-              </h3>
-              <p style={{ fontSize: "1.1rem", marginBottom: "10px" }}>
-                Sorry, you can't play at this time.
-              </p>
-              <p style={{ fontSize: "1rem", color: "#4a5568" }}>
-                Please try again later! 🙏
-              </p>
-            </>
+            <p style={{ fontWeight: 600 }}>Team is not eligible yet.</p>
           )}
+          <p style={{ marginTop: '8px' }}>Points: {status?.points ?? 0}</p>
+          <p>Threshold: {status?.threshold ?? 'Not set'}</p>
           <button
-            style={{
-              marginTop: "18px",
-              padding: "8px 18px",
-              fontSize: "1rem",
-              borderRadius: "8px",
-              border: "1px solid #6366f1",
-              background: "#6366f1",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(60,60,120,0.08)",
-            }}
+            style={{ marginTop: '16px', padding: '8px 18px', fontSize: '0.95rem' }}
             onClick={() => setShowModal(false)}
           >
             Close
           </button>
-          <p style={{ fontSize: "0.85rem", color: "#888", marginTop: "6px" }}>
-            This popup will close automatically in 5 seconds.
-          </p>
         </div>
       )}
 
-      {/* Main content (dimmed when modal is open) */}
-      <div
-        style={{
-          opacity: showModal ? 0.3 : 1,
-          pointerEvents: showModal ? "none" : "auto",
-          width: "100%",
-          maxWidth: "420px",
-          margin: "0 auto",
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '60vh',
-            background: 'linear-gradient(135deg, #6366f1 0%, #2d3748 100%)',
-            borderRadius: '18px',
-            boxShadow: '0 4px 16px rgba(60,60,120,0.10)',
-            padding: '32px 8vw',
-            marginBottom: '18px',
-            width: '100%',
-            maxWidth: '420px',
-          }}
-        >
-          <img
-            src={import.meta.env.BASE_URL + 'src/assets/react.svg'}
-            alt="Tap Card"
-            style={{
-              width: '120px',
-              height: '120px',
-              objectFit: 'contain',
-              marginBottom: '18px',
-              borderRadius: '16px',
-              boxShadow: '0 4px 16px rgba(60,60,120,0.12)'
-            }}
-          />
-          <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '1.5rem', marginBottom: '18px', textAlign: 'center' }}>
-            Please tap your card
-          </h2>
-          <p style={{ color: '#e0e7ff', fontSize: '1rem', marginBottom: '12px', textAlign: 'center' }}>
-            The system will detect your card automatically
+      <div style={{ opacity: showModal ? 0.3 : 1 }}>
+        <h2 style={{ marginBottom: '12px' }}>Tap your card</h2>
+        <p>Listening for taps at: <strong>{currentClusterLabel}</strong></p>
+        {status && !status.message && !status.error && (
+          <p style={{ marginTop: '12px' }}>
+            Current points: {status.points ?? 0} &nbsp;|&nbsp; Threshold: {status.threshold ?? 'Not set'}
           </p>
-        </div>
+        )}
         <button
-          style={{
-            marginTop: "18px",
-            padding: "10px 28px",
-            fontSize: "1.1rem",
-            borderRadius: "8px",
-            border: "1px solid #2d3748",
-            background: "#f3f4f6",
-            color: "#2d3748",
-            fontWeight: 500,
-            cursor: "pointer",
-            width: '100%',
-            maxWidth: '320px',
-          }}
-          onClick={() => setSelectedCluster("")}
+          style={{ marginTop: '20px', padding: '10px 24px', fontSize: '1rem' }}
+          onClick={() => setSelectedCluster('')}
         >
           Back
         </button>
