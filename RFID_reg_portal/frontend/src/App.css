@@ -210,3 +210,216 @@ input,select{
 .right{text-align:right}
 .logbox{white-space:pre-wrap;background:#0d1426;border:1px solid #273358;border-radius:10px;padding:10px;min-height:66px;max-height:220px;overflow:auto}
 footer{text-align:center;color:#88a2d6;padding:20px 0;margin-top:10px;font-size:12px}
+
+/* Button style refresh */
+.btn {
+  appearance: none;
+  border: 1px solid #3a4b68;
+  background-color: #142037;
+  color: #f2f6ff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #1d2c46;
+  border-color: #4f6ea3;
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  background-color: #162339;
+  border-color: #425a86;
+  transform: translateY(0);
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(77, 163, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn.primary {
+  border-color: #3f74d1;
+  background-color: #1f3f73;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background-color: #255089;
+  border-color: #4b86f0;
+}
+
+.btn.ok {
+  border-color: #2e8f57;
+  background-color: #18412c;
+}
+
+.btn.ok:hover:not(:disabled) {
+  background-color: #1f5238;
+  border-color: #38a164;
+}
+
+.btn.err {
+  border-color: #a64545;
+  background-color: #3f1a1a;
+}
+
+.btn.err:hover:not(:disabled) {
+  background-color: #542222;
+  border-color: #c45656;
+}
+
+.header-tabs {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn.tab-btn {
+  min-width: 150px;
+  justify-content: center;
+  background-color: #141d2e;
+  border: 1px solid rgba(70, 110, 170, 0.5);
+  color: #e7edf6;
+}
+
+.btn.tab-btn:hover:not(:disabled) {
+  background-color: #1b2740;
+  border-color: rgba(102, 142, 208, 0.7);
+}
+
+.btn.tab-btn.active {
+  background-color: #214170;
+  border-color: rgba(79, 134, 213, 0.9);
+  color: #ffffff;
+}
+
+.admin-score-btn {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+main {
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .admin-score-btn {
+    right: 12px;
+    top: 12px;
+  }
+
+  main {
+    margin: 20px auto;
+    padding: 0 18px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .admin-score-btn {
+    position: static;
+    width: 100%;
+  }
+
+  .header-tabs {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn.tab-btn {
+    flex: 1 1 140px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  main {
+    margin: 16px auto;
+    padding: 0 14px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  table {
+    font-size: 0.95rem;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 16px;
+  }
+
+  .pill {
+    font-size: 12px;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-spacing: 0;
+  }
+
+  table thead,
+  table tbody,
+  table tr,
+  table th,
+  table td {
+    display: table;
+    width: 100%;
+  }
+
+  .btn {
+    min-height: 38px;
+  }
+}
+
+.app-header {
+  position: relative;
+}
+
+.app-main {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px;
+  width: 100%;
+}

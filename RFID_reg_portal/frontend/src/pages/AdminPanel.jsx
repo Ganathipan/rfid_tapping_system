@@ -19,7 +19,9 @@ export default function AdminPanel() {
     <aside className="card">
       <h3 style={{marginTop:0}}>Admin</h3>
       <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
-        <button className="btn" onClick={listCards}>List Cards</button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+          <button className="btn" onClick={listCards}>List Cards</button>
+        </div>
       </div>
 
       <div className="hr" />
