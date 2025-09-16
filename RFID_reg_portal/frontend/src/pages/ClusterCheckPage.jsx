@@ -34,6 +34,19 @@ export default function ClusterCheckPage({ selectedCluster, onBack }) {
       }}>
         Cluster: {selectedCluster}
       </h2>
+      {/* Show a nice image for the cluster */}
+      <img
+        src={require("../assets/react.svg")}
+        alt="Cluster Visual"
+        style={{
+          width: "180px",
+          height: "180px",
+          objectFit: "contain",
+          marginBottom: "32px",
+          borderRadius: "16px",
+          boxShadow: "0 4px 16px rgba(60,60,120,0.12)"
+        }}
+      />
       {!showStatus ? (
         <button
           style={{
