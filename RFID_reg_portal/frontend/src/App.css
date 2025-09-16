@@ -423,3 +423,223 @@ main {
   padding: 0 16px;
   width: 100%;
 }
+
+/* Admin scoring layout */
+.admin-login-card {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 32px;
+  background: var(--card);
+  border: 1px solid #1f2942;
+  border-radius: 18px;
+  box-shadow: 0 18px 36px rgba(9, 16, 28, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-field .field-hint {
+  font-size: 12px;
+  color: var(--mut);
+}
+
+.admin-config-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid #1f2942;
+  border-radius: 18px;
+  padding: 20px 24px;
+}
+
+.admin-config-header h2 {
+  margin: 0;
+}
+
+.admin-summary-card {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.summary-item {
+  background: #101a2e;
+  border: 1px solid #202f4a;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-label {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+
+.summary-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.admin-section {
+  background: var(--card);
+  border: 1px solid #1f2942;
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-config-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.cluster-table-wrapper {
+  border: 1px solid #22314a;
+  border-radius: 14px;
+  overflow-x: auto;
+  background: #0f172a;
+}
+
+.cluster-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+.cluster-table th,
+.cluster-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #1f2942;
+  text-align: left;
+}
+
+.cluster-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mut);
+}
+
+.admin-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  color: var(--mut);
+}
+
+.admin-meta strong {
+  color: #f3f7ff;
+}
+
+.admin-table-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-form-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-msg {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.admin-msg.ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.admin-msg.err {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+}
+
+@media (max-width: 900px) {
+  .admin-config-header {
+    flex-wrap: wrap;
+    text-align: center;
+  }
+
+  .admin-config-header .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-login-card {
+    margin: 32px 16px;
+    padding: 24px;
+  }
+
+  .admin-config-page {
+    gap: 18px;
+  }
+
+  .admin-summary-card {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .admin-section {
+    padding: 20px;
+  }
+
+  .cluster-table {
+    min-width: 480px;
+  }
+}
+
+.threshold-field .threshold-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.threshold-field .threshold-toggle .btn.tab-btn {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+.threshold-field input.readonly::placeholder {
+  color: var(--mut);
+}

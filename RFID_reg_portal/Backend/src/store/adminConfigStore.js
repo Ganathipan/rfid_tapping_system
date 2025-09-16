@@ -13,6 +13,13 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+function parseOptionalNumber(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
 function normalizeClusterEntry(entry, index = 0) {
   if (entry == null) return null;
 
@@ -202,9 +209,9 @@ function addPortalConfig(rawConfig = {}) {
 function normalizePortalConfig(rawConfig) {
   const rawClustersInput = rawConfig.clusterPoints ?? rawConfig.clusters;
   const clusterPoints = parseClusterPoints(rawClustersInput);
-  const exhibits = toNumber(rawConfig.exhibits ?? rawConfig.groupSize, 0);
-  const groupSize = toNumber(rawConfig.groupSize ?? rawConfig.exhibits, exhibits);
-  const threshold = toNumber(rawConfig.threshold, 0);
+  const groupSize = parseOptionalNumber(rawConfig.groupSize ?? rawConfig.exhibits);
+  const exhibits = parseOptionalNumber(rawConfig.exhibits ?? rawConfig.groupSize) ?? groupSize;
+  const threshold = parseOptionalNumber(rawConfig.threshold);
   const name = rawConfig.name ? String(rawConfig.name) : `Admin Portal ${Date.now()}`;
   const clusters = buildClusterList(rawClustersInput, clusterPoints);
 

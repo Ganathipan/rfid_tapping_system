@@ -45,7 +45,7 @@ function selectClusterEntries(activeConfig) {
 function getWeightedClusterScore(labels = []) {
   const activeConfig = getLatestPortalConfig();
   const threshold = Number(activeConfig?.threshold);
-  const normalizedThreshold = Number.isFinite(threshold) && threshold > 0 ? threshold : 3;
+  const normalizedThreshold = Number.isFinite(threshold) && threshold >= 0 ? threshold : 3;
 
   const clusterEntries = selectClusterEntries(activeConfig);
   const uniqueLabels = Array.from(new Set(labels.filter(Boolean)));

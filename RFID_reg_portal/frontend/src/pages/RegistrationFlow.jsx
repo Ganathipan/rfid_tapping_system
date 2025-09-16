@@ -94,6 +94,49 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
 
+  const confirmNavigation = (message) =>
+    window.confirm(message || 'Are you sure you want to go back?');
+
+  function clearRegistrationFormState() {
+    setRegistrationType('');
+    setSelectedProvince('');
+    setSelectedDistrict('');
+    setAgeRange('');
+    setSex('');
+    setLanguage('');
+    setBatchType('');
+    setSelectedSchool('');
+    setSelectedUniversity('');
+    setSelectedLanguages([]);
+    setBatchCount(0);
+    setPendingBatchPayload(null);
+    setPendingIndividualPayload(null);
+    setMsg('');
+  }
+
+  function handleBackToPortalSelection() {
+    if (!confirmNavigation('Return to portal selection? Any progress for this registration will be lost.')) {
+      return;
+    }
+    clearRegistrationFormState();
+    setCurrentStep('type-selection');
+    onBack();
+  }
+
+  function handleBackToBatchForm() {
+    if (!confirmNavigation('Go back and adjust batch registration details?')) {
+      return;
+    }
+    setCurrentStep('batch-form');
+  }
+
+  function handleBackFromAdminPortal() {
+    if (!confirmNavigation('Exit the admin portal and return to registration?')) {
+      return;
+    }
+    setCurrentStep('type-selection');
+  }
+
   // Load initial data
   useEffect(() => {
     loadProvinces();
@@ -343,24 +386,11 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   };
 
   function handleBack() {
-    if (currentStep === 'individual-form' || currentStep === 'batch-form') {
-      setCurrentStep('type-selection');
-      setRegistrationType('');
-      // Reset form data
-      setSelectedProvince('');
-      setSelectedDistrict('');
-      setAgeRange('');
-      setSex('');
-      setLanguage('');
-      setBatchType('');
-      setSelectedSchool('');
-      setSelectedUniversity('');
-      setSelectedLanguages([]);
-      setBatchCount(0);
-      setPendingBatchPayload(null);
-    } else {
-      onBack();
+    if (!confirmNavigation('Go back and choose a different registration type? This will clear the information you entered.')) {
+      return;
     }
+    clearRegistrationFormState();
+    setCurrentStep('type-selection');
   }
 
   const renderTypeSelection = () => (
@@ -391,7 +421,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
           Admin Portal
         </button>
         <div style={{ flex: 1 }} />
-        <button type="button" className="btn" onClick={onBack}>Back</button>
+        <button type="button" className="btn" onClick={handleBackToPortalSelection}>Back</button>
       </div>
     </div>
   );
@@ -627,7 +657,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     <div>
       <h3 style={{ marginTop: 0 }}>Count Batch Members</h3>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button type="button" className="btn" onClick={() => setCurrentStep('batch-form')}>Back</button>
+        <button type="button" className="btn" onClick={handleBackToBatchForm}>Back</button>
       </div>
 
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
@@ -660,6 +690,9 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
       case 'individual-tap':
         return (
           <div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <button type="button" className="btn" onClick={handleBack}>Back</button>
+            </div>
             <h3>Tap RFID Card</h3>
             <div style={{ textAlign: 'center', margin: '24px 0' }}>
               <button className="btn primary" onClick={handleRfidTap} disabled={busy}>Tap RFID Card</button>
@@ -677,7 +710,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         return (
           <div>
             <div style={{ display:'flex', gap:8, marginBottom:12 }}>
-              <button type="button" className="btn" onClick={() => setCurrentStep('type-selection')}>Back</button>
+              <button type="button" className="btn" onClick={handleBackFromAdminPortal}>Back</button>
             </div>
             <AdminPortal />
           </div>

@@ -17,6 +17,12 @@ function toInt(value) {
   return Number.isFinite(num) ? Math.trunc(num) : NaN;
 }
 
+function hasValue(value) {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string' && value.trim() === '') return false;
+  return true;
+}
+
 function normalizeClusterForStore(cluster, index) {
   const name = (cluster && typeof cluster.name === 'string') ? cluster.name.trim() : '';
   const label = name || `Cluster ${index + 1}`;
@@ -34,9 +40,15 @@ function normalizeClusterForStore(cluster, index) {
 function validateAndNormalizeConfig(body) {
   const errors = [];
 
-  const groupSize = toInt(body.groupSize);
-  if (!Number.isFinite(groupSize) || groupSize < 0) {
-    errors.push({ field: 'groupSize', message: 'groupSize must be a non-negative integer' });
+  const hasGroupSize = hasValue(body.groupSize);
+  let groupSize = null;
+  if (hasGroupSize) {
+    const parsedGroupSize = toInt(body.groupSize);
+    if (!Number.isFinite(parsedGroupSize) || parsedGroupSize < 0) {
+      errors.push({ field: 'groupSize', message: 'groupSize must be a non-negative integer' });
+    } else {
+      groupSize = parsedGroupSize;
+    }
   }
 
   if (!Array.isArray(body.clusters)) {
@@ -60,19 +72,24 @@ function validateAndNormalizeConfig(body) {
     cluster.selected ? sum + (Number.isFinite(cluster.points) ? cluster.points : 0) : sum
   ), 0);
 
-  const computedThreshold = Number.isFinite(groupSize)
-    ? groupSize * selectedPointsTotal
-    : NaN;
-
-  if (!Number.isFinite(computedThreshold)) {
-    errors.push({ field: 'threshold', message: 'threshold could not be computed from inputs' });
+  const hasThreshold = hasValue(body.threshold);
+  let threshold = null;
+  if (hasThreshold) {
+    const parsedThreshold = toNumber(body.threshold);
+    if (!Number.isFinite(parsedThreshold) || parsedThreshold < 0) {
+      errors.push({ field: 'threshold', message: 'threshold must be a non-negative number' });
+    } else {
+      threshold = parsedThreshold;
+    }
+  } else if (groupSize !== null) {
+    threshold = groupSize * selectedPointsTotal;
   }
 
   return {
     errors,
     normalized: {
       groupSize,
-      threshold: computedThreshold,
+      threshold,
       clusters: normalizedClusters
     }
   };

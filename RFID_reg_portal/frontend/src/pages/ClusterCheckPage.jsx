@@ -4,6 +4,12 @@ import GamePortal from "./GamePortal";
 export default function ClusterCheckPage({ selectedCluster, onBack }) {
   const [showStatus, setShowStatus] = useState(false);
 
+  function handleBackClick() {
+    if (window.confirm('Return to the portal selection screen?')) {
+      onBack();
+    }
+  }
+
   return (
     <div style={{
       display: "flex",
@@ -65,7 +71,7 @@ export default function ClusterCheckPage({ selectedCluster, onBack }) {
           fontWeight: 500,
           cursor: "pointer",
         }}
-        onClick={onBack}
+        onClick={handleBackClick}
       >
         Back
       </button>

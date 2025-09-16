@@ -3,6 +3,12 @@ import { api } from '../api';
 
 export default function MemberAssignment({ portal, leaderId, memberCount, onDone }) {
   const [assigned, setAssigned] = useState(0);
+
+  const confirmReturnHome = () => {
+    if (window.confirm('Return to the home screen and finish this registration?')) {
+      onDone();
+    }
+  };
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [errors, setErrors] = useState([]);
@@ -34,7 +40,7 @@ export default function MemberAssignment({ portal, leaderId, memberCount, onDone
         </ul>
         <div className="row" style={{ marginTop: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
-            <button className="btn primary" onClick={onDone}>Back to Home</button>
+            <button className="btn primary" onClick={confirmReturnHome}>Back to Home</button>
           </div>
         </div>
       </div>
