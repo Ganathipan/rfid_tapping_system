@@ -5,6 +5,7 @@ import PortalSelection from './pages/PortalSelection';
 import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
 import AdminPortalConfig from './pages/AdminPortalConfig';
+import GamePortal from './pages/GamePortal';
 
 
 export default function App() {
