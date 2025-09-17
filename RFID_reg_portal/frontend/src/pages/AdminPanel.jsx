@@ -153,8 +153,10 @@ export default function AdminPanel() {
 
         <form onSubmit={handleLogin} className="admin-form">
           <div className="admin-field">
-            <label>Username</label>
+            <label htmlFor="username">Username</label>
             <input
+              id="username"
+              name="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -164,8 +166,10 @@ export default function AdminPanel() {
           </div>
 
           <div className="admin-field">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -228,8 +232,10 @@ export default function AdminPanel() {
           <div className="admin-config-form">
             <div className="admin-config-grid">
               <div className="admin-field">
-                <label>Eligibility Threshold (Points)</label>
+                <label htmlFor="eligibility-threshold">Eligibility Threshold (Points)</label>
                 <input
+                  id="eligibility-threshold"
+                  name="eligibility-threshold"
                   type="number"
                   min="0"
                   value={config.eligibility_threshold?.value || 0}
@@ -262,8 +268,10 @@ export default function AdminPanel() {
                   
                   {useTeamSize && (
                     <>
-                      <label>Minimum Team Size</label>
+                      <label htmlFor="team-size">Minimum Team Size</label>
                       <input
+                        id="team-size"
+                        name="team-size"
                         type="number"
                         min="1"
                         value={config.max_team_size?.value || 0}
@@ -300,9 +308,11 @@ export default function AdminPanel() {
           <h3 style={{ marginTop: 0 }}>Cluster Management</h3>
           
           <div className="admin-field">
-            <label>Add New Cluster</label>
+            <label htmlFor="new-cluster-name">Add New Cluster</label>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <input
+                id="new-cluster-name"
+                name="new-cluster-name"
                 type="text"
                 placeholder="Cluster name (e.g., cluster1)"
                 value={newCluster.name}
@@ -310,6 +320,8 @@ export default function AdminPanel() {
                 style={{ flex: 1, maxWidth: '300px' }}
               />
               <input
+                id="new-cluster-points"
+                name="new-cluster-points"
                 type="number"
                 placeholder="Points"
                 value={newCluster.points}
@@ -337,6 +349,8 @@ export default function AdminPanel() {
                     <tr key={index}>
                       <td>
                         <input
+                          id={`cluster-name-${index}`}
+                          name={`cluster-name-${index}`}
                           type="text"
                           value={cluster.name}
                           onChange={(e) => updateCluster(index, 'name', e.target.value)}
@@ -351,6 +365,8 @@ export default function AdminPanel() {
                       </td>
                       <td>
                         <input
+                          id={`cluster-points-${index}`}
+                          name={`cluster-points-${index}`}
                           type="number"
                           value={cluster.points}
                           onChange={(e) => updateCluster(index, 'points', parseInt(e.target.value) || 0)}

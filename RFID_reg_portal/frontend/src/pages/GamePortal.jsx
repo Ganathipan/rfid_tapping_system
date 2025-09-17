@@ -130,8 +130,10 @@ export default function GamePortal() {
         </p>
 
         <div className="admin-field">
-          <label>Select Cluster</label>
+          <label htmlFor="cluster-select">Select Cluster</label>
           <select
+            id="cluster-select"
+            name="cluster-select"
             value={currentCluster}
             onChange={(e) => setCurrentCluster(e.target.value)}
             style={{ textAlign: 'center' }}
@@ -431,27 +433,6 @@ export default function GamePortal() {
         </div>
       )}
 
-      <div style={{ opacity: showModal ? 0.3 : 1 }}>
-        <h2 style={{ marginBottom: '12px' }}>Tap your card</h2>
-        <p>Listening for taps at: <strong>{currentClusterLabel}</strong></p>
-        {status && !status.message && !status.error && (
-          <p style={{ marginTop: '12px' }}>
-            Current points: {status.points ?? 0} &nbsp;|&nbsp; Threshold: {status.threshold ?? 'Not set'}
-          </p>
-        )}
-        <button
-          style={{ marginTop: '20px', padding: '10px 24px', fontSize: '1rem' }}
-          onClick={handleSimulateTap}
-        >
-          Simulate Tap
-        </button>
-        <button
-          style={{ marginTop: '20px', marginLeft: '12px', padding: '10px 24px', fontSize: '1rem' }}
-          onClick={() => setSelectedCluster('')}
-        >
-          Back
-        </button>
-      </div>
     </div>
   );
 }
