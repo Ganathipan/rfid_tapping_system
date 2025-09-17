@@ -5,6 +5,7 @@ require('dotenv').config();
 const tagsRouter = require('./routes/tags');
 const gameScoreRouter = require('./routes/gameScore');
 const adminPortalRouter = require('./routes/adminPortal');
+const clusterOccupancyRouter = require('./routes/zoneOccupancy');
 
 const app = express();
 app.use(cors());
@@ -19,6 +20,7 @@ app.get('/health', (_req, res) =>
 app.use('/api/tags', tagsRouter);
 app.use('/api/tags', gameScoreRouter);
 app.use('/api/admin', adminPortalRouter);
+app.use('/api', clusterOccupancyRouter);
 
 const host = process.env.HOST || '127.0.0.1';
 const port = Number(process.env.PORT) || 4000;

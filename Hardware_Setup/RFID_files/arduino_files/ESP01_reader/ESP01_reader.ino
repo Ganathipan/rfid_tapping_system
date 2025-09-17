@@ -14,16 +14,16 @@
 #include <rdm6300.h>
 
 // ===== WiFi Credentials =====
-const char* ssid = "Gana iPhone";
-const char* password = "12345679";
+const char* ssid = "Gana Dialog 4G";
+const char* password = "ROOM1492";
 
 // ===== Server Endpoint =====
 // Change to your Node.js server IP:port
-const char* serverName = "http://172.20.10.3:4000/api/tags/rfidRead";
+const char* serverName = "http://192.168.8.2:4000/api/tags/rfidRead";
 
 // ===== Reader Unique ID =====
-const char* readerID = "REGISTER";   // which device/scanner
-const char* portal   = "portal1";   // which portal/location
+const char* readerID = "CLUSTER1";   // which device/scanner
+const char* portal   = "screen";   // which portal/location
 
 // ===== LED Config =====
 #define READ_LED_PIN LED_BUILTIN
