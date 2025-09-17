@@ -4,7 +4,6 @@ import { api } from './api';
 import PortalSelection from './pages/PortalSelection';
 import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
-import GamePortal from './pages/GamePortal';
 
 
 export default function App() {
@@ -12,11 +11,13 @@ export default function App() {
   const [currentView, setCurrentView] = useState('portal-selection');
   const [selectedPortal, setSelectedPortal] = useState(localStorage.getItem('portal') || '');
   const [registrationData, setRegistrationData] = useState(null);
+  const [showPortalSelection, setShowPortalSelection] = useState(true);
 
   // --- handlers ---
   const handlePortalSelect = (portal) => {
     setSelectedPortal(portal);
     localStorage.setItem('portal', portal);
+    setShowPortalSelection(false);
     setCurrentView('registration');
   };
 
@@ -25,14 +26,16 @@ export default function App() {
     setCurrentView('tag-assignment');
   };
 
+  // Dedicated handler to redirect to registration portal after tag assignment
   const handleTagAssignmentComplete = () => {
     setRegistrationData(null);
-    setCurrentView('portal-selection');
+    setCurrentView('registration');
   };
 
   const handleBackToPortalSelection = () => {
     setSelectedPortal('');
     setRegistrationData(null);
+    setShowPortalSelection(true);
     setCurrentView('portal-selection');
   };
 
@@ -53,7 +56,6 @@ export default function App() {
     switch (currentView) {
       case 'portal-selection':
         return <PortalSelection onPortalSelect={handlePortalSelect} />;
-
       case 'registration':
         return (
           <RegistrationFlow
@@ -62,7 +64,6 @@ export default function App() {
             onBack={handleBackToPortalSelection}
           />
         );
-
       case 'tag-assignment':
         return (
           <TagAssignment
@@ -72,71 +73,8 @@ export default function App() {
             onBack={handleBackToPortalSelection}
           />
         );
-
       case 'admin':
         return <AdminDashboard onBack={handleBackToPortalSelection} />;
-
-      case 'game-portal':
-        return (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '70vh',
-              background: 'linear-gradient(135deg, #2d3748 0%, #2d3748 100%)',
-              boxShadow: '0 8px 32px rgba(60,60,120,0.12)',
-              borderRadius: '24px',
-              maxWidth: '500px',
-              margin: '40px auto',
-              padding: '48px 32px',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '2.5rem',
-                fontWeight: 700,
-                marginBottom: '32px',
-                color: '#2d3748',
-                letterSpacing: '0.02em',
-                textShadow: '0 2px 8px rgba(60,60,120,0.08)',
-              }}
-            >
-              Select Cluster
-            </h2>
-            <select
-              id="cluster-select"
-              value={selectedPortal}
-              onChange={(e) => setSelectedPortal(e.target.value)}
-              style={{
-                padding: '18px 32px',
-                fontSize: '1.5rem',
-                borderRadius: '12px',
-                border: '2px solid #2d3748',
-                background: '#fff',
-                color: '#2d3748',
-                fontWeight: 500,
-                boxShadow: '0 2px 8px rgba(60,60,120,0.08)',
-                marginBottom: '32px',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
-            >
-              <option value="" disabled>
-                -- Choose Cluster --
-              </option>
-              <option value="Cluster1">Cluster 1</option>
-              <option value="Cluster2">Cluster 2</option>
-              <option value="Cluster3">Cluster 3</option>
-              <option value="Cluster4">Cluster 4</option>
-            </select>
-            <div style={{ width: '100%' }}>
-              <GamePortal selectedPortal={selectedPortal} />
-            </div>
-          </div>
-        );
-
       default:
         return <PortalSelection onPortalSelect={handlePortalSelect} />;
     }
@@ -149,14 +87,7 @@ export default function App() {
         <div className="pill">
           <span className="small">Health: {health}</span>
         </div>
-        <nav style={{ marginTop: '12px' }}>
-          <button onClick={() => setCurrentView('portal-selection')}>
-            Portal Selection
-          </button>
-          <button onClick={() => setCurrentView('game-portal')}>
-            Game Interface
-          </button>
-        </nav>
+        {/* Navigation removed for cleaner UI, only RFID registration flow remains */}
       </header>
 
       <main style={{ maxWidth: '1100px', margin: '24px auto', padding: '0 16px' }}>

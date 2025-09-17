@@ -227,11 +227,27 @@ async function getLastRegisterLogAvailableTag(portal) {
     throw new Error('No card tapped for registration');
   } else {
     tagId = rows[0].rfid_card_id;
-    // Check if tag is available
+    // Check if tag is available and tap is after last_assigned_time or status is released
     const card = await pool.query(
-      `SELECT status FROM rfid_cards WHERE rfid_card_id = $1`, [tagId]
+      `SELECT status, last_assigned_time FROM rfid_cards WHERE rfid_card_id = $1`, [tagId]
     );
-    if (card.rowCount === 0 || card.rows[0].status !== 'available') {
+    if (card.rowCount === 0) {
+      throw new Error('Tapped card is not available for registration');
+    }
+    const status = card.rows[0].status;
+    const lastAssigned = card.rows[0].last_assigned_time;
+    // Get the REGISTER tap time
+    const tapTimeRes = await pool.query(
+      `SELECT log_time FROM logs WHERE rfid_card_id = $1 AND portal = $2 AND label = 'REGISTER' ORDER BY log_time DESC LIMIT 1`,
+      [tagId, portal]
+    );
+    const tapTime = tapTimeRes.rows.length > 0 ? tapTimeRes.rows[0].log_time : null;
+    if (status === 'released' && tapTime && (!lastAssigned || tapTime > lastAssigned)) {
+      // Allow assignment: update status and last_assigned_time
+      await pool.query(`UPDATE rfid_cards SET status='available', last_assigned_time=NULL WHERE rfid_card_id = $1`, [tagId]);
+    } else if (status === 'available') {
+      // Allow assignment
+    } else {
       throw new Error('Tapped card is not available for registration');
     }
   }
@@ -303,7 +319,7 @@ async function assignTagToLeader(client, tagId, leaderId, portal) {
      VALUES ($1, $2, 'LEADER', $3)`,
     [leaderId, tagId, portal]
   );
-  await client.query(`UPDATE rfid_cards SET status='assigned', portal=$2 WHERE rfid_card_id=$1`, [tagId, portal]);
+  await client.query(`UPDATE rfid_cards SET status='assigned', portal=$2, last_assigned_time=NOW() WHERE rfid_card_id=$1`, [tagId, portal]);
 }
 
 async function assignTagToMember(client, tagId, leaderId, portal) {
@@ -324,14 +340,14 @@ async function assignTagToMember(client, tagId, leaderId, portal) {
      VALUES ($1, $2, 'MEMBER', $3)`,
     [leaderId, tagId, portal]
   );
-  await client.query(`UPDATE rfid_cards SET status='assigned', portal=$2 WHERE rfid_card_id=$1`, [tagId, portal]);
+  await client.query(`UPDATE rfid_cards SET status='assigned', portal=$2, last_assigned_time=NOW() WHERE rfid_card_id=$1`, [tagId, portal]);
 }
 
 async function releaseTag(client, tagId, portal) {
   await lockOrCreateCard(client, tagId, portal);
   // Delete all members with this card (regardless of portal)
   await client.query(`DELETE FROM members WHERE rfid_card_id=$1`, [tagId]);
-  await client.query(`UPDATE rfid_cards SET status='available' WHERE rfid_card_id=$1`, [tagId]);
+  await client.query(`UPDATE rfid_cards SET status='released' WHERE rfid_card_id=$1`, [tagId]);
 }
 
 // ===================================================================

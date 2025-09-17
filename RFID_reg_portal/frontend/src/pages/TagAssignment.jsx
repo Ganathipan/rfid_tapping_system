@@ -58,21 +58,24 @@ export default function TagAssignment({ registrationData, selectedPortal, onComp
 
   return (
     <div>
-      <h3 style={{ marginTop: 0 }}>RFID Tag Assignment</h3>
-
-      <div className="row" style={{ marginTop: 10 }}>
-        <button className="btn primary" onClick={submitAndAssign} disabled={busy}>
-          {busy ? 'Assigning…' : 'Submit & Assign'}
-        </button>
-        <button className="btn" onClick={confirmAndExit} disabled={busy}>Confirm and Exit</button>
+      <h3 style={{ marginTop: 0 }}>RFID Tag Assignment Confirmation</h3>
+      <div style={{ marginTop: 16 }}>
+        <b>Portal:</b> {selectedPortal}<br />
+        <b>Registration Type:</b> {registrationData?.type === 'individual' ? 'Individual' : 'Batch'}<br />
+        <b>Number of Cards to Assign:</b> {isIndividual ? 1 : totalMembers}<br />
+        {registrationData?.group_size && <><b>Group Size:</b> {registrationData.group_size}<br /></>}
+        {registrationData?.province && <><b>Province:</b> {registrationData.province}<br /></>}
+        {registrationData?.district && <><b>District:</b> {registrationData.district}<br /></>}
+        {registrationData?.school && <><b>School:</b> {registrationData.school}<br /></>}
+        {registrationData?.university && <><b>University:</b> {registrationData.university}<br /></>}
+        {registrationData?.age_range && <><b>Age Range:</b> {registrationData.age_range}<br /></>}
+        {registrationData?.sex && <><b>Sex:</b> {registrationData.sex}<br /></>}
+        {registrationData?.lang && <><b>Language:</b> {registrationData.lang}<br /></>}
       </div>
-
-      <div style={{ marginTop: 10 }}>
-        <button className="btn" onClick={startNewRegistration} disabled={busy}>Start New Registration</button>
+      <div style={{ marginTop: 24 }}>
+        <button className="btn primary" onClick={confirmAndExit} disabled={busy}>Confirm and Exit</button>
       </div>
-
       <div className="small mut" style={{ marginTop: 10 }}>{msg}</div>
-
       <div className="hr" />
       <AdminPanel/>
     </div>
