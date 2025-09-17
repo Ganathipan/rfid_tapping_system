@@ -143,10 +143,10 @@ const currentCluster = currentPortal.replace('reader', 'cluster').toLowerCase();
 ### 1. **Backend Testing**
 ```bash
 # Test health endpoint
-curl http://localhost:4000/health
+curl http://192.168.8.2:4000/health
 
 # Test RFID detection (after database setup)
-curl -X POST http://localhost:4000/api/tags/rfid-detected \
+curl -X POST http://192.168.8.2:4000/api/tags/rfid-detected \
   -H "Content-Type: application/json" \
   -d '{"rfid":"test123","portal":"reader1"}'
 ```
