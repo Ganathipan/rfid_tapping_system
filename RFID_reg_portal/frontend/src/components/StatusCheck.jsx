@@ -7,7 +7,7 @@ export default function StatusCheck() {
   const checkStatus = async () => {
     if (!rfid) return;
     try {
-      const res = await fetch(`http://192.168.8.2:4000/api/tags/status/${rfid}`);
+      const res = await fetch(`http://localhost:4000/api/tags/status/${rfid}`);
       const data = await res.json();
       setStatus(data);
     } catch (err) {
