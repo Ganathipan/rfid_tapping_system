@@ -228,6 +228,7 @@ footer{text-align:center;color:#88a2d6;padding:20px 0;margin-top:10px;font-size:
   gap: 8px;
   min-height: 40px;
   transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  text-align: center;
 }
 
 .btn:hover:not(:disabled) {
@@ -626,6 +627,213 @@ main {
 
   .cluster-table {
     min-width: 480px;
+  }
+
+  .admin-config-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .threshold-field .threshold-toggle {
+    flex-direction: column;
+  }
+
+  .threshold-field .threshold-toggle .btn.tab-btn {
+    flex: none;
+    width: 100%;
+  }
+
+  .admin-field input[type="text"],
+  .admin-field input[type="number"],
+  .admin-field select {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .admin-config-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .admin-config-header .btn {
+    width: 100%;
+  }
+
+  .tabbar {
+    flex-direction: column;
+  }
+
+  .btn.tab-btn {
+    width: 100%;
+  }
+}
+
+/* Additional mobile improvements for new UI */
+@media (max-width: 768px) {
+  /* Game Portal mobile improvements */
+  .game-portal-container {
+    padding: 16px;
+  }
+  
+  .game-portal-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .game-portal-header p {
+    font-size: 0.9rem;
+  }
+  
+  .cluster-selection-card {
+    padding: 20px;
+  }
+  
+  .score-display {
+    padding: 16px;
+  }
+  
+  .score-display .score-value {
+    font-size: 2.5rem;
+  }
+  
+  .eligibility-display {
+    padding: 12px;
+  }
+  
+  .rfid-input-section {
+    padding: 20px;
+  }
+  
+  .recent-taps-section {
+    padding: 20px;
+  }
+  
+  .recent-taps-table {
+    font-size: 0.8rem;
+  }
+  
+  /* Admin Panel mobile improvements */
+  .admin-panel-container {
+    padding: 16px;
+  }
+  
+  .admin-header {
+    padding: 20px;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .admin-header h1 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+  }
+  
+  .admin-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .admin-tab {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .config-section,
+  .clusters-section,
+  .teams-section {
+    padding: 20px;
+  }
+  
+  .config-form {
+    gap: 20px;
+  }
+  
+  .team-size-toggle {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .team-size-toggle button {
+    width: 100%;
+  }
+  
+  .add-cluster-form {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .add-cluster-form input {
+    min-width: auto;
+  }
+  
+  .clusters-table,
+  .teams-table {
+    font-size: 0.8rem;
+  }
+  
+  .clusters-table th,
+  .clusters-table td,
+  .teams-table th,
+  .teams-table td {
+    padding: 8px 6px;
+  }
+  
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-portal-container,
+  .admin-panel-container {
+    padding: 12px;
+  }
+  
+  .game-portal-header h1 {
+    font-size: 1.25rem;
+  }
+  
+  .cluster-selection-card,
+  .score-section,
+  .rfid-input-section,
+  .recent-taps-section,
+  .config-section,
+  .clusters-section,
+  .teams-section {
+    padding: 16px;
+  }
+  
+  .score-display .score-value {
+    font-size: 2rem;
+  }
+  
+  .admin-header {
+    padding: 16px;
+  }
+  
+  .admin-header h1 {
+    font-size: 1.125rem;
+  }
+  
+  .clusters-table,
+  .teams-table {
+    font-size: 0.75rem;
+  }
+  
+  .clusters-table th,
+  .clusters-table td,
+  .teams-table th,
+  .teams-table td {
+    padding: 6px 4px;
+  }
+  
+  .popup-message {
+    max-width: 90vw;
+    padding: 20px;
+  }
+  
+  .message-toast {
+    right: 12px;
+    left: 12px;
+    max-width: none;
   }
 }
 

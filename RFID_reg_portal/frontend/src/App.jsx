@@ -4,7 +4,7 @@ import { api } from './api';
 import PortalSelection from './pages/PortalSelection';
 import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
-import AdminPortalConfig from './pages/AdminPortalConfig';
+import AdminPanel from './pages/AdminPanel';
 import GamePortal from './pages/GamePortal';
 
 
@@ -74,11 +74,8 @@ export default function App() {
           />
         );
 
-      case 'admin-config':
-        return <AdminPortalConfig />;
-
       case 'admin':
-        return <AdminDashboard onBack={handleBackToPortalSelection} />;
+        return <AdminPanel />;
 
       case 'game-portal':
         return <GamePortal />;
@@ -97,9 +94,9 @@ export default function App() {
         <button
           type="button"
           className="btn admin-score-btn"
-          onClick={() => setCurrentView('admin-config')}
+          onClick={() => setCurrentView('admin')}
         >
-          Admin Game Scoring
+          Admin Panel
         </button>
         <nav className="header-tabs">
           <button

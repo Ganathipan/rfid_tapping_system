@@ -1,8 +1,7 @@
-
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
-const { getWeightedClusterScore } = require('../services/scoring');
+// Removed old scoring imports
 
 // Import RFID hardware router
 const rfidHardwareRouter = require('./rfidHardware');
@@ -10,25 +9,71 @@ router.use(rfidHardwareRouter);
 
 // ===================================================================
 // GET /api/tags/status/:rfid
-// Returns total points and eligibility for Lego game
+// Returns team score and eligibility for game
 // ===================================================================
 router.get('/status/:rfid', async (req, res) => {
   const { rfid } = req.params;
-  const threshold = 3; // change as needed
 
   try {
-    const result = await pool.query(
-      `SELECT COUNT(DISTINCT portal) AS points
-         FROM logs
-        WHERE rfid_card_id = $1
-          AND label LIKE 'CLUSTER%'`,
+    // Get team information for this RFID
+    const teamResult = await pool.query(
+      `SELECT registration_id FROM members WHERE rfid_card_id = $1`,
       [rfid]
     );
 
-    const points = parseInt(result.rows[0].points, 10) || 0;
-    const eligible = points >= threshold;
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ error: 'RFID not assigned to any team' });
+    }
 
-    res.status(200).json({ rfid, points, eligible });
+    const teamId = teamResult.rows[0].registration_id;
+
+    // Get team score
+    const scoreResult = await pool.query(
+      `SELECT points FROM teamscore WHERE registration_id = $1`,
+      [teamId]
+    );
+
+    const points = scoreResult.rows.length > 0 ? scoreResult.rows[0].points : 0;
+
+    // Get eligibility threshold and max team size
+    const configResult = await pool.query(
+      `SELECT threshold, teamsize FROM system_config LIMIT 1`
+    );
+
+    const threshold = configResult.rows.length > 0 ? configResult.rows[0].threshold : 50;
+    const maxTeamSize = configResult.rows.length > 0 ? configResult.rows[0].teamsize : 10;
+
+    // Check eligibility: if max_team_size is set (>0), use it; otherwise use threshold
+    let eligible = false;
+    if (maxTeamSize > 0) {
+      // Use team size for eligibility
+      const teamSizeResult = await pool.query(
+        `SELECT COUNT(*) as team_size FROM members WHERE registration_id = $1`,
+        [teamId]
+      );
+      const teamSize = parseInt(teamSizeResult.rows[0].team_size);
+      eligible = teamSize >= maxTeamSize;
+    } else {
+      // Use points threshold for eligibility
+      eligible = points >= threshold;
+    }
+
+    // Get team size for response
+    const teamSizeResult = await pool.query(
+      `SELECT COUNT(*) as team_size FROM members WHERE registration_id = $1`,
+      [teamId]
+    );
+    const teamSize = parseInt(teamSizeResult.rows[0].team_size);
+
+    res.status(200).json({ 
+      rfid, 
+      teamId, 
+      points, 
+      threshold, 
+      maxTeamSize,
+      teamSize,
+      eligible 
+    });
   } catch (e) {
     console.error('[status API error]', e);
     res.status(500).json({ error: 'Database error' });
@@ -51,67 +96,353 @@ router.get('/admin/registrations', async (_req, res) => {
 });
 
 // ===================================================================
-// GET /api/tags/teamScore/:portal
-// Returns the team score based on the last tap at this portal
+// POST /api/tags/link
+// Link last REGISTERed card at a portal to a registration as LEADER/MEMBER
+// Body: { portal: string, leaderId: number, asLeader?: boolean }
 // ===================================================================
-router.get('/teamScore/:portal', async (req, res) => {
-  const { portal } = req.params;
+router.post('/link', async (req, res) => {
+  const { portal, leaderId, asLeader } = req.body || {};
+  if (!portal) return badReq(res, 'Portal is required');
+  if (!leaderId || isNaN(leaderId)) return badReq(res, 'leaderId is required');
 
+  const client = await pool.connect();
   try {
-    // Find the last tap at this portal
-    const { rows } = await pool.query(
-      `SELECT rfid_card_id, log_time
-         FROM logs
-        WHERE portal = $1
-        ORDER BY log_time DESC
-        LIMIT 1`,
-      [portal]
-    );
+    await client.query('BEGIN');
 
-    if (rows.length === 0) {
-      return res.json({ message: "No taps yet" });
+    // Get last REGISTER tap for this portal and ensure card is available
+    const tagId = await getLastRegisterLogAvailableTag(portal);
+
+    if (asLeader) {
+      await assignTagToLeader(client, tagId, leaderId, portal);
+    } else {
+      await assignTagToMember(client, tagId, leaderId, portal);
     }
 
-    const rfid = rows[0].rfid_card_id;
+    await client.query('COMMIT');
+    return res.status(200).json({ success: true, tagId, role: asLeader ? 'LEADER' : 'MEMBER' });
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    return handleError(res, e);
+  } finally {
+    client.release();
+  }
+});
 
-    // Find the team this RFID belongs to
-    const teamRes = await pool.query(
-      `SELECT registration_id
-         FROM members
-        WHERE rfid_card_id = $1`,
+// ===================================================================
+// POST /api/tags/tap
+// Record a tap and update team scoring
+// ===================================================================
+router.post('/tap', async (req, res) => {
+  const { rfid, portal } = req.body;
+
+  if (!rfid || !portal) {
+    return res.status(400).json({ error: 'rfid and portal are required' });
+  }
+
+  // Auto-determine cluster based on portal (e.g., reader1, reader1a, reader1b -> cluster1)
+  let cluster = portal.replace('reader', 'cluster').toLowerCase();
+  
+  // Handle multiple readers per cluster (reader1a, reader1b -> cluster1)
+  if (cluster.includes('a') || cluster.includes('b')) {
+    cluster = cluster.replace(/[ab]$/, '');
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check if RFID is assigned to a team
+    const teamResult = await client.query(
+      `SELECT registration_id FROM members WHERE rfid_card_id = $1`,
       [rfid]
     );
 
-    if (teamRes.rows.length === 0) {
-      return res.json({ rfid, message: "Not assigned to a team" });
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ error: 'RFID not assigned to any team' });
     }
 
-    const teamId = teamRes.rows[0].registration_id;
+    const teamId = teamResult.rows[0].registration_id;
 
-    // Find all RFIDs in the same team
-    const membersRes = await pool.query(
-      `SELECT rfid_card_id FROM members WHERE registration_id = $1`,
+    // Check if this member has already tapped this cluster
+    const existingTap = await client.query(
+      `SELECT 1 FROM logs 
+       WHERE rfid_card_id = $1 AND label = $2 AND portal = $3`,
+      [rfid, cluster, portal]
+    );
+
+    if (existingTap.rows.length > 0) {
+      return res.status(409).json({ error: 'Member has already tapped this cluster' });
+    }
+
+    // Record the tap
+    await client.query(
+      `INSERT INTO logs (rfid_card_id, portal, label, log_time)
+       VALUES ($1, $2, $3, NOW())`,
+      [rfid, cluster, portal]
+    );
+
+    // Get cluster points from system config
+    const configResult = await client.query(
+      `SELECT points FROM system_config WHERE cluster = $1`,
+      [cluster]
+    );
+
+    const clusterPoints = configResult.rows.length > 0 ? configResult.rows[0].points : 0;
+
+    // Update team score
+    await client.query(
+      `INSERT INTO teamscore (registration_id, points, last_update)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (registration_id)
+       DO UPDATE SET 
+         points = teamscore.points + $2,
+         last_update = NOW()`,
+      [teamId, clusterPoints]
+    );
+
+    // Get updated team score
+    const scoreResult = await client.query(
+      `SELECT points FROM teamscore WHERE registration_id = $1`,
       [teamId]
     );
-    const memberIds = membersRes.rows.map(r => r.rfid_card_id);
 
-    // Calculate weighted score based on distinct clusters visited by team
-    const clustersRes = await pool.query(
-      `SELECT DISTINCT label
-         FROM logs
-        WHERE rfid_card_id = ANY($1)
-          AND label LIKE 'CLUSTER%'`,
-      [memberIds]
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      teamId,
+      clusterPoints,
+      totalPoints: scoreResult.rows[0].points
+    });
+
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('[tap API error]', e);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    client.release();
+  }
+});
+
+// ===================================================================
+// POST /api/tags/rfid-detected
+// Called when RFID hardware detects a card tap
+// ===================================================================
+router.post('/rfid-detected', async (req, res) => {
+  const { rfid, portal } = req.body;
+
+  if (!rfid || !portal) {
+    return res.status(400).json({ error: 'rfid and portal are required' });
+  }
+
+  // Auto-determine cluster based on portal (e.g., reader1, reader1a, reader1b -> cluster1)
+  let cluster = portal.replace('reader', 'cluster').toLowerCase();
+  
+  // Handle multiple readers per cluster (reader1a, reader1b -> cluster1)
+  if (cluster.includes('a') || cluster.includes('b')) {
+    cluster = cluster.replace(/[ab]$/, '');
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check if RFID is assigned to a team
+    const teamResult = await client.query(
+      `SELECT registration_id FROM members WHERE rfid_card_id = $1`,
+      [rfid]
     );
 
-    const uniqueClusters = Array.from(new Set(clustersRes.rows.map(r => r.label)));
-    const { points, breakdown, threshold } = getWeightedClusterScore(uniqueClusters);
-    const eligible = points >= threshold;
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'RFID not assigned to any team',
+        rfid,
+        portal,
+        cluster
+      });
+    }
 
-    res.json({ portal, teamId, points, eligible, threshold, lastTap: rows[0].log_time, breakdown });
+    const teamId = teamResult.rows[0].registration_id;
+
+    // Check if this member has already tapped this cluster
+    const existingTap = await client.query(
+      `SELECT 1 FROM logs 
+       WHERE rfid_card_id = $1 AND label = $2 AND portal = $3`,
+      [rfid, cluster, portal]
+    );
+
+    if (existingTap.rows.length > 0) {
+      return res.status(409).json({ 
+        error: 'Member has already tapped this cluster',
+        rfid,
+        portal,
+        cluster,
+        teamId
+      });
+    }
+
+    // Record the tap
+    await client.query(
+      `INSERT INTO logs (rfid_card_id, portal, label, log_time)
+       VALUES ($1, $2, $3, NOW())`,
+      [rfid, cluster, portal]
+    );
+
+    // Get cluster points from system config
+    const configResult = await client.query(
+      `SELECT points FROM system_config WHERE cluster = $1`,
+      [cluster]
+    );
+
+    const clusterPoints = configResult.rows.length > 0 ? configResult.rows[0].points : 0;
+
+    // Update team score
+    await client.query(
+      `INSERT INTO teamscore (registration_id, points, last_update)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (registration_id)
+       DO UPDATE SET 
+         points = teamscore.points + $2,
+         last_update = NOW()`,
+      [teamId, clusterPoints]
+    );
+
+    // Get updated team score
+    const scoreResult = await client.query(
+      `SELECT points FROM teamscore WHERE registration_id = $1`,
+      [teamId]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      rfid,
+      portal,
+      cluster,
+      teamId,
+      clusterPoints,
+      totalPoints: scoreResult.rows[0].points,
+      message: `+${clusterPoints} points! Total: ${scoreResult.rows[0].points}`
+    });
+
   } catch (e) {
-    console.error("[teamScore API error]", e);
-    res.status(500).json({ error: "Database error" });
+    await client.query('ROLLBACK');
+    console.error('[rfid-detected API error]', e);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    client.release();
+  }
+});
+
+// ===================================================================
+// POST /api/tags/rfid-tap-secondary
+// Handle taps from secondary readers (score but no display)
+// ===================================================================
+router.post('/rfid-tap-secondary', async (req, res) => {
+  const { rfid, portal } = req.body;
+
+  if (!rfid || !portal) {
+    return res.status(400).json({ error: 'rfid and portal are required' });
+  }
+
+  // Auto-determine cluster based on portal (e.g., reader1a, reader1b -> cluster1)
+  let cluster = portal.replace('reader', 'cluster').toLowerCase();
+  
+  // Handle multiple readers per cluster (reader1a, reader1b -> cluster1)
+  if (cluster.includes('a') || cluster.includes('b')) {
+    cluster = cluster.replace(/[ab]$/, '');
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check if RFID is assigned to a team
+    const teamResult = await client.query(
+      `SELECT registration_id FROM members WHERE rfid_card_id = $1`,
+      [rfid]
+    );
+
+    if (teamResult.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'RFID not assigned to any team',
+        rfid,
+        portal,
+        cluster
+      });
+    }
+
+    const teamId = teamResult.rows[0].registration_id;
+
+    // Check if this member has already tapped this cluster
+    const existingTap = await client.query(
+      `SELECT 1 FROM logs 
+       WHERE rfid_card_id = $1 AND label = $2 AND portal = $3`,
+      [rfid, cluster, portal]
+    );
+
+    if (existingTap.rows.length > 0) {
+      return res.status(409).json({ 
+        error: 'Member has already tapped this cluster',
+        rfid,
+        portal,
+        cluster,
+        teamId
+      });
+    }
+
+    // Record the tap
+    await client.query(
+      `INSERT INTO logs (rfid_card_id, portal, label, log_time)
+       VALUES ($1, $2, $3, NOW())`,
+      [rfid, cluster, portal]
+    );
+
+    // Get cluster points from system config
+    const configResult = await client.query(
+      `SELECT points FROM system_config WHERE cluster = $1`,
+      [cluster]
+    );
+
+    const clusterPoints = configResult.rows.length > 0 ? configResult.rows[0].points : 0;
+
+    // Update team score
+    await client.query(
+      `INSERT INTO teamscore (registration_id, points, last_update)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (registration_id)
+       DO UPDATE SET 
+         points = teamscore.points + $2,
+         last_update = NOW()`,
+      [teamId, clusterPoints]
+    );
+
+    // Get updated team score
+    const scoreResult = await client.query(
+      `SELECT points FROM teamscore WHERE registration_id = $1`,
+      [teamId]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      rfid,
+      portal,
+      cluster,
+      teamId,
+      clusterPoints,
+      totalPoints: scoreResult.rows[0].points,
+      message: `Scored +${clusterPoints} points (no display)`
+    });
+
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('[rfid-tap-secondary API error]', e);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    client.release();
   }
 });
 
@@ -337,58 +668,26 @@ async function releaseTag(client, tagId, portal) {
 }
 
 // ===================================================================
-// ...existing code...
-
+// POST /api/tags/log
+// Simulate/log a tap at a portal (for testing or manual tap)
 // ===================================================================
-// POST /api/tags/link
-// Assign last REGISTERed card from logs to leader or member
-// ===================================================================
-router.post('/link', async (req, res) => {
-  const { portal, leaderId, asLeader } = req.body || {};
-  if (!portal) return badReq(res, 'Portal is required');
-  if (!leaderId) return badReq(res, 'Leader ID is required');
-
+router.post('/log', async (req, res) => {
+  const { portal, label, rfid_card_id } = req.body || {};
+  if (!portal || !label) return res.status(400).json({ error: 'portal and label are required' });
   try {
-    await syncRfidCardsFromLogs();
-    tagId = await getLastRegisterLogAvailableTag(portal);
+    // Use a dummy/test RFID if not provided
+    const rfid = rfid_card_id || 'SIMULATED_RFID_' + portal;
+    await pool.query(
+      `INSERT INTO logs (rfid_card_id, portal, label, log_time)
+       VALUES ($1, $2, $3, NOW())`,
+      [rfid, portal, label]
+    );
+    res.status(200).json({ success: true });
   } catch (e) {
-    return handleError(res, e);
-  }
-// On server startup, sync rfid_cards from logs
-syncRfidCardsFromLogs();
-
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    if (asLeader) {
-      await assignTagToLeader(client, tagId, leaderId, portal);
-    } else {
-      await assignTagToMember(client, tagId, leaderId, portal);
-    }
-    await client.query('COMMIT');
-    res.status(200).json({ ok: true, portal, leaderId, tagId, role: asLeader ? 'LEADER' : 'MEMBER' });
-  } catch (e) {
-    await client.query('ROLLBACK');
-    return handleError(res, e);
-  } finally {
-    client.release();
+    console.error('[log API error]', e);
+    res.status(500).json({ error: 'Database error' });
   }
 });
-
-// ===================================================================
-// GET /api/tags/list-cards
-// Show all RFID cards and their status
-// ===================================================================
-router.get('/list-cards', async (_req, res) => {
-  try {
-    const result = await pool.query(`SELECT rfid_card_id, status, portal FROM rfid_cards ORDER BY rfid_card_id`);
-    res.status(200).json(result.rows);
-  } catch (e) {
-    return handleError(res, e);
-  }
-});
-
-
 
 // ===================================================================
 // Background EXITOUT watcher (every 3s)
@@ -428,6 +727,15 @@ async function checkAndReleaseOnNewExitout() {
           try {
             await client.query('BEGIN');
             await releaseTag(client, tagId, portal);
+            // If this card belonged to a team, and now the team has 0 members, purge teamscore
+            const reg = await client.query(`SELECT registration_id FROM members WHERE rfid_card_id=$1`, [tagId]);
+            if (reg.rowCount > 0) {
+              const registrationId = reg.rows[0].registration_id;
+              const remaining = await client.query(`SELECT 1 FROM members WHERE registration_id=$1 LIMIT 1`, [registrationId]);
+              if (remaining.rowCount === 0) {
+                await client.query(`DELETE FROM teamscore WHERE registration_id=$1`, [registrationId]);
+              }
+            }
             await client.query('COMMIT');
             lastProcessedExitout[portal] = log_time;
             console.log(`[EXITOUT watcher] Released tag: ${tagId} from ${portal} at ${log_time}`);

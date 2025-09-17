@@ -38,13 +38,14 @@ export default function PortalSelection({ onPortalSelect }) {
               borderRadius: '12px',
               background: selectedPortal === portal.id ? '#0c2b55' : '#0f182d',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              textAlign: 'center'
             }}
           >
-            <h3 style={{ margin: '0 0 8px 0', color: selectedPortal === portal.id ? 'var(--pri)' : '#e6eefc' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: selectedPortal === portal.id ? 'var(--pri)' : '#e6eefc', textAlign: 'center' }}>
               {portal.name}
             </h3>
-            <p className="mut small" style={{ margin: 0 }}>
+            <p className="mut small" style={{ margin: 0, textAlign: 'center' }}>
               {portal.description}
             </p>
           </div>
