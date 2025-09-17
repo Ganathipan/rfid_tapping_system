@@ -19,7 +19,7 @@ const char* password = "ROOM1492";
 
 // ===== Server Endpoint =====
 // Change to your Node.js server IP:port
-const char* serverName = "http://192.168.8.2:4000/api/tags/rfidRead";
+const char* serverName = "http://192.168.8.4:4000/api/tags/rfidRead";
 
 // ===== Reader Unique ID =====
 const char* readerID = "CLUSTER1";   // which device/scanner

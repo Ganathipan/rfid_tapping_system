@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://192.168.8.2:4000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://192.168.8.4:4000';
 
 export async function api(path, opts = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path.startsWith('/') ? path : '/' + path}`;

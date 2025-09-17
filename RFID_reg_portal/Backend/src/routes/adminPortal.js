@@ -28,12 +28,18 @@ function normalizeClusterForStore(cluster, index) {
   const label = name || `Cluster ${index + 1}`;
   const points = toNumber(cluster && cluster.points);
   const selected = !!(cluster && cluster.selected);
+  const minTeamSize = toInt(cluster && cluster.minTeamSize);
+  const maxTeamSize = toInt(cluster && cluster.maxTeamSize);
+  const deviceId = cluster && cluster.deviceId ? String(cluster.deviceId) : null;
 
   return {
     name: label,
     label,
     points: Number.isFinite(points) && points >= 0 ? points : 0,
-    selected
+    selected,
+    minTeamSize: Number.isFinite(minTeamSize) && minTeamSize > 0 ? minTeamSize : 1,
+    maxTeamSize: Number.isFinite(maxTeamSize) && maxTeamSize > 0 ? maxTeamSize : 10,
+    deviceId
   };
 }
 
@@ -65,6 +71,12 @@ function validateAndNormalizeConfig(body) {
     }
     if (!Number.isFinite(cluster.points) || cluster.points < 0) {
       errors.push({ field: `clusters[${index}].points`, message: 'points must be a non-negative number' });
+    }
+    if (!Number.isFinite(cluster.minTeamSize) || cluster.minTeamSize < 1) {
+      errors.push({ field: `clusters[${index}].minTeamSize`, message: 'minTeamSize must be >= 1' });
+    }
+    if (!Number.isFinite(cluster.maxTeamSize) || cluster.maxTeamSize < cluster.minTeamSize) {
+      errors.push({ field: `clusters[${index}].maxTeamSize`, message: 'maxTeamSize must be >= minTeamSize' });
     }
   });
 
@@ -107,7 +119,7 @@ router.post('/login', (req, res) => {
   return res.status(401).json({ message: 'Invalid credentials' });
 });
 
-router.post('/portal-config', (req, res) => {
+router.post('/portal-config', async (req, res) => {
   const { errors, normalized } = validateAndNormalizeConfig(req.body || {});
 
   if (errors.length) {
@@ -123,6 +135,17 @@ router.post('/portal-config', (req, res) => {
       clusters: normalized.clusters,
       clusterPoints: normalized.clusters
     });
+
+    // Store cluster config in DB
+    const pool = require('../db/pool');
+    for (const cluster of normalized.clusters) {
+      await pool.query(
+        `INSERT INTO cluster_config (cluster_code, min_team_size, max_team_size, points, device_id)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (cluster_code) DO UPDATE SET min_team_size = $2, max_team_size = $3, points = $4, device_id = $5`,
+        [cluster.label, cluster.minTeamSize, cluster.maxTeamSize, cluster.points, cluster.deviceId]
+      );
+    }
 
     res.json(portal);
   } catch (err) {

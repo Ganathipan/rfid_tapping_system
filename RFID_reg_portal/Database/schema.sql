@@ -131,3 +131,29 @@ BEGIN
       CREATE INDEX idx_logs_portal_card_time ON logs (portal, rfid_card_id, log_time);
    END IF;
 END $$;
+
+-- ===========================
+-- Cluster Config Table
+-- ===========================
+CREATE TABLE IF NOT EXISTS cluster_config (
+     id SERIAL PRIMARY KEY,
+     cluster_code VARCHAR(50) NOT NULL,
+     min_team_size INTEGER NOT NULL DEFAULT 1,
+     max_team_size INTEGER NOT NULL DEFAULT 10,
+     points INTEGER NOT NULL DEFAULT 1,
+     device_id VARCHAR(50),
+     UNIQUE(cluster_code)
+);
+
+-- ===========================
+-- Group Points Log Table
+-- ===========================
+CREATE TABLE IF NOT EXISTS group_points_log (
+     id SERIAL PRIMARY KEY,
+     event_time TIMESTAMP NOT NULL DEFAULT NOW(),
+     cluster_code VARCHAR(50) NOT NULL,
+     device_id VARCHAR(50),
+     team_id INTEGER NOT NULL,
+     points_awarded INTEGER NOT NULL,
+     member_ids TEXT NOT NULL -- comma-separated list of rfid_card_ids
+);

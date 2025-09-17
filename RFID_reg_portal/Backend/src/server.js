@@ -8,6 +8,14 @@ const adminPortalRouter = require('./routes/adminPortal');
 const clusterOccupancyRouter = require('./routes/zoneOccupancy');
 
 const app = express();
+
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; connect-src 'self' http://localhost:4000 http://192.168.8.4:4000;"
+  );
+  next();
+});
 app.use(cors());
 app.use(express.json());
 
