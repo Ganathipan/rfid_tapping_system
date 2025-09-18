@@ -72,6 +72,7 @@ async function handlePostLogInserted(log) {
   const memberId = memberRes.rows[0].id;
 
   const client = await pool.connect();
+  let redemption = null;
   try {
     await client.query('BEGIN');
     const firstTime = await recordMemberClusterVisitIfFirst(client, memberId, label);
@@ -84,7 +85,15 @@ async function handlePostLogInserted(log) {
       await addPointsToTeam(client, teamId, points);
     }
     await client.query('COMMIT');
-    return { awarded: points > 0, points, firstTime, teamId };
+    // Automated redemption: if cluster is redeemable, redeem points for this team
+    if (rule.redeemable === true) {
+      try {
+        redemption = await redeemPoints({ registrationId: teamId, clusterLabel: label, redeemedBy: 'auto' });
+      } catch (e) {
+        redemption = { error: e.message || String(e) };
+      }
+    }
+    return { awarded: points > 0, points, firstTime, teamId, redemption };
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;

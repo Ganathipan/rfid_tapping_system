@@ -9,15 +9,25 @@
     "maxGroupSize": 10,
     "minPointsRequired": 3,
     "clusterRules": {
-      "CLUSER1": {
+      "CLUSTER1": {
         "awardPoints": 6,
         "redeemable": false,
-        "redeemPoints": 0
+        "redeemPoints": 5
       },
       "CLUSTER2": {
         "awardPoints": 5,
-        "redeemable": true,
+        "redeemable": false,
         "redeemPoints": 4
+      },
+      "CLUSTER3": {
+        "awardPoints": 0,
+        "redeemable": true,
+        "redeemPoints": 10
+      },
+      "CLUSTER4": {
+        "awardPoints": 20,
+        "redeemable": false,
+        "redeemPoints": 0
       }
     },
     "enabled": true
