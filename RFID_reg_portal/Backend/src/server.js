@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const tagsRouter = require('./routes/tags');
+const gameLiteRouter = require('./routes/gameLite');
 
 const app = express();
 app.use(cors());
@@ -15,6 +16,7 @@ app.get('/health', (_req, res) =>
 
 // mount main router
 app.use('/api/tags', tagsRouter);
+app.use('/api/game-lite', gameLiteRouter);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {

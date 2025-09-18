@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
 import { api } from './api';
 import PortalSelection from './pages/PortalSelection';
 import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
+import AdminPortal from './pages/AdminPortal';
+import GameLiteAdmin from './pages/admin/GameLiteAdmin';
 
 
 export default function App() {
@@ -80,8 +83,28 @@ export default function App() {
     }
   };
 
-  return (
+  const appShell = (
     <>
+      {/* Fixed top-left button to open Game Lite Admin */}
+      <Link
+        to="/admin/game-lite"
+        style={{
+          position: 'fixed',
+          top: 12,
+          right: 12,
+          zIndex: 1000,
+          textDecoration: 'none',
+          background: '#0f182d',
+          border: '1px solid #2a375d',
+          color: '#e6eefc',
+          padding: '8px 12px',
+          borderRadius: 10,
+          fontWeight: 600
+        }}
+        aria-label="Open Game Lite Admin"
+      >
+        Admin Game
+      </Link>
       <header>
         <h1>RFID Registration System</h1>
         <div className="pill">
@@ -98,5 +121,16 @@ export default function App() {
         Frontend <span className="mono">{import.meta.env.VITE_API_BASE}</span>
       </footer>
     </>
+  );
+
+  // If we’re using Router, expose GameLiteAdmin at /admin/game-lite and AdminPortal at /admin
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={appShell} />
+        <Route path="/admin" element={<AdminPortal />} />
+        <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

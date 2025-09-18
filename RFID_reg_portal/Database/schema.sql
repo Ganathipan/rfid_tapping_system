@@ -73,4 +73,41 @@ CREATE INDEX IF NOT EXISTS idx_members_portal_leader
 CREATE INDEX IF NOT EXISTS idx_logs_portal_card_time
     ON logs (portal, rfid_card_id, log_time);
 
+-- Speed up latest-location lookups
+CREATE INDEX IF NOT EXISTS idx_logs_card_time
+    ON logs (rfid_card_id, log_time DESC);
+
+-- ===========================
+-- Game Lite Tables (scoring)
+-- ===========================
+
+-- First-visit dedup per member per cluster
+CREATE TABLE IF NOT EXISTS member_cluster_visits_lite (
+    member_id INT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    cluster_label TEXT NOT NULL,
+    first_visit_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT member_cluster_visits_lite_unique UNIQUE(member_id, cluster_label)
+);
+
+-- Team scores by registration_id
+CREATE TABLE IF NOT EXISTS team_scores_lite (
+    registration_id INT PRIMARY KEY REFERENCES registration(id) ON DELETE CASCADE,
+    score INT NOT NULL DEFAULT 0
+);
+
+-- Redemption audit log
+CREATE TABLE IF NOT EXISTS redemptions_lite (
+    id SERIAL PRIMARY KEY,
+    registration_id INT NOT NULL REFERENCES registration(id) ON DELETE CASCADE,
+    cluster_label TEXT NOT NULL,
+    points_spent INT NOT NULL CHECK(points_spent >= 0),
+    redeemed_by TEXT,
+    redeemed_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Helpful indexes
+CREATE INDEX IF NOT EXISTS idx_member_cluster_visits_lite_member ON member_cluster_visits_lite(member_id);
+CREATE INDEX IF NOT EXISTS idx_team_scores_lite_registration ON team_scores_lite(registration_id);
+CREATE INDEX IF NOT EXISTS idx_redemptions_lite_registration ON redemptions_lite(registration_id);
+
 \echo === All done. ===

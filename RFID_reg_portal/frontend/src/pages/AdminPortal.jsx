@@ -67,6 +67,12 @@ export default function AdminPortal() {
     <div className="card" style={{ padding: 12 }}>
       <h3 style={{ marginTop: 0 }}>Admin Portal</h3>
 
+      <div style={{ margin: '8px 0 12px 0' }}>
+        <a href="/admin/game-lite" className="inline-block" style={{ border: '1px solid #ccc', padding: '6px 10px', borderRadius: 6, textDecoration: 'none' }}>
+          Open Game Lite Admin
+        </a>
+      </div>
+
       {msg && <div className="small mut" style={{ marginBottom: 10 }}>{msg}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 10 }}>

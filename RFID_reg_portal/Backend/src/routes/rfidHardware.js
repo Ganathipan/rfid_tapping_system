@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
+const { handlePostLogInserted } = require('../services/gameLiteService');
 
 // Hardware Site Setup Instructions
 // Reader Software:
@@ -20,7 +21,7 @@ router.post('/rfidRead', async (req, res) => {
       RETURNING id, log_time, rfid_card_id, portal, label
     `;
     const values = [tag, portal, reader];
-    const result = await pool.query(query, values);
+  const result = await pool.query(query, values);
 
     // If EXITOUT, update rfid_cards status to 'released' only if tap is after last_assigned_time
     if (reader === 'EXITOUT') {
@@ -36,10 +37,14 @@ router.post('/rfidRead', async (req, res) => {
       }
     }
 
-    res.json({
-      status: 'success',
-      entry: result.rows[0]
-    });
+    // Game Lite post-insert hook (non-blocking best-effort)
+    try {
+      await handlePostLogInserted(result.rows[0]);
+    } catch (hookErr) {
+      console.warn('[GameLite hook] error:', hookErr.message || hookErr);
+    }
+
+    res.json({ status: 'success', entry: result.rows[0] });
   } catch (err) {
     console.error('DB Error:', err);
     res.status(500).json({ error: 'Database insert failed' });

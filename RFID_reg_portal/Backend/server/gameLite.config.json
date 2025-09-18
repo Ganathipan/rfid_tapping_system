@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "rules": {
+    "eligibleLabelPrefix": "CLUSTER",
+    "pointsPerMemberFirstVisit": 1,
+    "pointsPerMemberRepeatVisit": 0,
+    "awardOnlyFirstVisit": true,
+    "minGroupSize": 3,
+    "maxGroupSize": 10,
+    "minPointsRequired": 3,
+    "clusterRules": {
+      "CLUSER1": {
+        "awardPoints": 6,
+        "redeemable": false,
+        "redeemPoints": 0
+      },
+      "CLUSTER2": {
+        "awardPoints": 5,
+        "redeemable": true,
+        "redeemPoints": 4
+      }
+    },
+    "enabled": true
+  }
+}
