@@ -7,6 +7,8 @@ import RegistrationFlow from './pages/RegistrationFlow';
 import TagAssignment from './pages/TagAssignment';
 import AdminPortal from './pages/AdminPortal';
 import GameLiteAdmin from './pages/admin/GameLiteAdmin';
+import ClusterDirectory from './pages/kiosk/ClusterDirectory';
+import ClusterDisplay from './pages/kiosk/ClusterDisplay';
 
 
 export default function App() {
@@ -130,6 +132,8 @@ export default function App() {
         <Route path="/" element={appShell} />
         <Route path="/admin" element={<AdminPortal />} />
         <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
+        <Route path="/kiosk" element={<ClusterDirectory />} />
+        <Route path="/kiosk/cluster/:clusterLabel" element={<ClusterDisplay />} />
       </Routes>
     </BrowserRouter>
   );

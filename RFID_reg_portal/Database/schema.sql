@@ -110,4 +110,29 @@ CREATE INDEX IF NOT EXISTS idx_member_cluster_visits_lite_member ON member_clust
 CREATE INDEX IF NOT EXISTS idx_team_scores_lite_registration ON team_scores_lite(registration_id);
 CREATE INDEX IF NOT EXISTS idx_redemptions_lite_registration ON redemptions_lite(registration_id);
 
+-- ===========================
+-- Realtime: Notify reader1 + CLUSTER% taps
+-- ===========================
+CREATE OR REPLACE FUNCTION notify_reader1_cluster_logs() RETURNS trigger AS $$
+DECLARE
+    payload JSON;
+BEGIN
+    IF NEW.portal = 'reader1' AND NEW.label ILIKE 'CLUSTER%' THEN
+        payload := json_build_object(
+            'rfid_card_id', NEW.rfid_card_id,
+            'label', NEW.label,
+            'portal', NEW.portal,
+            'log_time', NEW.log_time
+        );
+        PERFORM pg_notify('logs_reader1_cluster', payload::text);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_notify_reader1_cluster_logs ON logs;
+CREATE TRIGGER trg_notify_reader1_cluster_logs
+AFTER INSERT ON logs
+FOR EACH ROW EXECUTE FUNCTION notify_reader1_cluster_logs();
+
 \echo === All done. ===

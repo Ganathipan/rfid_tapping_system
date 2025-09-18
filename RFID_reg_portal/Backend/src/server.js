@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const tagsRouter = require('./routes/tags');
 const gameLiteRouter = require('./routes/gameLite');
+const reader1ClusterKioskRouter = require('./routes/reader1ClusterKiosk');
 
 const app = express();
 app.use(cors());
@@ -17,6 +18,7 @@ app.get('/health', (_req, res) =>
 // mount main router
 app.use('/api/tags', tagsRouter);
 app.use('/api/game-lite', gameLiteRouter);
+app.use('/api', reader1ClusterKioskRouter);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
