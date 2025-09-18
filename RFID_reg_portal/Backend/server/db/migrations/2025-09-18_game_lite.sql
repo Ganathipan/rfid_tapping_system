@@ -1,1 +1,0 @@
--- Deprecated: Game Lite schema has moved to Database/schema.sql and this migration is intentionally empty to avoid duplication.
