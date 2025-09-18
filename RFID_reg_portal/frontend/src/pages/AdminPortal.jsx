@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { Card, CardBody } from '../ui/Card.jsx';
-import Button from '../ui/Button.jsx';
 
 export default function AdminPortal() {
   const [registrations, setRegistrations] = useState([]);
@@ -73,14 +71,14 @@ export default function AdminPortal() {
           <CardBody>
             <h2 className="mb-2 text-xl font-semibold">Game Lite</h2>
             <p className="mb-3 text-white/80">Manage scoring, thresholds, cluster rules, and redemptions.</p>
-            <Link to="/admin/game-lite"><Button variant="primary">Open Game Lite Admin</Button></Link>
+            {/* Button removed as requested */}
           </CardBody>
         </Card>
         <Card>
           <CardBody>
             <h2 className="mb-2 text-xl font-semibold">Kiosks</h2>
             <p className="mb-3 text-white/80">Directory of per-cluster live displays.</p>
-            <Link to="/kiosk"><Button variant="dark">Open Kiosk Directory</Button></Link>
+            {/* Keep card; no extra button here if you also want this hidden */}
           </CardBody>
         </Card>
       </div>

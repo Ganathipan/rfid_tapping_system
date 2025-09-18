@@ -3,7 +3,7 @@ import Button from "../ui/Button.jsx";
 export default function AppShell(){
   return (
   <div className="min-h-screen bg-brand-ink text-white">
-      <header className="sticky top-0 z-20 backdrop-blur bg-brand-dark/60 border-b border-white/10">
+  <header className="sticky top-0 z-20 backdrop-blur bg-[linear-gradient(90deg,#0056a2_0%,#00b4eb_40%,transparent_100%)]/50 border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
           <Link to="/" className="font-bold text-white">RFID Portal</Link>
           <nav className="ml-auto flex items-center gap-4 text-white/80">

@@ -10,24 +10,9 @@
     "minPointsRequired": 3,
     "clusterRules": {
       "CLUSTER1": {
-        "awardPoints": 6,
+        "awardPoints": 8,
         "redeemable": false,
         "redeemPoints": 5
-      },
-      "CLUSTER2": {
-        "awardPoints": 5,
-        "redeemable": false,
-        "redeemPoints": 4
-      },
-      "CLUSTER3": {
-        "awardPoints": 0,
-        "redeemable": true,
-        "redeemPoints": 10
-      },
-      "CLUSTER4": {
-        "awardPoints": 20,
-        "redeemable": false,
-        "redeemPoints": 0
       }
     },
     "enabled": true

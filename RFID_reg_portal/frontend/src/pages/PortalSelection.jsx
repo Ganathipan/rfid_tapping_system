@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Button from '../ui/Button.jsx';
 
 export default function PortalSelection({ onPortalSelect }) {
   const [selectedPortal, setSelectedPortal] = useState('');
@@ -52,23 +52,15 @@ export default function PortalSelection({ onPortalSelect }) {
         ))}
       </div>
 
-      <div style={{ textAlign: 'center', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button 
-          className="btn primary" 
+      <div className="grid place-items-center mt-4">
+        <Button 
+          variant="primary"
+          className="rounded-2xl px-8 py-3"
           onClick={handleContinue}
           disabled={!selectedPortal}
-          style={{ padding: '12px 30px', fontSize: '16px' }}
         >
           Continue
-        </button>
-        <Link
-          to="/kiosk"
-          className="btn"
-          style={{ padding: '12px 30px', fontSize: '16px', textDecoration: 'none', border: '1px solid #2a375d', borderRadius: 10 }}
-          aria-label="Open Cluster Display"
-        >
-          Open Cluster Display
-        </Link>
+        </Button>
       </div>
     </div>
   );

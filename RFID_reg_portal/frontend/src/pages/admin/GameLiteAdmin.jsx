@@ -16,6 +16,7 @@ export default function GameLiteAdmin() {
   const [draftRule, setDraftRule] = useState({ cluster_label: '', award_points: 0, redeemable: false, redeem_points: 0 });
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [redeemForm, setRedeemForm] = useState({ registration_id: "", cluster_label: "" });
+  const [openMenuFor, setOpenMenuFor] = useState(null);
 
   const load = async () => {
     const [c, e] = await Promise.all([gameLite.getConfig(), gameLite.getEligibleTeams()]);
@@ -78,6 +79,12 @@ export default function GameLiteAdmin() {
     await saveRules(arr);
   };
 
+  const removeCluster = async (cluster_label) => {
+    const arr = rulesArray.filter(x => x.cluster_label !== cluster_label);
+    await saveRules(arr);
+    setToast(`Removed ${cluster_label}`);
+  };
+
   const doRedeem = async () => {
     await gameLite.redeem(redeemForm);
     setToast(`Redeemed for team ${redeemForm.registration_id}`);
@@ -88,21 +95,22 @@ export default function GameLiteAdmin() {
 
   if (!cfg) return <Loader/>;
 
+  const td = "text-center";
   const eligibleCols = [
-    { header: "Reg ID", key: "registration_id" },
-    { header: "Group", key: "group_size" },
-    { header: "Score", key: "score" },
-    { header: "Latest", key: "latest_label" },
-    { header: "Last Seen", render: (r) => r.latest_time ? new Date(r.latest_time).toLocaleString() : "-" },
-    { header: "Status", render: (r) => {
+    { header: "Reg ID", key: "registration_id", tdClass: td },
+    { header: "Group", key: "group_size", tdClass: td },
+    { header: "Score", key: "score", tdClass: td },
+    { header: "Latest", key: "latest_label", tdClass: td },
+    { header: "Last Seen", tdClass: td, render: (r) => r.latest_time ? new Date(r.latest_time).toLocaleString() : "-" },
+    { header: "Status", tdClass: td, render: (r) => {
         const ok = (r.score ?? 0) >= (cfg?.rules?.minPointsRequired ?? 0)
           && (r.group_size ?? 0) >= (cfg?.rules?.minGroupSize ?? 0)
           && (r.group_size ?? 0) <= (cfg?.rules?.maxGroupSize ?? 9999);
         return <Badge color={ok?"green":"yellow"}>{ok?"Eligible":"Not eligible"}</Badge>
       }
     },
-    { header: "", render: (r) => (
-        <Button size="sm" variant="accent" onClick={() => { setRedeemForm({ registration_id: r.registration_id, cluster_label: "" }); setRedeemOpen(true); }}>
+    { header: "", tdClass: td, render: (r) => (
+        <Button size="sm" variant="accent" className="rounded-2xl px-4" onClick={() => { setRedeemForm({ registration_id: r.registration_id, cluster_label: "" }); setRedeemOpen(true); }}>
           Redeem
         </Button>
       )
@@ -110,24 +118,41 @@ export default function GameLiteAdmin() {
   ];
 
   const rulesCols = [
-    { header: "Cluster", key: "cluster_label" },
-    { header: "Award", render: (r, i) => (
-        <input type="number" className="w-24 rounded border border-white/10 bg-black/30 p-1"
+    { header: "Cluster", key: "cluster_label", tdClass: td },
+    { header: "Award", tdClass: td, render: (r) => (
+        <input type="number" className="w-24 rounded-2xl border border-white/10 bg-black/30 px-3 py-1.5 text-center"
                value={r.award_points}
                onChange={(e) => updateRule(rulesArray.findIndex(x=>x.cluster_label===r.cluster_label), { award_points: Number(e.target.value) })}/>
       )
     },
-    { header: "Redeemable", render: (r) => (
+    { header: "Redeemable", tdClass: td, render: (r) => (
         <input type="checkbox" checked={r.redeemable}
                onChange={(e) => updateRule(rulesArray.findIndex(x=>x.cluster_label===r.cluster_label), { redeemable: e.target.checked })}/>
       )
     },
-    { header: "Redeem", render: (r) => (
-        <input type="number" className="w-24 rounded border border-white/10 bg-black/30 p-1"
+    { header: "Redeem", tdClass: td, render: (r) => (
+        <input type="number" className="w-24 rounded-2xl border border-white/10 bg-black/30 px-3 py-1.5 text-center"
                value={r.redeem_points}
                onChange={(e) => updateRule(rulesArray.findIndex(x=>x.cluster_label===r.cluster_label), { redeem_points: Number(e.target.value) })}/>
       )
     },
+    { header: "", tdClass: td, render: (r) => (
+      <div className="relative inline-block text-left">
+        <button
+          className="px-3 py-1.5 rounded-2xl bg-white/10 hover:bg-white/15"
+          onClick={()=> setOpenMenuFor(openMenuFor === r.cluster_label ? null : r.cluster_label)}
+          aria-label="More"
+        >⋮</button>
+        {openMenuFor === r.cluster_label && (
+          <div className="absolute right-0 mt-2 w-40 rounded-xl border border-white/10 bg-brand-card shadow-soft z-10">
+            <button
+              className="w-full text-left px-3 py-2 hover:bg-white/10 rounded-xl"
+              onClick={() => { setOpenMenuFor(null); removeCluster(r.cluster_label); }}
+            >Remove cluster</button>
+          </div>
+        )}
+      </div>
+    ) }
   ];
 
   return (
@@ -139,10 +164,7 @@ export default function GameLiteAdmin() {
             {saving && <span className="text-xs text-white/60">Saving…</span>}
           </div>
           <div className="grid gap-3 md:grid-cols-6">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={!!cfg.enabled} onChange={(e)=>saveConfig({enabled:e.target.checked})}/>
-              <span>Enabled</span>
-            </label>
+            {/* Game is always enabled — control removed */}
             <label className="md:col-span-2">Label Prefix
               <input className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
                      value={cfg.rules?.eligibleLabelPrefix || 'CLUSTER'}
