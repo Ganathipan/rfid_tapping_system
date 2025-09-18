@@ -1,21 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { gameLite } from '../../api';
+import { Card, CardBody } from '../../ui/Card.jsx';
+import Button from '../../ui/Button.jsx';
+import Badge from '../../ui/Badge.jsx';
+import Table from '../../ui/Table.jsx';
+import Modal from '../../ui/Modal.jsx';
+import Toast from '../../ui/Toast.jsx';
+import Loader from '../../ui/Loader.jsx';
 
 export default function GameLiteAdmin() {
   const [cfg, setCfg] = useState(null);
   const [eligible, setEligible] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState('');
+  const [toast, setToast] = useState("");
   const [draftRule, setDraftRule] = useState({ cluster_label: '', award_points: 0, redeemable: false, redeem_points: 0 });
+  const [redeemOpen, setRedeemOpen] = useState(false);
+  const [redeemForm, setRedeemForm] = useState({ registration_id: "", cluster_label: "" });
 
   const load = async () => {
-    try {
-      const [c, e] = await Promise.all([gameLite.getConfig(), gameLite.getEligibleTeams()]);
-      setCfg(c);
-      setEligible(e);
-    } catch (e) {
-      setMsg(e.message || 'Failed to load Game Lite data');
-    }
+    const [c, e] = await Promise.all([gameLite.getConfig(), gameLite.getEligibleTeams()]);
+    setCfg(c);
+    setEligible(e);
   };
 
   useEffect(() => {
@@ -39,8 +44,7 @@ export default function GameLiteAdmin() {
     try {
       const res = await gameLite.setConfig({ rules: patch.rules ? patch.rules : patch, enabled: patch.enabled });
       setCfg(res);
-    } catch (e) {
-      setMsg(e.message);
+      setToast("Config saved");
     } finally {
       setSaving(false);
     }
@@ -51,8 +55,7 @@ export default function GameLiteAdmin() {
     try {
       const res = await gameLite.setClusterRules(arr);
       setCfg(res);
-    } catch (e) {
-      setMsg(e.message);
+      setToast("Rules updated");
     } finally {
       setSaving(false);
     }
@@ -75,172 +78,159 @@ export default function GameLiteAdmin() {
     await saveRules(arr);
   };
 
-  if (!cfg) {
-    return (
-      <div style={{ padding: 16 }}>
-        <div>Loading Game Lite…</div>
-        {msg && (
-          <div style={{ marginTop: 8, color: '#b00' }}>
-            {msg}
-          </div>
-        )}
-        <button className="border" style={{ marginTop: 8, padding: '6px 10px' }} onClick={load}>Retry</button>
-      </div>
-    );
-  }
+  const doRedeem = async () => {
+    await gameLite.redeem(redeemForm);
+    setToast(`Redeemed for team ${redeemForm.registration_id}`);
+    setRedeemOpen(false);
+    setRedeemForm({ registration_id: "", cluster_label: "" });
+    load();
+  };
+
+  if (!cfg) return <Loader/>;
+
+  const eligibleCols = [
+    { header: "Reg ID", key: "registration_id" },
+    { header: "Group", key: "group_size" },
+    { header: "Score", key: "score" },
+    { header: "Latest", key: "latest_label" },
+    { header: "Last Seen", render: (r) => r.latest_time ? new Date(r.latest_time).toLocaleString() : "-" },
+    { header: "Status", render: (r) => {
+        const ok = (r.score ?? 0) >= (cfg?.rules?.minPointsRequired ?? 0)
+          && (r.group_size ?? 0) >= (cfg?.rules?.minGroupSize ?? 0)
+          && (r.group_size ?? 0) <= (cfg?.rules?.maxGroupSize ?? 9999);
+        return <Badge color={ok?"green":"yellow"}>{ok?"Eligible":"Not eligible"}</Badge>
+      }
+    },
+    { header: "", render: (r) => (
+        <Button size="sm" variant="accent" onClick={() => { setRedeemForm({ registration_id: r.registration_id, cluster_label: "" }); setRedeemOpen(true); }}>
+          Redeem
+        </Button>
+      )
+    }
+  ];
+
+  const rulesCols = [
+    { header: "Cluster", key: "cluster_label" },
+    { header: "Award", render: (r, i) => (
+        <input type="number" className="w-24 rounded border border-white/10 bg-black/30 p-1"
+               value={r.award_points}
+               onChange={(e) => updateRule(rulesArray.findIndex(x=>x.cluster_label===r.cluster_label), { award_points: Number(e.target.value) })}/>
+      )
+    },
+    { header: "Redeemable", render: (r) => (
+        <input type="checkbox" checked={r.redeemable}
+               onChange={(e) => updateRule(rulesArray.findIndex(x=>x.cluster_label===r.cluster_label), { redeemable: e.target.checked })}/>
+      )
+    },
+    { header: "Redeem", render: (r) => (
+        <input type="number" className="w-24 rounded border border-white/10 bg-black/30 p-1"
+               value={r.redeem_points}
+               onChange={(e) => updateRule(rulesArray.findIndex(x=>x.cluster_label===r.cluster_label), { redeem_points: Number(e.target.value) })}/>
+      )
+    },
+  ];
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, margin: '0 auto' }}>
-      <h2 style={{ margin: '8px 0' }}>Game Lite Admin</h2>
+    <div className="space-y-6">
+      <Card>
+        <CardBody>
+          <div className="mb-3 flex items-center justify-between">
+            <h1 className="text-xl font-bold">Game Lite — Config</h1>
+            {saving && <span className="text-xs text-white/60">Saving…</span>}
+          </div>
+          <div className="grid gap-3 md:grid-cols-6">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={!!cfg.enabled} onChange={(e)=>saveConfig({enabled:e.target.checked})}/>
+              <span>Enabled</span>
+            </label>
+            <label className="md:col-span-2">Label Prefix
+              <input className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
+                     value={cfg.rules?.eligibleLabelPrefix || 'CLUSTER'}
+                     onChange={(e)=>saveConfig({ rules: { eligibleLabelPrefix:e.target.value } })}/>
+            </label>
+            <label>Min group
+              <input type="number" className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
+                     value={cfg.rules?.minGroupSize ?? 1} onChange={(e)=>saveConfig({ rules: { minGroupSize:Number(e.target.value) } })}/>
+            </label>
+            <label>Max group
+              <input type="number" className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
+                     value={cfg.rules?.maxGroupSize ?? 9999} onChange={(e)=>saveConfig({ rules: { maxGroupSize:Number(e.target.value) } })}/>
+            </label>
+            <label>Min points
+              <input type="number" className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
+                     value={cfg.rules?.minPointsRequired ?? 0} onChange={(e)=>saveConfig({ rules: { minPointsRequired:Number(e.target.value) } })}/>
+            </label>
+          </div>
+        </CardBody>
+      </Card>
 
-      <section className="card" style={{ padding: 12, marginBottom: 12 }}>
-        <h3>Config</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, alignItems: 'center' }}>
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <input type="checkbox" checked={!!cfg.enabled} onChange={(e) => saveConfig({ enabled: e.target.checked })} />
-            Enabled
-          </label>
-          <label>
-            Label Prefix
-            <input className="border" style={{ width: '100%', padding: 4 }}
-              value={cfg.rules?.eligibleLabelPrefix || 'CLUSTER'}
-              onChange={(e) => saveConfig({ rules: { eligibleLabelPrefix: e.target.value } })} />
-          </label>
-          <label>
-            Min group
-            <input type="number" className="border" style={{ width: '100%', padding: 4 }}
-              value={cfg.rules?.minGroupSize ?? 1}
-              onChange={(e) => saveConfig({ rules: { minGroupSize: Number(e.target.value) } })} />
-          </label>
-          <label>
-            Max group
-            <input type="number" className="border" style={{ width: '100%', padding: 4 }}
-              value={cfg.rules?.maxGroupSize ?? 9999}
-              onChange={(e) => saveConfig({ rules: { maxGroupSize: Number(e.target.value) } })} />
-          </label>
-          <label>
-            Min points
-            <input type="number" className="border" style={{ width: '100%', padding: 4 }}
-              value={cfg.rules?.minPointsRequired ?? 0}
-              onChange={(e) => saveConfig({ rules: { minPointsRequired: Number(e.target.value) } })} />
-          </label>
-          {saving && <div className="small mut">Saving…</div>}
-        </div>
-      </section>
+      <Card>
+        <CardBody>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Per-Cluster Rules</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={load}>Refresh</Button>
+              <Button variant="primary" onClick={addOrUpdateRule}>Add / Update Rule</Button>
+            </div>
+          </div>
+          <div className="mb-2 text-white/70 text-sm">Redeemable clusters will automatically deduct their redeem points on tap.</div>
+          <Table columns={rulesCols} rows={rulesArray}/>
+          <div className="mt-3 grid gap-2 md:grid-cols-4">
+            <input placeholder="CLUSTER1" className="rounded border border-white/10 bg-black/30 p-2"
+                   value={draftRule.cluster_label}
+                   onChange={(e) => setDraftRule({ ...draftRule, cluster_label: e.target.value.toUpperCase() })} />
+            <input type="number" placeholder="Award" className="rounded border border-white/10 bg-black/30 p-2"
+                   value={draftRule.award_points}
+                   onChange={(e) => setDraftRule({ ...draftRule, award_points: Number(e.target.value) })} />
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={draftRule.redeemable}
+                     onChange={(e) => setDraftRule({ ...draftRule, redeemable: e.target.checked })} />
+              Redeemable
+            </label>
+            <input type="number" placeholder="Redeem points" className="rounded border border-white/10 bg-black/30 p-2"
+                   value={draftRule.redeem_points}
+                   onChange={(e) => setDraftRule({ ...draftRule, redeem_points: Number(e.target.value) })} />
+          </div>
+        </CardBody>
+      </Card>
 
-      <section className="card" style={{ padding: 12, marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>Per-Cluster Rules</h3>
-          <button className="border" onClick={load} style={{ padding: '6px 10px' }}>Refresh</button>
-        </div>
-        <div className="small mut" style={{ margin: '6px 0 10px' }}>
-          Note: If a cluster is marked as redeemable, its Redeem Points will be automatically deducted when a team taps that cluster. There is no manual redeem.
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th className="border p-1">Cluster</th>
-                <th className="border p-1">Award</th>
-                <th className="border p-1">Redeemable</th>
-                <th className="border p-1">Redeem Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rulesArray.map((r, i) => (
-                <tr key={r.cluster_label}>
-                  <td className="border p-1 mono">
-                    <input
-                      className="border"
-                      style={{ width: 140, padding: 4 }}
-                      value={r.cluster_label}
-                      onChange={(e) => updateRule(i, { cluster_label: e.target.value.toUpperCase() })}
-                      onBlur={async (e) => {
-                        const newKey = String(e.target.value || '').trim().toUpperCase();
-                        if (!newKey || newKey === r.cluster_label) return;
-                        // Rename the key by rebuilding rules array (unique keys)
-                        const arr = rulesArray
-                          .filter((x, idx) => idx !== i && x.cluster_label !== newKey)
-                          .concat([{ ...r, cluster_label: newKey }]);
-                        await saveRules(arr);
-                      }}
-                    />
-                  </td>
-                  <td className="border p-1">
-                    <input type="number" className="border" style={{ width: 80, padding: 4 }}
-                      value={r.award_points}
-                      onChange={(e) => updateRule(i, { award_points: Number(e.target.value) })} />
-                  </td>
-                  <td className="border p-1" style={{ textAlign: 'center' }}>
-                    <input type="checkbox" checked={!!r.redeemable}
-                      onChange={(e) => updateRule(i, { redeemable: e.target.checked })} />
-                  </td>
-                  <td className="border p-1">
-                    <input type="number" className="border" style={{ width: 80, padding: 4 }}
-                      value={r.redeem_points}
-                      onChange={(e) => updateRule(i, { redeem_points: Number(e.target.value) })} />
-                  </td>
-                </tr>
+      <Card>
+        <CardBody>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Eligible Teams</h2>
+            <Button variant="outline" onClick={load}>Refresh</Button>
+          </div>
+          <Table columns={eligibleCols} rows={eligible} rowKey={(r)=>r.registration_id}/>
+        </CardBody>
+      </Card>
+
+      <Modal open={redeemOpen} onClose={()=>setRedeemOpen(false)} title="Redeem Points">
+        <div className="grid gap-3 md:grid-cols-2">
+          <label>Registration ID
+            <input className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
+                   value={redeemForm.registration_id}
+                   onChange={(e)=>setRedeemForm({...redeemForm, registration_id: e.target.value})}/>
+          </label>
+          <label>Cluster
+            <select className="mt-1 w-full rounded border border-white/10 bg-black/30 p-1"
+                    value={redeemForm.cluster_label}
+                    onChange={(e)=>setRedeemForm({...redeemForm, cluster_label: e.target.value})}>
+              <option value="">Choose cluster</option>
+              {rulesArray.filter(r=>r.redeemable).map(r=> (
+                <option key={r.cluster_label} value={r.cluster_label}>
+                  {r.cluster_label} (−{r.redeem_points})
+                </option>
               ))}
-              <tr>
-                <td className="border p-1">
-                  <input placeholder="CLUSTER1" className="border" style={{ width: 120, padding: 4 }}
-                    value={draftRule.cluster_label}
-                    onChange={(e) => setDraftRule({ ...draftRule, cluster_label: e.target.value.toUpperCase() })} />
-                </td>
-                <td className="border p-1">
-                  <input type="number" className="border" style={{ width: 80, padding: 4 }}
-                    value={draftRule.award_points}
-                    onChange={(e) => setDraftRule({ ...draftRule, award_points: Number(e.target.value) })} />
-                </td>
-                <td className="border p-1" style={{ textAlign: 'center' }}>
-                  <input type="checkbox" checked={draftRule.redeemable}
-                    onChange={(e) => setDraftRule({ ...draftRule, redeemable: e.target.checked })} />
-                </td>
-                <td className="border p-1">
-                  <input type="number" className="border" style={{ width: 80, padding: 4 }}
-                    value={draftRule.redeem_points}
-                    onChange={(e) => setDraftRule({ ...draftRule, redeem_points: Number(e.target.value) })} />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            </select>
+          </label>
         </div>
-        <button className="border" style={{ marginTop: 8, padding: '6px 10px' }} onClick={addOrUpdateRule}>Add / Update Rule</button>
-      </section>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={()=>setRedeemOpen(false)}>Cancel</Button>
+          <Button variant="accent" onClick={doRedeem}>Redeem</Button>
+        </div>
+      </Modal>
 
-      <section className="card" style={{ padding: 12, marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>Eligible Teams</h3>
-          <button className="border" onClick={load} style={{ padding: '6px 10px' }}>Refresh</button>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th className="border p-1">Reg ID</th>
-                <th className="border p-1">Group</th>
-                <th className="border p-1">Score</th>
-                <th className="border p-1">Latest</th>
-                <th className="border p-1">Last Seen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {eligible.map((t) => (
-                <tr key={t.registration_id}>
-                  <td className="border p-1">{t.registration_id}</td>
-                  <td className="border p-1">{t.group_size}</td>
-                  <td className="border p-1">{t.score}</td>
-                  <td className="border p-1 mono">{t.latest_label || '-'}</td>
-                  <td className="border p-1">{t.latest_time ? new Date(t.latest_time).toLocaleString() : '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Manual redeem has been removed; redemptions occur automatically based on rules. */}
+      <Toast text={toast} show={!!toast} onClose={()=>setToast("")}/>
     </div>
   );
 }

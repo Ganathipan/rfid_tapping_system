@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { Card, CardBody } from '../ui/Card.jsx';
+import Button from '../ui/Button.jsx';
 
 export default function AdminPortal() {
   const [registrations, setRegistrations] = useState([]);
@@ -64,54 +67,48 @@ export default function AdminPortal() {
   }
 
   return (
-    <div className="card" style={{ padding: 12 }}>
-      <h3 style={{ marginTop: 0 }}>Admin Portal</h3>
-
-      <div style={{ margin: '8px 0 12px 0' }}>
-        <a href="/admin/game-lite" className="inline-block" style={{ border: '1px solid #ccc', padding: '6px 10px', borderRadius: 6, textDecoration: 'none' }}>
-          Open Game Lite Admin
-        </a>
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardBody>
+            <h2 className="mb-2 text-xl font-semibold">Game Lite</h2>
+            <p className="mb-3 text-white/80">Manage scoring, thresholds, cluster rules, and redemptions.</p>
+            <Link to="/admin/game-lite"><Button variant="primary">Open Game Lite Admin</Button></Link>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <h2 className="mb-2 text-xl font-semibold">Kiosks</h2>
+            <p className="mb-3 text-white/80">Directory of per-cluster live displays.</p>
+            <Link to="/kiosk"><Button variant="dark">Open Kiosk Directory</Button></Link>
+          </CardBody>
+        </Card>
       </div>
 
-      {msg && <div className="small mut" style={{ marginBottom: 10 }}>{msg}</div>}
+      {msg && <div className="text-amber-300 text-sm">{msg}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 10 }}>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Total Records</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{computed.totalRecords}</div>
-        </div>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Total People</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{computed.totalPeople}</div>
-        </div>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Individuals (general)</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{computed.byType.general || 0}</div>
-        </div>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Batches (school+univ)</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{(computed.byType.school || 0) + (computed.byType.university || 0)}</div>
-        </div>
+      <div className="grid gap-3 md:grid-cols-4">
+        <Card><CardBody>
+          <div className="text-white/70 text-xs">Total Records</div>
+          <div className="text-lg font-bold">{computed.totalRecords}</div>
+        </CardBody></Card>
+        <Card><CardBody>
+          <div className="text-white/70 text-xs">Total People</div>
+          <div className="text-lg font-bold">{computed.totalPeople}</div>
+        </CardBody></Card>
+        <Card><CardBody>
+          <div className="text-white/70 text-xs">Individuals (general)</div>
+          <div className="text-lg font-bold">{computed.byType.general || 0}</div>
+        </CardBody></Card>
+        <Card><CardBody>
+          <div className="text-white/70 text-xs">Batches (school+univ)</div>
+          <div className="text-lg font-bold">{(computed.byType.school || 0) + (computed.byType.university || 0)}</div>
+        </CardBody></Card>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Total RFID Tags</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{computed.totalTags}</div>
-        </div>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Available Tags</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{computed.availableTags}</div>
-        </div>
-        <div className="card" style={{ padding: 10 }}>
-          <div className="small mut">Assigned Tags</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{computed.assignedTags}</div>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <label className="small mut">Filter by type:</label>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+      <div className="flex items-center gap-2">
+        <label className="text-white/70 text-sm">Filter by type:</label>
+        <select className="rounded border border-white/10 bg-black/30 px-2 py-1" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
           <option value="">All</option>
           <option value="school">School</option>
           <option value="university">University</option>
@@ -119,37 +116,37 @@ export default function AdminPortal() {
         </select>
       </div>
 
-      <div className="list small">
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
+      <div className="overflow-auto rounded-2xl border border-white/10">
+        <table className="min-w-full text-sm">
+          <thead className="bg-white/5 text-white/90">
             <tr>
-              <th>#</th>
-              <th>ID</th>
-              <th>Portal</th>
-              <th>Type</th>
-              <th>Province</th>
-              <th>District</th>
-              <th>School/University</th>
-              <th>Age</th>
-              <th>Sex</th>
-              <th>Size</th>
+              <th className="px-3 py-2 text-left font-semibold">#</th>
+              <th className="px-3 py-2 text-left font-semibold">ID</th>
+              <th className="px-3 py-2 text-left font-semibold">Portal</th>
+              <th className="px-3 py-2 text-left font-semibold">Type</th>
+              <th className="px-3 py-2 text-left font-semibold">Province</th>
+              <th className="px-3 py-2 text-left font-semibold">District</th>
+              <th className="px-3 py-2 text-left font-semibold">School/University</th>
+              <th className="px-3 py-2 text-left font-semibold">Age</th>
+              <th className="px-3 py-2 text-left font-semibold">Sex</th>
+              <th className="px-3 py-2 text-left font-semibold">Size</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-white/90">
             {filtered.map((r, i) => {
               const type = r.school ? 'school' : (r.university ? 'university' : 'general');
               return (
-                <tr key={r.id}>
-                  <td>{i + 1}</td>
-                  <td className="mono">#{r.id}</td>
-                  <td>{r.portal}</td>
-                  <td>{type}</td>
-                  <td>{r.province || '-'}</td>
-                  <td>{r.district || '-'}</td>
-                  <td>{r.school || r.university || '-'}</td>
-                  <td>{r.age_range || '-'}</td>
-                  <td>{r.sex || '-'}</td>
-                  <td>{r.group_size}</td>
+                <tr key={r.id} className="odd:bg-white/0 even:bg-white/[0.03] hover:bg-white/[0.06]">
+                  <td className="px-3 py-2">{i + 1}</td>
+                  <td className="px-3 py-2 font-mono">#{r.id}</td>
+                  <td className="px-3 py-2">{r.portal}</td>
+                  <td className="px-3 py-2">{type}</td>
+                  <td className="px-3 py-2">{r.province || '-'}</td>
+                  <td className="px-3 py-2">{r.district || '-'}</td>
+                  <td className="px-3 py-2">{r.school || r.university || '-'}</td>
+                  <td className="px-3 py-2">{r.age_range || '-'}</td>
+                  <td className="px-3 py-2">{r.sex || '-'}</td>
+                  <td className="px-3 py-2">{r.group_size}</td>
                 </tr>
               );
             })}

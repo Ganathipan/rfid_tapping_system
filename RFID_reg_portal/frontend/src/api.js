@@ -46,6 +46,14 @@ export const gameLite = {
   setConfig: (patch) => apiPost('/api/game-lite/config', patch, ADMIN_KEY ? { 'x-admin-key': ADMIN_KEY } : {}),
   resetConfig: () => apiPost('/api/game-lite/config/reset', {}, ADMIN_KEY ? { 'x-admin-key': ADMIN_KEY } : {}),
   initLiteTables: () => apiPost('/api/game-lite/admin/init', {}, ADMIN_KEY ? { 'x-admin-key': ADMIN_KEY } : {}),
+  redeem: ({ registration_id, cluster_label }) => {
+    const body = {
+      registrationId: Number(registration_id),
+      clusterLabel: String(cluster_label || '').toUpperCase(),
+    };
+    const headers = ADMIN_KEY ? { 'x-admin-key': ADMIN_KEY } : {};
+    return apiPost('/api/game-lite/redeem', body, headers);
+  },
 
   // helpers to update cluster rules map
   async setClusterRules(rulesArray) {

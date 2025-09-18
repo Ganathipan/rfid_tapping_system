@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api';
+import { Card, CardBody, CardHeader } from '../../ui/Card.jsx';
+import Button from '../../ui/Button.jsx';
 
 export default function ClusterDirectory() {
   const [clusters, setClusters] = useState([]);
@@ -13,15 +15,19 @@ export default function ClusterDirectory() {
   }, []);
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Cluster Directory</h2>
-      {err && <div className="small mut" style={{ color: '#b00' }}>{err}</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginTop: 12 }}>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold">Cluster Directory</h2>
+      {err && <div className="text-rose-300 text-sm">{err}</div>}
+      <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
         {clusters.map((c) => (
-          <Link key={c} className="card" to={`/kiosk/cluster/${encodeURIComponent(c)}`} style={{ padding: 12, textDecoration: 'none' }}>
-            <div style={{ fontWeight: 700 }}>{c}</div>
-            <div className="small mut">Open display</div>
-          </Link>
+          <Card key={c}>
+            <CardBody className="flex flex-col gap-2">
+              <div className="font-semibold text-white/90">{c}</div>
+              <Link to={`/kiosk/cluster/${encodeURIComponent(c)}`} className="w-full">
+                <Button className="w-full" variant="outline">Open display</Button>
+              </Link>
+            </CardBody>
+          </Card>
         ))}
       </div>
     </div>

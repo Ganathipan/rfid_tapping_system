@@ -9,6 +9,7 @@ import AdminPortal from './pages/AdminPortal';
 import GameLiteAdmin from './pages/admin/GameLiteAdmin';
 import ClusterDirectory from './pages/kiosk/ClusterDirectory';
 import ClusterDisplay from './pages/kiosk/ClusterDisplay';
+import AppShell from './layouts/AppShell.jsx';
 
 
 export default function App() {
@@ -85,55 +86,34 @@ export default function App() {
     }
   };
 
-  const appShell = (
-    <>
-      {/* Fixed top-left button to open Game Lite Admin */}
-      <Link
-        to="/admin/game-lite"
-        style={{
-          position: 'fixed',
-          top: 12,
-          right: 12,
-          zIndex: 1000,
-          textDecoration: 'none',
-          background: '#0f182d',
-          border: '1px solid #2a375d',
-          color: '#e6eefc',
-          padding: '8px 12px',
-          borderRadius: 10,
-          fontWeight: 600
-        }}
-        aria-label="Open Game Lite Admin"
-      >
-        Admin Game
-      </Link>
-      <header>
-        <h1>RFID Registration System</h1>
-        <div className="pill">
-          <span className="small">Health: {health}</span>
-        </div>
-        {/* Navigation removed for cleaner UI, only RFID registration flow remains */}
-      </header>
-
-      <main style={{ maxWidth: '1100px', margin: '24px auto', padding: '0 16px' }}>
+  function RootFlow() {
+    return (
+      <>
+        <header className="mb-4">
+          <h1 className="text-xl font-semibold">RFID Registration System</h1>
+          <div className="pill">
+            <span className="small">Health: {health}</span>
+          </div>
+        </header>
         <section className="card">{renderCurrentView()}</section>
-      </main>
-
-      <footer>
-        Frontend <span className="mono">{import.meta.env.VITE_API_BASE}</span>
-      </footer>
-    </>
-  );
+        <footer className="mt-6 opacity-80 text-sm">
+          Frontend <span className="mono">{import.meta.env.VITE_API_BASE}</span>
+        </footer>
+      </>
+    );
+  }
 
   // If we’re using Router, expose GameLiteAdmin at /admin/game-lite and AdminPortal at /admin
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={appShell} />
-        <Route path="/admin" element={<AdminPortal />} />
-        <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
-        <Route path="/kiosk" element={<ClusterDirectory />} />
-        <Route path="/kiosk/cluster/:clusterLabel" element={<ClusterDisplay />} />
+        <Route element={<AppShell />}>
+          <Route path="/" element={<RootFlow />} />
+          <Route path="/admin" element={<AdminPortal />} />
+          <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
+          <Route path="/kiosk" element={<ClusterDirectory />} />
+          <Route path="/kiosk/cluster/:clusterLabel" element={<ClusterDisplay />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
