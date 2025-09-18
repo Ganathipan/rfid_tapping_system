@@ -9,6 +9,8 @@ param(
   [Nullable[int]] $BackendPortOverride
 )
 
+$env:PGPASSWORD = 'Gana11602' # set a default password here or pass via -PgPassword
+
 $ErrorActionPreference = 'Stop'
 
 # --- paths ---
