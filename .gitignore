@@ -50,3 +50,6 @@ RFID_reg_portal/Backend/dist/
 # Hardware
 Hardware_Setup/arduino_files/*.hex
 Hardware_Setup/arduino_files/*.bin
+
+#Console logs
+logs/*
