@@ -7,7 +7,6 @@ export default function GameLiteAdmin() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [draftRule, setDraftRule] = useState({ cluster_label: '', award_points: 0, redeemable: false, redeem_points: 0 });
-  const [redeemForm, setRedeemForm] = useState({ registration_id: '', cluster_label: '', redeemed_by: '' });
 
   const load = async () => {
     try {
@@ -76,19 +75,6 @@ export default function GameLiteAdmin() {
     await saveRules(arr);
   };
 
-  const doRedeem = async () => {
-    setMsg('');
-    if (!redeemForm.registration_id || !redeemForm.cluster_label) return;
-    try {
-      const out = await gameLite.redeem(redeemForm);
-      setMsg(out?.ok ? `Redeemed for team ${redeemForm.registration_id} at ${redeemForm.cluster_label}` : 'Redeem completed');
-      setRedeemForm({ registration_id: '', cluster_label: '', redeemed_by: '' });
-      load();
-    } catch (e) {
-      setMsg(e.message);
-    }
-  };
-
   if (!cfg) {
     return (
       <div style={{ padding: 16 }}>
@@ -147,6 +133,9 @@ export default function GameLiteAdmin() {
           <h3>Per-Cluster Rules</h3>
           <button className="border" onClick={load} style={{ padding: '6px 10px' }}>Refresh</button>
         </div>
+        <div className="small mut" style={{ margin: '6px 0 10px' }}>
+          Note: If a cluster is marked as redeemable, its Redeem Points will be automatically deducted when a team taps that cluster. There is no manual redeem.
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -154,7 +143,7 @@ export default function GameLiteAdmin() {
                 <th className="border p-1">Cluster</th>
                 <th className="border p-1">Award</th>
                 <th className="border p-1">Redeemable</th>
-                <th className="border p-1">Redeem</th>
+                <th className="border p-1">Redeem Points</th>
               </tr>
             </thead>
             <tbody>
@@ -251,38 +240,7 @@ export default function GameLiteAdmin() {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 12, marginBottom: 12 }}>
-        <h3>Redeem</h3>
-        <div style={{ marginBottom: 8, color: '#2674d6', fontWeight: 500 }}>
-          Clusters marked as <b>redeemable</b> will automatically redeem points when a visitor taps the cluster reader. Manual redeem is disabled for these clusters.
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'end' }}>
-          <label>
-            Registration ID
-            <input className="border" style={{ width: 120, padding: 4 }}
-              value={redeemForm.registration_id}
-              onChange={(e) => setRedeemForm({ ...redeemForm, registration_id: e.target.value })} />
-          </label>
-          <label>
-            Cluster
-            <select className="border" style={{ padding: 4 }} value={redeemForm.cluster_label}
-              onChange={(e) => setRedeemForm({ ...redeemForm, cluster_label: e.target.value })}>
-              <option value="">Choose cluster</option>
-              {rulesArray.filter(r => !r.redeemable).map(r => (
-                <option key={r.cluster_label} value={r.cluster_label}>{r.cluster_label} (−{r.redeem_points})</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            By
-            <input className="border" style={{ width: 160, padding: 4 }}
-              value={redeemForm.redeemed_by}
-              onChange={(e) => setRedeemForm({ ...redeemForm, redeemed_by: e.target.value })} />
-          </label>
-          <button className="border" style={{ padding: '6px 10px' }} onClick={doRedeem} disabled={rulesArray.find(r => r.cluster_label === redeemForm.cluster_label)?.redeemable}>Redeem</button>
-        </div>
-        {msg && <div className="small mut" style={{ marginTop: 8 }}>{msg}</div>}
-      </section>
+      {/* Manual redeem has been removed; redemptions occur automatically based on rules. */}
     </div>
   );
 }
