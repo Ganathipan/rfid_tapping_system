@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const statsRoutes = require('./services/statsRoutes');
 require('dotenv').config();
 
 const tagsRouter = require('./routes/tags');
@@ -14,6 +15,12 @@ app.use(express.json());
 app.get('/health', (_req, res) =>
   res.json({ ok: true, ts: new Date().toISOString() })
 );
+
+// Routes
+app.get('/', (req, res) => {
+  res.send('✅ RFID Tracking API Running');
+});
+app.use('/api', statsRoutes);
 
 // mount main router
 app.use('/api/tags', tagsRouter);

@@ -13,6 +13,11 @@
         "awardPoints": 8,
         "redeemable": false,
         "redeemPoints": 5
+      },
+      "CLUSTER2": {
+        "awardPoints": 5,
+        "redeemable": false,
+        "redeemPoints": 0
       }
     },
     "enabled": true
