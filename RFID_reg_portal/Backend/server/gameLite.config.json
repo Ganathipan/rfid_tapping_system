@@ -5,12 +5,12 @@
     "pointsPerMemberFirstVisit": 1,
     "pointsPerMemberRepeatVisit": 0,
     "awardOnlyFirstVisit": true,
-    "minGroupSize": 3,
+    "minGroupSize": 2,
     "maxGroupSize": 10,
     "minPointsRequired": 3,
     "clusterRules": {
       "CLUSTER1": {
-        "awardPoints": 8,
+        "awardPoints": 2,
         "redeemable": false,
         "redeemPoints": 5
       },

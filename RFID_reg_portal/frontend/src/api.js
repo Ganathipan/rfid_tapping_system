@@ -72,3 +72,12 @@ export const gameLite = {
   }
 };
 
+// -------------- Reader Config client --------------
+export const readerConfig = {
+  list: () => api('/api/reader-config', { method: 'GET' }),
+  get: (rIndex) => api(`/api/reader-config/${encodeURIComponent(rIndex)}`, { method: 'GET' }),
+  upsert: ({ r_index, reader_id, portal }) => api('/api/reader-config', { method: 'POST', body: { r_index, reader_id, portal } }),
+  update: (rIndex, patch) => api(`/api/reader-config/${encodeURIComponent(rIndex)}`, { method: 'PUT', body: patch }),
+  remove: (rIndex) => api(`/api/reader-config/${encodeURIComponent(rIndex)}`, { method: 'DELETE' })
+};
+

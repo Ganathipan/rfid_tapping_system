@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api } from '../api';
+import { api, readerConfig } from '../api';
 import { Card, CardBody } from '../ui/Card.jsx';
+import Table from '../ui/Table.jsx';
 
 export default function AdminPortal() {
   const [registrations, setRegistrations] = useState([]);
@@ -8,18 +9,23 @@ export default function AdminPortal() {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState(''); // '', school, university, general
   const [msg, setMsg] = useState('');
+  const [rcList, setRcList] = useState([]);
+  const [rcForm, setRcForm] = useState({ r_index: '', reader_id: '', portal: '' });
+  const [rcSaving, setRcSaving] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       setMsg('');
       try {
-        const [regs, rfid] = await Promise.all([
+        const [regs, rfid, rc] = await Promise.all([
           api('/api/tags/admin/registrations'),
           api('/api/tags/list-cards'),
+          readerConfig.list(),
         ]);
         setRegistrations(regs || []);
         setCards(rfid || []);
+        setRcList(rc || []);
       } catch (e) {
         setMsg(e.message || 'Failed to load admin data');
       } finally {
@@ -151,6 +157,79 @@ export default function AdminPortal() {
           </tbody>
         </table>
       </div>
+
+      {/* Reader Config Management */}
+      <Card>
+        <CardBody>
+          <h2 className="mb-2 text-xl font-semibold">Reader Configuration</h2>
+          <p className="mb-3 text-white/80">Map device indexes (rIndex) to readerID and portal. Devices fetch this at boot.</p>
+          <div className="grid gap-2 md:grid-cols-4 items-end mb-3">
+            <div>
+              <label className="text-white/70 text-sm">rIndex</label>
+              <input className="w-full rounded border border-white/10 bg-black/30 px-2 py-1"
+                     type="number" min="0" value={rcForm.r_index}
+                     onChange={(e)=>setRcForm(f=>({ ...f, r_index: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-white/70 text-sm">readerID</label>
+              <input className="w-full rounded border border-white/10 bg-black/30 px-2 py-1"
+                     value={rcForm.reader_id}
+                     onChange={(e)=>setRcForm(f=>({ ...f, reader_id: e.target.value }))}
+                     placeholder="e.g., REGISTER or CLUSTER1" />
+            </div>
+            <div>
+              <label className="text-white/70 text-sm">portal</label>
+              <input className="w-full rounded border border-white/10 bg-black/30 px-2 py-1"
+                     value={rcForm.portal}
+                     onChange={(e)=>setRcForm(f=>({ ...f, portal: e.target.value }))}
+                     placeholder="e.g., portal1 or reader1" />
+            </div>
+            <div>
+              <button className="btn" disabled={rcSaving}
+                      onClick={async ()=>{
+                        const idx = Number(rcForm.r_index);
+                        if (!Number.isInteger(idx) || idx < 0) { setMsg('rIndex must be a non-negative integer'); return; }
+                        const rid = String(rcForm.reader_id||'').trim();
+                        const p = String(rcForm.portal||'').trim();
+                        if (!rid || !p) { setMsg('readerID and portal are required'); return; }
+                        setRcSaving(true);
+                        try {
+                          await readerConfig.upsert({ r_index: idx, reader_id: rid, portal: p });
+                          const rc = await readerConfig.list();
+                          setRcList(rc||[]);
+                          setRcForm({ r_index: '', reader_id: '', portal: '' });
+                        } catch (e) {
+                          setMsg(e.message || 'Failed to save config');
+                        } finally {
+                          setRcSaving(false);
+                        }
+                      }}>Save</button>
+            </div>
+          </div>
+
+          <Table columns={[
+            { header: 'rIndex', key: 'r_index' },
+            { header: 'readerID', key: 'reader_id', tdClass: 'font-mono' },
+            { header: 'portal', key: 'portal', tdClass: 'font-mono' },
+            { header: 'updated', key: 'updated_at' },
+            { header: 'actions', render: (r)=> (
+              <div className="flex gap-2">
+                <button className="btn btn-sm" onClick={()=> setRcForm({ r_index: r.r_index, reader_id: r.reader_id, portal: r.portal })}>Edit</button>
+                <button className="btn btn-sm bg-red-600 hover:bg-red-500" onClick={async ()=>{
+                  try {
+                    await readerConfig.remove(r.r_index);
+                    const rc = await readerConfig.list();
+                    setRcList(rc||[]);
+                  } catch (e) { setMsg(e.message || 'Failed to delete'); }
+                }}>Delete</button>
+              </div>
+            )}
+          ]}
+          rows={rcList}
+          rowKey={(r)=>r.r_index}
+          />
+        </CardBody>
+      </Card>
     </div>
   );
 }

@@ -135,4 +135,14 @@ CREATE TRIGGER trg_notify_reader1_cluster_logs
 AFTER INSERT ON logs
 FOR EACH ROW EXECUTE FUNCTION notify_reader1_cluster_logs();
 
+-- ===========================
+-- Reader software configuration
+-- ===========================
+CREATE TABLE IF NOT EXISTS reader_config (
+    r_index INTEGER PRIMARY KEY,
+    reader_id TEXT NOT NULL,
+    portal   TEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 \echo === All done. ===

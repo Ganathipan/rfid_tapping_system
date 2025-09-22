@@ -6,6 +6,7 @@ require('dotenv').config();
 const tagsRouter = require('./routes/tags');
 const gameLiteRouter = require('./routes/gameLite');
 const reader1ClusterKioskRouter = require('./routes/reader1ClusterKiosk');
+const readerConfigRouter = require('./routes/readerConfig');
 
 const app = express();
 app.use(cors());
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {
   res.send('✅ RFID Tracking API Running');
 });
 app.use('/api', statsRoutes);
+app.use('/api', readerConfigRouter);
 
 // mount main router
 app.use('/api/tags', tagsRouter);
@@ -29,5 +31,5 @@ app.use('/api', reader1ClusterKioskRouter);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
-  console.log(`✅ RFID backend listening on http://localhost:${port}`);
+  console.log(`✅ RFID backend listening on port ${port} (try http://192.168.8.2:${port})`);
 });
