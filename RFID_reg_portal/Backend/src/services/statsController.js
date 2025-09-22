@@ -1,4 +1,5 @@
 const pool = require('../db/pool');
+const { postInternal } = require('../utils/postInternal');
 
 // ===============================
 // Get cluster occupancy
@@ -61,6 +62,16 @@ const getClusterOccupancy = async (req, res) => {
       { id: 4, zone: 'zone4', visitors: z4 },
       { id: 8, zone: 'zone8', visitors: z8 },
     ].sort((a, b) => a.id - b.id);
+
+    // fire-and-forget derive movements; do NOT await
+    try {
+      postInternal('/api/derive-movements', {
+        source: 'cluster-occupancy',
+        at: Date.now(),
+        // lightweight summary only
+        summary: withComputed.map(z => ({ id: z.id, v: z.visitors })),
+      });
+    } catch (_) { /* ignore */ }
 
     return res.json(withComputed);
   } catch (err) {
