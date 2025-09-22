@@ -140,16 +140,30 @@ router.post('/updateCount', async (req, res) => {
   if (!portal) return badReq(res, 'Portal is required');
   if (!count || isNaN(count) || count < 1) return badReq(res, 'Count must be >= 1');
   try {
-    // Update the latest registration for this portal
-    const result = await pool.query(
-      `UPDATE registration
-       SET group_size = $1
-       WHERE id = (
-         SELECT id FROM registration WHERE portal = $2 ORDER BY id DESC LIMIT 1
-       )
-       RETURNING id`,
-      [count, portal]
+    // Find latest registration for this portal and previous size
+    const latestRes = await pool.query(
+      `SELECT id, group_size FROM registration WHERE portal = $1 ORDER BY id DESC LIMIT 1`,
+      [portal]
     );
+    if (latestRes.rowCount === 0) return res.status(404).json({ error: 'No registration found for portal' });
+    const regId = latestRes.rows[0].id;
+    const oldSize = Number(latestRes.rows[0].group_size || 0);
+
+    // Update the group size
+    const result = await pool.query(
+      `UPDATE registration SET group_size = $1 WHERE id = $2 RETURNING id`,
+      [count, regId]
+    );
+    // Adjust venue_state by the delta
+    const newSize = Number(count);
+    const delta = newSize - oldSize;
+    if (delta !== 0) {
+      try {
+        const { incCrowd, decCrowd } = require('../services/venueState');
+        if (delta > 0) await incCrowd(delta);
+        else await decCrowd(Math.abs(delta));
+      } catch (_) {}
+    }
     if (result.rowCount === 0) return res.status(404).json({ error: 'No registration found for portal' });
     return res.status(200).json({ success: true, id: result.rows[0].id });
   } catch (e) {
@@ -185,6 +199,11 @@ router.post('/register', async (req, res) => {
        RETURNING id`,
       [portal, group_size, school, university, province, district, age_range, sex, lang]
     );
+    // Increment venue crowd by group_size
+    try {
+      const { incCrowd } = require('../services/venueState');
+      await incCrowd(Number(group_size) || 1);
+    } catch (_) {}
     return res.status(200).json({ id: result.rows[0].id });
   } catch (e) {
     return handleError(res, e);

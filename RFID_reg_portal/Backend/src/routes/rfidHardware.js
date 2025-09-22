@@ -33,6 +33,11 @@ router.post('/rfidRead', async (req, res) => {
         const tapTime = tapTimeRes.rows[0].log_time;
         if (!lastAssigned || tapTime > lastAssigned) {
           await pool.query(`UPDATE rfid_cards SET status='released' WHERE rfid_card_id = $1`, [tag]);
+          // decrement venue crowd by 1 (person leaving)
+          try {
+            const { decCrowd } = require('../services/venueState');
+            await decCrowd(1);
+          } catch (_) {}
         }
       }
     }

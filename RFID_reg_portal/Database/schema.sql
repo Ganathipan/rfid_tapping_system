@@ -135,13 +135,34 @@ CREATE TRIGGER trg_notify_reader1_cluster_logs
 AFTER INSERT ON logs
 FOR EACH ROW EXECUTE FUNCTION notify_reader1_cluster_logs();
 
--- ===========================
--- Reader software configuration
--- ===========================
 CREATE TABLE IF NOT EXISTS reader_config (
     r_index INTEGER PRIMARY KEY,
     reader_id TEXT NOT NULL,
     portal   TEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ===========================
+-- Venue state (singleton row)
+-- ===========================
+CREATE TABLE IF NOT EXISTS venue_state (
+    id INTEGER PRIMARY KEY,
+    current_crowd INTEGER NOT NULL DEFAULT 0 CHECK (current_crowd >= 0),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Ensure a single row exists with id=1
+INSERT INTO venue_state (id, current_crowd)
+VALUES (1, 0)
+ON CONFLICT (id) DO NOTHING;
+
+\echo === All done. ===
+-- ===========================
+-- Venue state (singleton row)
+-- ===========================
+CREATE TABLE IF NOT EXISTS venue_state (
+    id INTEGER PRIMARY KEY,
+    current_crowd INTEGER NOT NULL DEFAULT 0 CHECK (current_crowd >= 0),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

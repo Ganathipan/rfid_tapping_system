@@ -23,26 +23,51 @@ const getClusterOccupancy = async (req, res) => {
       GROUP BY latest.label
       ORDER BY latest.label;
     `);
-    
-    // new shape: array of objects [{ zone_id, current_visitors }, ...]
-    const list = Array.isArray(rows) ? rows : [];
-    if (list.length === 0) {
-      return res.json([]);
+
+    // normalize codes like "CLUSTER5" -> { id: 5, zone: "zone5" }
+    const normalize = (code) => {
+      const m = String(code || '').match(/(\d+)/);
+      const id = m ? Number(m[1]) : 0;
+      return { id, zone: `zone${id}` };
+    };
+
+    // Map DB rows to { id, zone, visitors } and exclude 4 & 8 (computed later)
+    const mapped = (Array.isArray(rows) ? rows : [])
+      .map((r) => {
+        const { id, zone } = normalize(r.zone_code);
+        return { id, zone, visitors: Number(r.current_count ?? 0) };
+      })
+      .filter((x) => x.id !== 4 && x.id !== 8);
+
+    const knownSum = mapped.reduce((s, r) => s + (Number.isFinite(r.visitors) ? r.visitors : 0), 0);
+    const totalParam = Number(req.query.total);
+    let totalCrowd;
+    if (Number.isFinite(totalParam) && totalParam >= 0) {
+      totalCrowd = totalParam;
+    } else {
+      try {
+        const { getCurrentCrowd } = require('./venueState');
+        totalCrowd = await getCurrentCrowd();
+      } catch (_) {
+        totalCrowd = knownSum;
+      }
     }
-    const mapped = list.map((r) => {
-      const code = String(r.zone_code || "").trim();
-      const numMatch = code.match(/(\d+)/);
-      const zoneNum = numMatch ? Number(numMatch[1]) : 0;
-      const zone = `zone${zoneNum}`;
-      const visitors = Number(r.current_count ?? 0);
-      return { zone_id: zone, current_visitors: visitors };
-    });
-    return res.json(mapped);
+    const leftover = Math.max(totalCrowd - knownSum, 0);
+    const z4 = Math.floor(leftover / 2);
+    const z8 = leftover - z4;
+
+    const withComputed = [
+      ...mapped,
+      { id: 4, zone: 'zone4', visitors: z4 },
+      { id: 8, zone: 'zone8', visitors: z8 },
+    ].sort((a, b) => a.id - b.id);
+
+    return res.json(withComputed);
   } catch (err) {
     console.error('[getClusterOccupancy] Error:', err);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Database error' 
+    res.status(500).json({
+      success: false,
+      message: 'Database error'
     });
   }
 };

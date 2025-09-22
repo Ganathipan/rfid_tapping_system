@@ -20,7 +20,7 @@ const char* ssid = "Gana iPhone";
 const char* password = "12345679";
 
 // ===== Server Endpoint =====
-const char* serverName = "http://192.168.8.2/rfid/rfid.php";
+const char* serverName = "http://10.40.19.130/rfid/rfid.php";
 
 // ===== Reader Unique ID =====
 const char* readerID = "REGISTER";  // change per device (e.g., ROOM1, ROOM2...)
