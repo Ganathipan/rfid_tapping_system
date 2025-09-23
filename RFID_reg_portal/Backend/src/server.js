@@ -33,5 +33,5 @@ app.use('/api', reader1ClusterKioskRouter);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
-  console.log(`✅ RFID backend listening on port ${port} (try http://10.40.19.130:${port})`);
+  console.log(`✅ RFID backend listening on port ${port} (try http://192.168.8.2:${port})`);
 });
