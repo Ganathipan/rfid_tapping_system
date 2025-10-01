@@ -1,0 +1,56 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: Gana11602
+      POSTGRES_DB: rfid
+      POSTGRES_USER: postgres
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    networks: [rfid-network]
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto-no-auth/mosquitto.conf
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto-no-auth/mosquitto.conf:ro
+    ports: ["1883:1885"]
+    networks: [rfid-network]
+
+  backend:
+    build:
+      context: ../apps/backend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DATABASE_URL=postgresql://postgres:Gana11602@postgres:5432/rfid
+      - PG_SSL=false
+      - MQTT_URL=mqtt://mosquitto:1885
+      - GAMELITE_ADMIN_KEY=dev-admin-key-2024
+    depends_on: [postgres, mosquitto]
+    ports: ["4000:4000"]
+    networks: [rfid-network]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../apps/frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE=http://backend:4000
+    ports: ["8080:80"]
+    depends_on: [backend]
+    networks: [rfid-network]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  rfid-network:
+    driver: bridge
