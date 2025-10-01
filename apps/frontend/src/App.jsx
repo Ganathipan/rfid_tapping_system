@@ -7,6 +7,7 @@ import { Skeleton } from './ui/Skeleton.jsx';
 
 // Lazy loaded pages
 const PortalSelection = lazy(()=>import('./pages/PortalSelection'));
+const Home = lazy(()=>import('./pages/Home.jsx'));
 const RegistrationFlow = lazy(()=>import('./pages/RegistrationFlow'));
 const TagAssignment = lazy(()=>import('./pages/TagAssignment'));
 const AdminPortal = lazy(()=>import('./pages/AdminPortal'));
@@ -127,7 +128,8 @@ export default function App() {
         </div>}>
           <Routes>
             <Route element={<AppShell />}>
-              <Route path="/" element={<RootFlow />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/registration" element={<RootFlow />} />
               <Route path="/admin" element={<AdminPortal />} />
               <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
               <Route path="/admin/exitout" element={<ExitOutPage />} />
