@@ -10,6 +10,7 @@ export default function AppShell(){
             <NavLink to="/admin" className={({isActive})=>isActive?"text-white":"hover:text-white"}>Admin</NavLink>
             <NavLink to="/admin/game-lite" className={({isActive})=>isActive?"text-white":"hover:text-white"}>Game</NavLink>
             <NavLink to="/admin/exitout" className={({isActive})=>isActive?"text-white":"hover:text-white"}>ExitOut</NavLink>
+            <NavLink to="/admin/analytics" className={({isActive})=>isActive?"text-white":"hover:text-white"}>Analytics</NavLink>
             <NavLink to="/kiosk" className={({isActive})=>isActive?"text-white":"hover:text-white"}>Kiosks</NavLink>
             <a href="/" className="ml-4">
               <Button size="sm" variant="accent">Portal</Button>

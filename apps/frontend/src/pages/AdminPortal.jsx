@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, readerConfig } from '../api';
+import { Skeleton } from '../ui/Skeleton.jsx';
 import { Card, CardBody } from '../ui/Card.jsx';
 import Table from '../ui/Table.jsx';
 
@@ -67,7 +68,23 @@ export default function AdminPortal() {
   }, [registrations, filterType]);
 
   if (loading) {
-    return <div className="mut">Loading admin portal…</div>;
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton height={140} />
+          <Skeleton height={140} />
+        </div>
+        <div className="grid gap-3 md:grid-cols-4">
+          <Skeleton height={90} />
+          <Skeleton height={90} />
+          <Skeleton height={90} />
+          <Skeleton height={90} />
+        </div>
+        <Skeleton height={40} />
+        <Skeleton height={320} />
+        <Skeleton height={260} />
+      </div>
+    );
   }
 
   return (

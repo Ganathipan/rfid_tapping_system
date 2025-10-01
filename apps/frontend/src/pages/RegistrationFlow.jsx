@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Skeleton } from '../ui/Skeleton.jsx';
 import { api } from '../api';
 import SelectField from '../components/SelectField';
 import AdminPortal from './AdminPortal';
@@ -363,12 +364,21 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     }
   }
 
+  const loadingInitial = provinces.length === 0 && universities.length === 0; // crude heuristic
+
   const renderTypeSelection = () => (
     <div>
       <h3 style={{ marginTop: 0 }}>Registration Type</h3>
       <div className="small mut" style={{ marginBottom: 12 }}>Portal: <b>{selectedPortal}</b></div>
       <label style={{ display: 'block', marginBottom: 6 }}>Select Registration Type</label>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {loadingInitial && (
+        <div style={{ display:'flex', gap:12, width:'100%', marginBottom:16 }}>
+          <Skeleton className="flex-1" height={46} />
+          <Skeleton className="flex-1" height={46} />
+          <Skeleton className="flex-1" height={46} />
+        </div>
+      )}
+      <div style={{ display: loadingInitial ? 'none':'flex', gap: 8, flexWrap: 'wrap' }}>
         <button
           type="button"
           className={`btn ${registrationType === 'individual' ? 'primary' : ''}`}

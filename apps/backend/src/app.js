@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const statsRoutes = require('./services/statsRoutes');
+const analyticsRoutes = require('./services/analyticsRoutes');
 const tagsRouter = require('./routes/tags');
 const gameLiteRouter = require('./routes/gameLite');
 const reader1ClusterKioskRouter = require('./routes/reader1ClusterKiosk');
@@ -30,6 +31,7 @@ app.get('/health', (_req, res) => res.json({
 
 // API Routes
 app.use('/api', statsRoutes);
+app.use('/api', analyticsRoutes);
 app.use('/api', venueStateRouter);
 app.use('/api', readerConfigRouter);
 app.use('/api/tags', tagsRouter);

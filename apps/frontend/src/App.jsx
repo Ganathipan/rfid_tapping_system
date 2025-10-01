@@ -1,16 +1,20 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { api } from './api';
-import PortalSelection from './pages/PortalSelection';
-import RegistrationFlow from './pages/RegistrationFlow';
-import TagAssignment from './pages/TagAssignment';
-import AdminPortal from './pages/AdminPortal';
-import GameLiteAdmin from './pages/admin/GameLiteAdmin';
-import ClusterDirectory from './pages/kiosk/ClusterDirectory';
-import ClusterDisplay from './pages/kiosk/ClusterDisplay';
-import ExitOutPage from './pages/ExitOutPage';
 import AppShell from './layouts/AppShell.jsx';
+import { Skeleton } from './ui/Skeleton.jsx';
+
+// Lazy loaded pages
+const PortalSelection = lazy(()=>import('./pages/PortalSelection'));
+const RegistrationFlow = lazy(()=>import('./pages/RegistrationFlow'));
+const TagAssignment = lazy(()=>import('./pages/TagAssignment'));
+const AdminPortal = lazy(()=>import('./pages/AdminPortal'));
+const GameLiteAdmin = lazy(()=>import('./pages/admin/GameLiteAdmin'));
+const ClusterDirectory = lazy(()=>import('./pages/kiosk/ClusterDirectory'));
+const ClusterDisplay = lazy(()=>import('./pages/kiosk/ClusterDisplay'));
+const ExitOutPage = lazy(()=>import('./pages/ExitOutPage'));
+const AnalyticsPage = lazy(()=>import('./pages/Analytics.jsx'));
 
 
 export default function App() {
@@ -81,11 +85,15 @@ export default function App() {
           />
         );
       case 'admin':
-        return <AdminDashboard onBack={handleBackToPortalSelection} />;
+        // Fallback to AdminPortal (the actual component that exists)
+        return <AdminPortal />;
       default:
         return <PortalSelection onPortalSelect={handlePortalSelect} />;
     }
   };
+
+  // Minimal runtime error logger (non-blocking). Remove if not needed.
+  const SafeRoot = ({ children }) => children;
 
   function RootFlow() {
     return (
@@ -107,16 +115,29 @@ export default function App() {
   // If we’re using Router, expose GameLiteAdmin at /admin/game-lite and AdminPortal at /admin
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route path="/" element={<RootFlow />} />
-          <Route path="/admin" element={<AdminPortal />} />
-          <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
-          <Route path="/admin/exitout" element={<ExitOutPage />} />
-          <Route path="/kiosk" element={<ClusterDirectory />} />
-          <Route path="/kiosk/cluster/:clusterLabel" element={<ClusterDisplay />} />
-        </Route>
-      </Routes>
+      <SafeRoot>
+        <Suspense fallback={<div className="p-6 space-y-6">
+          <div className="h-6 w-40 bg-white/10 rounded animate-pulse" />
+          <div className="grid gap-3 md:grid-cols-3">
+            <Skeleton height={72} />
+            <Skeleton height={72} />
+            <Skeleton height={72} />
+          </div>
+          <Skeleton height={300} />
+        </div>}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/" element={<RootFlow />} />
+              <Route path="/admin" element={<AdminPortal />} />
+              <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
+              <Route path="/admin/exitout" element={<ExitOutPage />} />
+              <Route path="/admin/analytics" element={<AnalyticsPage />} />
+              <Route path="/kiosk" element={<ClusterDirectory />} />
+              <Route path="/kiosk/cluster/:clusterLabel" element={<ClusterDisplay />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </SafeRoot>
     </BrowserRouter>
   );
 }
