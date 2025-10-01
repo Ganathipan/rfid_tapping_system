@@ -8,7 +8,7 @@ const navItems = [
   { to: '/admin/game-lite', title: 'Game Lite', desc: 'Cluster scoring & redemption' },
   { to: '/admin/exitout', title: 'ExitOut', desc: 'Manage exit stack & reconciliation' },
   { to: '/kiosk', title: 'Kiosks', desc: 'Cluster directory & live kiosk views' },
-  { to: '/', title: 'Registration Flow', desc: 'Portal selection & team registration', internal: true }
+  { to: '/registration', title: 'Registration Flow', desc: 'Portal selection & team registration', internal: true }
 ];
 
 export default function Home(){

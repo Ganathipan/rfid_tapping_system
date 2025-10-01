@@ -67,6 +67,70 @@ const SearchableSelect = ({ label, options, value, onChange, disabled, placehold
 export default function RegistrationFlow({ selectedPortal, onRegistrationComplete, onBack }) {
   const [currentStep, setCurrentStep] = useState('type-selection'); // type-selection, individual-form, batch-form, batch-count, admin
   const [registrationType, setRegistrationType] = useState(''); // individual, batch
+
+  // FIFO queue of tapped but unassigned cards
+  const [cardQueue, setCardQueue] = useState([]); // [{rfid_card_id, first_seen, status, portal}]
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [queueError, setQueueError] = useState('');
+
+  // Fetch FIFO queue
+  const fetchQueue = async () => {
+    setQueueError('');
+    setQueueLoading(true);
+    try {
+      const data = await api(`/api/tags/unassigned-fifo${selectedPortal ? ('?portal=' + encodeURIComponent(selectedPortal)) : ''}`);
+      // Optionally filter to current portal if provided in data (we keep all so multiple portals visible)
+      const rows = Array.isArray(data) ? data : [];
+      setCardQueue(rows);
+    } catch (e) {
+      setQueueError(e.message || 'Failed to load queue');
+    } finally {
+      setQueueLoading(false);
+    }
+  };
+
+  // Poll queue while in tap steps
+  useEffect(() => {
+    if (currentStep === 'individual-tap' || currentStep === 'batch-count') {
+      fetchQueue();
+      const id = setInterval(fetchQueue, 5000); // 5s lightweight poll
+      return () => clearInterval(id);
+    }
+  }, [currentStep]);
+
+  const renderQueue = () => (
+    <div style={{ margin: '12px 0', padding: '8px 10px', background: '#0d1426', border: '1px solid #1f2942', borderRadius: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <strong style={{ fontSize: 14 }}>Tapped Cards Queue (FIFO)</strong>
+        <button type="button" className="btn sm" disabled={queueLoading} onClick={fetchQueue} style={{ fontSize: 12, padding: '4px 8px' }}>
+          {queueLoading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+      {queueError && <div className="small" style={{ color: 'var(--err)', marginTop: 6 }}>{queueError}</div>}
+      {!queueError && (
+        <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {cardQueue.length === 0 && !queueLoading && (
+            <span className="small mut">No tapped unassigned cards yet...</span>
+          )}
+          {cardQueue.slice(0, 12).map((c, idx) => (
+            <div key={c.rfid_card_id} style={{
+              padding: '4px 8px',
+              background: idx === 0 ? 'var(--pri)' : '#162135',
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: idx === 0 ? 600 : 400,
+              color: idx === 0 ? '#fff' : 'var(--text)'
+            }}>
+              {idx === 0 ? 'NEXT: ' : ''}{c.rfid_card_id}
+            </div>
+          ))}
+        </div>
+      )}
+      {cardQueue.length > 12 && (
+        <div className="small mut" style={{ marginTop: 4 }}>+{cardQueue.length - 12} more...</div>
+      )}
+    </div>
+  );
   
   // Data states
   const [provinces, setProvinces] = useState([]);
@@ -252,6 +316,13 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     setBusy(true);
     setMsg('');
     try {
+      // Refresh queue and pick first card (FIFO)
+      await fetchQueue();
+      const head = cardQueue[0];
+      if (!head) {
+        setMsg('❌ No tapped unassigned cards available yet. Please tap a card.');
+        return;
+      }
       if (currentStep === 'individual-tap') {
         // Create registration and assign RFID card as LEADER
         const result = await api('/api/tags/register', {
@@ -263,14 +334,15 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
           body: {
             portal: selectedPortal,
             leaderId: result.id,
-            asLeader: true
+            asLeader: true,
+            tagId: head.rfid_card_id
           }
         });
         await api('/api/tags/updateCount', {
           method: 'POST',
           body: { portal: selectedPortal, count: 1 }
         });
-        setMsg('✅ Registration and RFID card assignment complete!');
+        setMsg(`✅ Registration complete! Card: ${head.rfid_card_id}`);
         setTimeout(() => {
           onRegistrationComplete({
             id: result.id,
@@ -297,14 +369,32 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
           body: {
             portal: selectedPortal,
             leaderId,
-            asLeader: isFirstTap
+            asLeader: isFirstTap,
+            tagId: head.rfid_card_id
           }
         });
         setBatchCount(prev => prev + 1);
         setMsg(`✅ RFID card assigned: ${res.tagId}${isFirstTap ? ' (LEADER)' : ''}`);
       }
+      // After assignment refresh queue to reflect removal of head
+      setTimeout(fetchQueue, 400);
     } catch (e) {
-      setMsg(`❌ ${e.message}`);
+      const errMsg = e.message || 'Unknown error';
+      if (/not available/i.test(errMsg) && cardQueue.length > 0) {
+        // Skip head automatically
+        try { await api('/api/tags/skip', { method: 'POST', body: { tagId: cardQueue[0].rfid_card_id } }); } catch(_){}
+        await fetchQueue();
+        setMsg('⚠️ Skipped an ineligible card. Trying next...');
+      } else if (/No card tapped for registration/i.test(errMsg)) {
+        // Possibly stale queue item; attempt skip then refetch
+        if (cardQueue.length > 0) {
+          try { await api('/api/tags/skip', { method: 'POST', body: { tagId: cardQueue[0].rfid_card_id } }); } catch(_){}
+          await fetchQueue();
+        }
+        setMsg('⚠️ Head card invalid; advanced to next.');
+      } else {
+        setMsg(`❌ ${errMsg}`);
+      }
     } finally {
       setBusy(false);
     }
@@ -640,6 +730,8 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         <button type="button" className="btn" onClick={() => setCurrentStep('batch-form')}>Back</button>
       </div>
 
+      {renderQueue()}
+
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
         <div style={{ fontSize: 48, fontWeight: 800, color: 'var(--pri)' }}>{batchCount}</div>
         <div className="mut">Members Counted</div>
@@ -671,6 +763,7 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
         return (
           <div>
             <h3>Tap RFID Card</h3>
+            {renderQueue()}
             <div style={{ textAlign: 'center', margin: '24px 0' }}>
               <button className="btn primary" onClick={handleRfidTap} disabled={busy}>Tap RFID Card</button>
             </div>
@@ -699,3 +792,12 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
 
   return renderCurrentStep();
 }
+
+// ---------------------- Queue Helpers (bottom for clarity) ----------------------
+function usePrevious(value) {
+  const ref = React.useRef();
+  useEffect(() => { ref.current = value; });
+  return ref.current;
+}
+
+// We append queue logic inside component via patch above; add supporting hooks here would require minor refactor

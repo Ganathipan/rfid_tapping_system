@@ -377,18 +377,51 @@ async function releaseTag(client, tagId, portal) {
 // Assign last REGISTERed card from logs to leader or member
 // ===================================================================
 router.post('/link', async (req, res) => {
-  const { portal, leaderId, asLeader } = req.body || {};
+  const { portal, leaderId, asLeader, tagId: suppliedTagId } = req.body || {};
   if (!portal) return badReq(res, 'Portal is required');
   if (!leaderId) return badReq(res, 'Leader ID is required');
-
+  let tagId; // declare in function scope so it's accessible after try block
   try {
     await syncRfidCardsFromLogs();
-    tagId = await getLastRegisterLogAvailableTag(portal);
+    if (suppliedTagId) {
+      // Lock the card row to eliminate concurrent race
+      const cardRes = await pool.query(
+        `SELECT rfid_card_id, status, last_assigned_time FROM rfid_cards WHERE rfid_card_id = $1 FOR UPDATE`,
+        [suppliedTagId]
+      );
+      if (cardRes.rowCount === 0) throw new Error('Tapped card is not available for registration');
+      const { status, last_assigned_time } = cardRes.rows[0];
+      const tapRes = await pool.query(
+        `SELECT log_time FROM logs WHERE rfid_card_id = $1 AND portal = $2 AND label = 'REGISTER' ORDER BY log_time DESC LIMIT 1`,
+        [suppliedTagId, portal]
+      );
+      if (tapRes.rowCount === 0) throw new Error('No card tapped for registration');
+      const tapTime = tapRes.rows[0].log_time;
+      const eligibleByTap = (!last_assigned_time || tapTime > last_assigned_time);
+      if (status === 'released' && eligibleByTap) {
+        await pool.query(
+          `UPDATE rfid_cards SET status='available', last_assigned_time=NULL WHERE rfid_card_id=$1`,
+          [suppliedTagId]
+        );
+      }
+      const refreshed = await pool.query(
+        `SELECT status FROM rfid_cards WHERE rfid_card_id=$1`,
+        [suppliedTagId]
+      );
+      const finalStatus = refreshed.rows[0].status;
+      if (finalStatus !== 'available') {
+        throw new Error(
+          `Tapped card is not available for registration (status=${finalStatus}, eligibleTap=${eligibleByTap})`
+        );
+      }
+      tagId = suppliedTagId;
+    } else {
+      // Fallback to legacy behavior: infer last REGISTER tap
+      tagId = await getLastRegisterLogAvailableTag(portal);
+    }
   } catch (e) {
     return handleError(res, e);
   }
-// On server startup, sync rfid_cards from logs
-syncRfidCardsFromLogs();
 
   const client = await pool.connect();
   try {
@@ -414,8 +447,84 @@ syncRfidCardsFromLogs();
 // ===================================================================
 router.get('/list-cards', async (_req, res) => {
   try {
+    await syncRfidCardsFromLogs();
     const result = await pool.query(`SELECT rfid_card_id, status, portal FROM rfid_cards ORDER BY rfid_card_id`);
     res.status(200).json(result.rows);
+  } catch (e) {
+    return handleError(res, e);
+  }
+});
+
+// ===================================================================
+// GET /api/tags/unassigned-fifo
+// Returns queue of tapped but unassigned (available) cards ordered by
+// earliest REGISTER tap time (first_seen). If a card has multiple
+// REGISTER taps after last assignment, only the earliest counts.
+// We consider cards with status in ('available','released') where the
+// most recent REGISTER tap is after last_assigned_time (or any if null).
+// FIFO ordering uses that earliest qualifying REGISTER log_time.
+// ===================================================================
+router.get('/unassigned-fifo', async (req, res) => {
+  try {
+    await syncRfidCardsFromLogs();
+    const { portal } = req.query || {};
+    // Dynamic portal filter
+    const params = [];
+    let portalFilter = '';
+    if (portal) {
+      params.push(portal);
+      portalFilter = `AND l.portal = $${params.length}`;
+    }
+    const q = `
+      WITH register_events AS (
+        SELECT l.rfid_card_id,
+               l.log_time,
+               l.portal AS tap_portal,
+               ROW_NUMBER() OVER (PARTITION BY l.rfid_card_id ORDER BY l.log_time ASC) AS rn
+          FROM logs l
+          JOIN rfid_cards c ON c.rfid_card_id = l.rfid_card_id
+         WHERE l.label = 'REGISTER'
+           ${portalFilter}
+           AND (
+             c.last_assigned_time IS NULL OR l.log_time > c.last_assigned_time
+           )
+           AND c.status IN ('available','released')
+      ), first_register AS (
+        SELECT rfid_card_id, tap_portal, log_time AS first_seen
+          FROM register_events
+         WHERE rn = 1
+      )
+      SELECT c.rfid_card_id,
+             c.status,
+             c.portal,
+             f.tap_portal,
+             f.first_seen
+        FROM first_register f
+        JOIN rfid_cards c ON c.rfid_card_id = f.rfid_card_id
+       ORDER BY f.first_seen ASC NULLS LAST;`;
+    const { rows } = await pool.query(q, params);
+    // Mark eligibility explicitly (should already be filtered)
+    const enriched = rows.map(r => ({ ...r, eligible: true }));
+    res.status(200).json(enriched);
+  } catch (e) {
+    return handleError(res, e);
+  }
+});
+
+// ===================================================================
+// POST /api/tags/skip
+// Client can instruct server to drop a problematic card from queue:
+// - If status 'available' or 'released', mark as 'released' with updated last_assigned_time
+//   so it won't reappear until new REGISTER tap.
+// ===================================================================
+router.post('/skip', async (req, res) => {
+  const { tagId } = req.body || {};
+  if (!tagId) return badReq(res, 'tagId is required');
+  try {
+    const card = await pool.query(`SELECT rfid_card_id, status FROM rfid_cards WHERE rfid_card_id=$1`, [tagId]);
+    if (card.rowCount === 0) return res.status(404).json({ error: 'Card not found' });
+    await pool.query(`UPDATE rfid_cards SET status='released', last_assigned_time=NOW() WHERE rfid_card_id=$1`, [tagId]);
+    res.json({ ok: true, tagId, skipped: true });
   } catch (e) {
     return handleError(res, e);
   }
