@@ -225,3 +225,37 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- 7) KIOSK BUS TRIGGER (idempotent)
+-- Function to notify cluster taps at portal reader1
+CREATE OR REPLACE FUNCTION notify_logs_reader1_cluster() RETURNS trigger AS $$
+DECLARE
+  payload JSON;
+BEGIN
+  IF NEW.label ILIKE 'CLUSTER%' AND NEW.portal = 'reader1' THEN
+    payload := json_build_object(
+      'id', NEW.id,
+      'rfid_card_id', NEW.rfid_card_id,
+      'label', UPPER(NEW.label),
+      'portal', NEW.portal,
+      'log_time', NEW.log_time
+    );
+    PERFORM pg_notify('logs_reader1_cluster', payload::text);
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Recreate trigger to ensure latest logic
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname='trg_notify_logs_reader1_cluster' AND tgrelid='logs'::regclass
+  ) THEN
+    DROP TRIGGER trg_notify_logs_reader1_cluster ON logs;
+  END IF;
+  CREATE TRIGGER trg_notify_logs_reader1_cluster
+    AFTER INSERT ON logs
+    FOR EACH ROW
+    EXECUTE FUNCTION notify_logs_reader1_cluster();
+END $$;
+

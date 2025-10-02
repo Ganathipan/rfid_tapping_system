@@ -1,4 +1,5 @@
 const { Client } = require('pg');
+const { getDatabaseUrl } = require('../../../../config/master-config');
 
 const channel = 'logs_reader1_cluster';
 let subs = new Set();
@@ -9,9 +10,8 @@ function subscribe(fn) {
 }
 
 async function startReader1ClusterBus() {
-  const client = new Client({
-    connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/rfidn',
-  });
+  const conn = process.env.DATABASE_URL || getDatabaseUrl();
+  const client = new Client({ connectionString: conn });
   await client.connect();
   await client.query(`LISTEN ${channel}`);
   client.on('notification', (msg) => {
