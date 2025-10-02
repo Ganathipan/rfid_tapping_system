@@ -4,7 +4,44 @@
 
 A comprehensive solution for RFID-based event management, crowd tracking, and interactive gaming experiences. Built with modern technologies including Node.js, React, PostgreSQL, MQTT, and ESP8266 firmware.
 
-## 📋 Table of Contents
+## ✨ Recent Enhancements (2025 Q3–Q4)
+
+| Feature | Description | Benefit |
+|---------|-------------|---------|
+| FIFO Registration Queue | Ordered list of tapped but unassigned cards per portal (`/api/tags/unassigned-fifo`) | Deterministic & fair assignment, prevents race conditions |
+| Explicit Tag Linking | Frontend sends `tagId` when calling `/api/tags/link` | Eliminates ambiguity of “last REGISTER tap” heuristic |
+| Skip Endpoint | `/api/tags/skip` marks problematic head card as released | Keeps queue flowing; no manual DB edits |
+| Auto Card Sync | Missing `rfid_cards` rows auto-created from `REGISTER` logs | Zero manual provisioning for new cards |
+| Unified Schema | Single idempotent `infra/db/schema.sql` creates DB + tables + indexes | One-step bootstrap & repeatable infra |
+| Live & Range Analytics | `/api/analytics/live` & `/api/analytics/range` with dynamic cluster baseline | Operational visibility & historical insight |
+| Dynamic Cluster Merging | Base zones 1–4 plus auto expansion from config/logs | Stable dashboard layout with adaptive growth |
+| Registration Flow Revamp | Batch count-by-tap, portal-scoped queue panel, auto-skip feedback | Faster onboarding & fewer operator errors |
+| Robust Card State Machine | States: available → assigned → released (with tap regeneration) | Predictable reuse lifecycle |
+
+> These upgrades focus on reliability, operator speed, observability, and eliminating hidden race conditions.
+
+### � Unified Tap Semantics (Label + Portal Rules)
+
+| Label in `logs.label` | Portal (`logs.portal`) Pattern | Meaning | Frontend / System Behavior |
+|-----------------------|--------------------------------|---------|----------------------------|
+| REGISTER              | `portal*` (e.g. `portal1`)     | Entry (presence / registration tap) | Used to build FIFO queue; may start session; venue count +1 via registration flow |
+| REGISTER              | `exitout`                      | Exit tap (normalized to `EXITOUT`) | Internally transformed to `EXITOUT`; decrements venue crowd; added to exitout stack if assigned |
+| EXITOUT               | any                            | Explicit exit event | Same as above (already EXITOUT) |
+| CLUSTER%              | `reader1`                      | Cluster visit with eligibility display (kiosk) | Eligibility status shown; may award points; logs cluster presence |
+| CLUSTER%              | `reader2-*` (e.g. `reader2-A`) | Silent cluster visit (analytics only) | No kiosk popup; counts toward analytics & scoring |
+
+Normalization Rules (enforced in ingestion):
+1. `REGISTER @ exitout` → stored as `EXITOUT` in `logs.label`.
+2. Tag IDs coerced to uppercase.
+3. Cluster labels treated case-insensitively and normalized upstream.
+
+Implications:
+- Exit detection is robust even if firmware still emits `REGISTER` at the exit gate.
+- Analytics & session math rely on latest label (REGISTER vs EXITOUT) per card.
+- ExitOut stack receives only normalized `EXITOUT` events for assigned cards; unassigned cards fall back to legacy status release.
+- Adding new kiosk types: follow the convention `readerX` where kiosk-interactive readers (show eligibility) are explicitly handled (e.g. `reader1`).
+
+## �📋 Table of Contents
 
 - [🎯 Project Overview](#-project-overview)
 - [🚀 Quick Start](#-quick-start)
@@ -117,8 +154,8 @@ rfid_tapping_system/
 │   ├── docker-compose.yml        # Full stack orchestration (auto-generated)
 │   ├── .env                      # Infrastructure environment (auto-generated)
 │   ├── db/
-│   │   ├── schema.sql            # PostgreSQL database schema
-│   │   └── seed.sql              # Initial data seeding
+│   │   ├── schema.sql            # Unified idempotent schema (creates DB, tables, indexes, seed)
+│   │   └── seed.sql              # Optional legacy seed data
 │   └── mosquitto/
 │       └── mosquitto.conf        # MQTT broker configuration
 ├── 📁 deployment/                 # 🚀 Deployment Configurations  
@@ -148,6 +185,17 @@ The following files are **automatically generated** by the configuration system:
 - `deployment/railway.json` - Railway platform deployment
 
 ⚠️ **Important**: Don't edit auto-generated files directly. Instead, modify `config/master-config.js` and run `npm run config:dev` to regenerate all files.
+
+### 🗄️ Unified Database Schema
+
+`infra/db/schema.sql` now:
+1. (Optionally) creates database `rfid`
+2. Connects via `\connect rfid`
+3. Creates all tables with current full column sets (no drift)
+4. Adds indexes + seed row for `venue_state`
+5. Runs legacy-safe ALTER blocks (idempotent) for older deployments
+
+Safe to re-run multiple times. Remove legacy ALTER section once all environments originate from this version.
 
 ---
 
@@ -725,25 +773,18 @@ apps/backend/src/
 └── utils/              # Helper functions
 ```
 
-**Key API Endpoints:**
-```javascript
-// Health check
-GET /health
+**Updated API Domain Overview:**
 
-// Game mechanics
-GET /api/game-lite/config
-GET /api/game-lite/eligible-teams
-GET /api/game-lite/leaderboard
-
-// RFID operations
-POST /api/tags/register
-GET /api/tags/status/:cardId
-POST /api/tags/assign
-
-// Admin operations  
-GET /api/admin/dashboard
-POST /api/admin/reset-game
-```
+| Category | Purpose | Key Endpoints |
+|----------|---------|---------------|
+| Health | Service status | `GET /health` |
+| Registration | Create & size groups | `POST /api/tags/register`, `POST /api/tags/updateCount` |
+| RFID Queue | Ordered tapped cards | `GET /api/tags/unassigned-fifo?portal=portal1` |
+| Assignment | Bind card to registration | `POST /api/tags/link` (with `tagId`) |
+| Queue Hygiene | Remove stale head | `POST /api/tags/skip` |
+| Inventory | Card states / availability | `GET /api/tags/list-cards`, `GET /api/tags/status/:rfid` |
+| Analytics | Live & historical KPIs | `GET /api/analytics/live`, `GET /api/analytics/range` |
+| Game Lite | Points & leaderboards | `GET /api/game-lite/config`, `GET /api/game-lite/leaderboard` |
 
 ### Frontend Development
 
@@ -891,33 +932,92 @@ Response:
 ]
 ```
 
-### RFID Tag Management
+### Registration & RFID (FIFO Flow)
 
-**Register New Tag:**
+#### 1. Card Tap → Log Entry
+Firmware publishes an event → ingestion normalizes it:
+* `REGISTER @ portal1` → `REGISTER / portal1`
+* `REGISTER @ exitout` → `EXITOUT / exitout`
+* `CLUSTER3 @ reader1` → `CLUSTER3 / reader1`
+* `CLUSTER7 @ reader2-X` → `CLUSTER7 / reader2-X`
+
+#### 2. Fetch FIFO Queue
+```http
+GET /api/tags/unassigned-fifo?portal=portal1
+```
+Example:
+```json
+[
+  {
+    "rfid_card_id": "42008319",
+    "status": "available",
+    "portal": "portal1",
+    "tap_portal": "portal1",
+    "first_seen": "2025-10-02T10:15:11.221Z",
+    "eligible": true
+  }
+]
+```
+
+#### 3. Create Registration
 ```http
 POST /api/tags/register
-Content-Type: application/json
-
 {
-  "cardId": "1234567890",
-  "memberName": "John Doe",
-  "registrationId": 1
+  "portal": "portal1",
+  "group_size": 1,
+  "province": "Central",
+  "district": "Kandy",
+  "age_range": "teenager",
+  "sex": "male",
+  "lang": "english"
 }
 ```
+→ `{ "id": 91 }`
 
-**Get Tag Status:**
+#### 4. Assign Head Card Explicitly
 ```http
-GET /api/tags/status/1234567890
-
-Response:
+POST /api/tags/link
 {
-  "cardId": "1234567890",
-  "isRegistered": true,
-  "memberName": "John Doe",
-  "lastSeen": "2025-10-01T10:30:00Z",
-  "location": "portal1"
+  "portal": "portal1",
+  "leaderId": 91,
+  "asLeader": true,
+  "tagId": "42008319"
 }
 ```
+→ `{ "ok": true, "portal": "portal1", "leaderId": 91, "tagId": "42008319", "role": "LEADER" }`
+
+#### 5. Batch Growth (Count by Taps)
+After tapping multiple member cards:
+```http
+POST /api/tags/updateCount
+{ "portal": "portal1", "count": 7 }
+```
+
+#### 6. Skip Stale Card
+```http
+POST /api/tags/skip
+{ "tagId": "42008319" }
+```
+Marks it `released`; requires a new REGISTER tap to re-enter.
+
+#### 7. Inspect Inventory
+```http
+GET /api/tags/list-cards
+```
+
+#### 8. Points / Status Shortcut
+```http
+GET /api/tags/status/42008319
+```
+→ `{ "rfid": "42008319", "points": 3, "eligible": true }`
+
+### Assignment Error Cheat Sheet
+
+| Error Message | Meaning | Resolution |
+|---------------|---------|------------|
+| Tapped card is not available for registration | Card already assigned or stale tap before last assignment | Re-tap or `/api/tags/skip` |
+| No card tapped for registration | No recent REGISTER log for portal | Verify reader config & network |
+| Leader not found | Bad registration id or portal mismatch | Use id returned from `/register` |
 
 ---
 
@@ -987,8 +1087,8 @@ cat firmware/esp01_rdm6300_mqtt/config.h
 
 **Problem:** `relation does not exist`
 ```bash
-# Apply schema
-psql -U postgres -d rfid -f infra/db/schema.sql
+# Apply unified schema (creates DB & connects if needed)
+psql -U postgres -d postgres -f infra/db/schema.sql
 ```
 
 **Problem:** `column does not exist`
@@ -1001,6 +1101,22 @@ npm run db:reset
 ```
 
 #### 5. Configuration Problems
+#### 6. Registration Queue / Assignment
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Queue empty after tap | MQTT not delivering REGISTER or wrong portal label | Subscribe: `mosquitto_sub -t 'rfid/#'` and confirm payload |
+| Head card never disappears | Frontend not refreshing or `/link` failed | Check browser console & network tab |
+| Frequent “not available” | Card state = assigned / stale tap | Tap again or skip |
+| “No card tapped for registration” | Portal mismatch or missing REGISTER event | Align reader `PORTAL` with frontend selection |
+
+#### 7. Analytics Feels Static
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Live values frozen | Poll interval stopped (tab dormant) | Reload or focus tab |
+| Missing cluster zone | No log yet for that zone | Trigger a tap in zone |
+| Zero average session duration | No full REGISTER→EXITOUT cycles | Simulate `EXITOUT` events |
+
 
 **Problem:** Services use old configuration
 ```bash

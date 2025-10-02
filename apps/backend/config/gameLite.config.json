@@ -12,12 +12,17 @@
       "CLUSTER1": {
         "awardPoints": 2,
         "redeemable": false,
-        "redeemPoints": 5
+        "redeemPoints": 2
       },
       "CLUSTER2": {
         "awardPoints": 5,
         "redeemable": false,
         "redeemPoints": 0
+      },
+      "CLUSTER3": {
+        "awardPoints": 4,
+        "redeemable": true,
+        "redeemPoints": 4
       }
     },
     "enabled": true

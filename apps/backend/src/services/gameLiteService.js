@@ -3,18 +3,29 @@ const { getConfig, getRule, getClusterRule, normalizeLabel } = require('../confi
 const exitoutStackService = require('./exitoutStackService');
 
 async function ensureTeamScoreRow(client, registrationId) {
-  await client.query(
-    `INSERT INTO team_scores_lite (registration_id, total_points)
-     VALUES ($1, 0)
-     ON CONFLICT (registration_id) DO NOTHING`,
+  // Try to capture team_name from registration table if present
+  const teamNameRes = await client.query(
+    `SELECT team_name FROM registration WHERE id = $1 LIMIT 1`,
     [registrationId]
+  );
+  const teamName = teamNameRes.rowCount ? teamNameRes.rows[0].team_name : null;
+  // IMPORTANT: avoid using same $1 parameter in both numeric (registration_id) and text concatenation contexts.
+  // Using $3 for text concatenation prevents Postgres from needing one param to satisfy mixed type inference.
+  await client.query(
+    `INSERT INTO team_scores_lite (registration_id, team_name, total_points)
+     VALUES ($1, COALESCE($2, 'TEAM-'||$3::text), 0)
+     ON CONFLICT (registration_id) DO NOTHING`,
+    [registrationId, teamName, registrationId]
   );
 }
 
 async function addPointsToTeam(client, registrationId, points) {
   await ensureTeamScoreRow(client, registrationId);
   await client.query(
-    `UPDATE team_scores_lite SET total_points = total_points + $2 WHERE registration_id = $1`,
+    `UPDATE team_scores_lite
+        SET total_points = total_points + $2,
+            last_updated = NOW()
+      WHERE registration_id = $1`,
     [registrationId, points]
   );
 }
@@ -35,15 +46,45 @@ async function getMemberIdsForTeam(registrationId) {
   return r.rows.map(row => row.rfid_card_id);
 }
 
-async function recordMemberClusterVisitIfFirst(client, memberId, clusterLabel) {
-  const res = await client.query(
-    `INSERT INTO member_cluster_visits_lite (member_id, cluster_label)
-     VALUES ($1, $2)
-     ON CONFLICT (member_id, cluster_label) DO NOTHING
-     RETURNING member_id`,
-    [memberId, clusterLabel]
-  );
-  return res.rowCount > 0; // true if first time
+async function recordMemberClusterVisitIfFirst(client, memberId, registrationId, clusterLabel) {
+  // JSONB first-visit logic: atomically set key if absent
+  const key = clusterLabel.toUpperCase();
+  // Use ARRAY path to avoid manual '{KEY}' formatting ambiguity
+  let before; let afterAttempted = null; let first = false;
+  if (process.env.GAMELITE_DEBUG === 'true') {
+    const snap = await client.query(`SELECT cluster_visits FROM members WHERE id=$1`, [memberId]);
+    before = snap.rows[0]?.cluster_visits;
+  }
+  try {
+    const res = await client.query(
+      `UPDATE members
+          SET cluster_visits = jsonb_set(cluster_visits, ARRAY[$2]::text[], to_jsonb(NOW()::text), true)
+        WHERE id = $1
+          AND NOT (cluster_visits ? $2)
+        RETURNING id, cluster_visits`,
+      [memberId, key]
+    );
+    if (res.rowCount > 0) {
+      first = true;
+      afterAttempted = res.rows[0].cluster_visits;
+    } else {
+      // fetch current for debug if not updated
+      if (process.env.GAMELITE_DEBUG === 'true') {
+        const cur = await client.query(`SELECT cluster_visits FROM members WHERE id=$1`, [memberId]);
+        afterAttempted = cur.rows[0]?.cluster_visits;
+      }
+    }
+  } catch (e) {
+    if (process.env.GAMELITE_DEBUG === 'true') {
+      console.error('[GameLite][recordMemberClusterVisitIfFirst] ERROR', { memberId, key, error: e.message });
+    }
+    throw e;
+  } finally {
+    if (process.env.GAMELITE_DEBUG === 'true') {
+      console.log('[GameLite][recordMemberClusterVisitIfFirst]', { memberId, key, first, before, afterAttempted });
+    }
+  }
+  return first;
 }
 
 async function handlePostLogInserted(log) {
@@ -89,16 +130,29 @@ async function handlePostLogInserted(log) {
   let redemption = null;
   try {
     await client.query('BEGIN');
-    const firstTime = await recordMemberClusterVisitIfFirst(client, memberId, label);
+    const firstTime = await recordMemberClusterVisitIfFirst(client, memberId, teamId, label);
     const awardOnlyFirst = !!getRule('awardOnlyFirstVisit', true);
     const rule = getClusterRule(label) || {};
     const awardFirst = Number(rule.awardPoints ?? getRule('pointsPerMemberFirstVisit', 1));
     const awardRepeat = Number(getRule('pointsPerMemberRepeatVisit', 0));
     const points = firstTime ? awardFirst : awardRepeat;
-    if (points > 0 && (firstTime || !awardOnlyFirst)) {
+    const shouldAward = points > 0 && (firstTime || !awardOnlyFirst);
+    let newScore = null;
+    if (shouldAward) {
       await addPointsToTeam(client, teamId, points);
+      if (process.env.GAMELITE_DEBUG === 'true') {
+        const sc = await client.query('SELECT total_points FROM team_scores_lite WHERE registration_id=$1', [teamId]);
+        newScore = sc.rows[0]?.total_points;
+      }
     }
     await client.query('COMMIT');
+    if (process.env.GAMELITE_DEBUG === 'true') {
+      console.log('[GameLite][ClusterTap]', {
+        rfid, teamId, label, firstTime, points, shouldAward, newScore,
+        totalRuleFirst: awardFirst, totalRuleRepeat: awardRepeat, awardOnlyFirst,
+        rule
+      });
+    }
     // Automated redemption: if cluster is redeemable, redeem points for this team
     if (rule.redeemable === true) {
       try {

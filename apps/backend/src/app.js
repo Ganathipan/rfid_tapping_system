@@ -8,6 +8,7 @@ const reader1ClusterKioskRouter = require('./routes/reader1ClusterKiosk');
 const venueStateRouter = require('./routes/venueState');
 const readerConfigRouter = require('./routes/readerConfig');
 const exitoutRouter = require('./routes/exitoutRoutes');
+const pool = require('./db/pool');
 
 // Initialize MQTT handler
 require('./realtime/mqttHandler');
@@ -28,6 +29,18 @@ app.get('/health', (_req, res) => res.json({
   ts: new Date().toISOString(),
   service: 'RFID Backend API'
 }));
+
+// Lightweight DB diagnostic endpoint (no side effects)
+app.get('/api/debug/db', async (_req, res) => {
+  try {
+    const start = Date.now();
+    const { rows } = await pool.query('SELECT NOW() as now');
+    const ms = Date.now() - start;
+    res.json({ ok: true, now: rows[0].now, latency_ms: ms });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message, code: e.code });
+  }
+});
 
 // API Routes
 app.use('/api', statsRoutes);

@@ -22,8 +22,14 @@ client.on('message', async (topic, message) => {
 
     // Support both new format {reader, label, tag_id} and legacy {portal, label, rfid_card_id, tag}
     const tagHex = String(m.tag_id ?? m.tag ?? m.rfid_card_id ?? '').trim().toUpperCase();
-    const portal = String(m.reader ?? m.portal ?? 'UNKNOWN').trim().toUpperCase();
-    const label  = String(m.label ?? 'UNKNOWN').trim().toUpperCase();
+    const portalRaw = String(m.reader ?? m.portal ?? 'UNKNOWN').trim();
+    const labelRaw  = String(m.label ?? 'UNKNOWN').trim();
+    const portal = portalRaw;
+    let label = labelRaw.toUpperCase();
+    // Normalize semantics: REGISTER at exitout portal => EXITOUT
+    if (label === 'REGISTER' && portal.toLowerCase() === 'exitout') {
+      label = 'EXITOUT';
+    }
 
     if (!tagHex || !portal) {
       console.warn('[MQTT] missing tag_id/portal:', m);
@@ -35,7 +41,7 @@ client.on('message', async (topic, message) => {
       [tagHex, portal, label]
     );
 
-    console.log(`[MQTT] logged tap ${tagHex} @ ${portal} (${label})`);
+  console.log(`[MQTT] logged tap ${tagHex} @ ${portal} (${label})`);
   } catch (e) {
     console.error('[MQTT] handle error:', e.message);
   }

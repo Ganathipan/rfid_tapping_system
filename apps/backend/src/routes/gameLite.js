@@ -10,7 +10,7 @@ function requireAdmin(req, res, next) {
   if (provided && provided === key) return next();
   return res.status(401).json({ error: 'Unauthorized' });
 }
-const { getTeamScore, redeemPoints } = require('../services/gameLiteService');
+const { getTeamScore, redeemPoints, getTeamIdForRfid } = require('../services/gameLiteService');
 
 // health/status for the lite manager
 router.get('/status', (_req, res) => {
@@ -21,6 +21,32 @@ router.get('/status', (_req, res) => {
 // get current config
 router.get('/config', (_req, res) => {
   res.json(getConfig());
+});
+
+// Debug: fetch current score by RFID (team lookup)
+router.get('/debug/score/:rfid', async (req, res) => {
+  try {
+    const { rfid } = req.params;
+    const teamId = await getTeamIdForRfid(rfid);
+    if (!teamId) return res.status(404).json({ error: 'RFID not in team' });
+    const score = await getTeamScore(teamId);
+    res.json({ teamId, score });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Debug: inspect member cluster_visits map by RFID
+router.get('/debug/visits/:rfid', async (req, res) => {
+  try {
+    const { rfid } = req.params;
+    const sql = `SELECT id as member_id, registration_id as team_id, cluster_visits FROM members WHERE rfid_card_id = $1`;
+    const r = await pool.query(sql, [rfid]);
+    if (r.rowCount === 0) return res.status(404).json({ error: 'RFID not found' });
+    res.json(r.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // update config (shallow merge)

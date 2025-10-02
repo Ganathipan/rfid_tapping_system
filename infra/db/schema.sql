@@ -173,3 +173,55 @@ END$$;
 -- =====================================================================
 -- END
 -- =====================================================================
+
+-- =====================================================================
+-- 5) GAME LITE COMPATIBILITY PATCHES (idempotent)
+--    Ensures columns exist that service code expects after refactor.
+-- =====================================================================
+DO $$ BEGIN
+  -- team_scores_lite.team_name column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name='team_scores_lite' AND column_name='team_name'
+  ) THEN
+    ALTER TABLE team_scores_lite ADD COLUMN team_name TEXT;
+  END IF;
+  -- member_cluster_visits_lite.member_id column (for per-member tracking)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name='member_cluster_visits_lite' AND column_name='member_id'
+  ) THEN
+    ALTER TABLE member_cluster_visits_lite ADD COLUMN member_id BIGINT REFERENCES members(id);
+  END IF;
+  -- Adjust unique constraint if old one only on registration_id
+  BEGIN
+    ALTER TABLE member_cluster_visits_lite DROP CONSTRAINT IF EXISTS member_cluster_visits_lite_registration_id_cluster_label_key;
+  EXCEPTION WHEN undefined_object THEN NULL; END;
+  -- Add composite unique for member first visit rule
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes WHERE tablename='member_cluster_visits_lite' AND indexname='uniq_member_cluster_visit'
+  ) THEN
+    CREATE UNIQUE INDEX uniq_member_cluster_visit ON member_cluster_visits_lite(member_id, cluster_label);
+  END IF;
+  -- redemptions_lite.points_spent rename compatibility: if only points_redeemed exists keep it.
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name='redemptions_lite' AND column_name='points_spent'
+  ) THEN
+    -- Some code may expect points_spent; create a view alias if not present
+    BEGIN
+      CREATE OR REPLACE VIEW v_redemptions_lite AS SELECT *, points_redeemed AS points_spent FROM redemptions_lite;
+    EXCEPTION WHEN others THEN NULL; END;
+  END IF;
+END $$;
+
+-- 6) JSONB CLUSTER VISITS (idempotent)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name='members' AND column_name='cluster_visits'
+  ) THEN
+    ALTER TABLE members ADD COLUMN cluster_visits JSONB NOT NULL DEFAULT '{}'::jsonb;
+  END IF;
+END $$;
+

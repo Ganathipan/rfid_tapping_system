@@ -15,17 +15,36 @@ router.post('/rfidRead', async (req, res) => {
     return res.status(400).json({ error: 'Missing reader, portal or tag' });
   }
 
+  // ------------------------------------------------------------------
+  // Normalization Logic (Unified Semantics)
+  //  Portal meanings (stored in logs.portal):
+  //    portal1 / portal2 ...  => Registration entry points
+  //    exitout                => Physical exit gate (REGISTER here means EXITOUT)
+  //    reader1                => Eligibility kiosk (CLUSTER* tap shows eligibility)
+  //    reader2-*              => Silent cluster taps (only analytics / scoring)
+  //  Label meanings (stored in logs.label):
+  //    REGISTER @ !exitout    => Entry / (re)presence tap
+  //    REGISTER @ exitout     => Transformed to EXITOUT (leave venue)
+  //    CLUSTER*               => Cluster visit (kiosk behaviour depends on portal type)
+  // ------------------------------------------------------------------
+  const normPortal = String(portal).trim();
+  const rawLabel = String(reader).trim();
+  let normLabel = rawLabel.toUpperCase();
+  if (normLabel === 'REGISTER' && normPortal.toLowerCase() === 'exitout') {
+    normLabel = 'EXITOUT';
+  }
+
   try {
     const query = `
       INSERT INTO logs (log_time, rfid_card_id, portal, label)
       VALUES (NOW(), $1, $2, $3)
       RETURNING id, log_time, rfid_card_id, portal, label
     `;
-    const values = [tag, portal, reader];
-  const result = await pool.query(query, values);
+    const values = [tag.toUpperCase(), normPortal, normLabel];
+    const result = await pool.query(query, values);
 
     // If EXITOUT, add to stack instead of immediate processing
-    if (reader === 'EXITOUT') {
+  if (normLabel === 'EXITOUT') {
       try {
         // Get team ID for this RFID
         const teamRes = await pool.query(
@@ -55,7 +74,7 @@ router.post('/rfidRead', async (req, res) => {
           }
         }
       } catch (stackErr) {
-        console.error(`[RFID Hardware] Error adding to exitout stack:`, stackErr);
+  console.error(`[RFID Hardware] Error adding to exitout stack:`, stackErr);
         // Fallback to legacy processing
         const cardRes = await pool.query(`SELECT last_assigned_time FROM rfid_cards WHERE rfid_card_id = $1`, [tag]);
         if (cardRes.rowCount > 0) {
