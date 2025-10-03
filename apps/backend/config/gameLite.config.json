@@ -7,7 +7,7 @@
     "awardOnlyFirstVisit": true,
     "minGroupSize": 2,
     "maxGroupSize": 10,
-    "minPointsRequired": 21,
+    "minPointsRequired": 4,
     "clusterRules": {
       "CLUSTER1": {
         "awardPoints": 2,

@@ -13,6 +13,44 @@ const { decCrowd } = require('./venueState');
 const exitoutStack = new Map();
 
 /**
+ * After adding a card to EXITOUT stack, determine if the entire team has exited.
+ * If yes: remove team score (so they vanish from eligibility list) and optionally
+ * clean up other lite artifacts (we ONLY drop score per current requirement).
+ */
+async function maybeFinalizeTeamExit(registrationId) {
+  try {
+    // Get all member cards for this team (active members still in members table)
+    const { rows } = await pool.query(
+      `SELECT rfid_card_id FROM members WHERE registration_id = $1`,
+      [registrationId]
+    );
+    if (rows.length === 0) return; // No members to compare (already cleaned?)
+    const allCards = rows.map(r => r.rfid_card_id);
+    const stackSet = exitoutStack.get(registrationId);
+    if (!stackSet) return;
+    // Entire team exited when every member card has tapped EXITOUT (in stack)
+    const allExited = allCards.every(c => stackSet.has(c));
+    if (!allExited) return;
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Delete score row; leave registration & members (could be re-used later) or optionally prune visits.
+      await client.query(`DELETE FROM team_scores_lite WHERE registration_id = $1`, [registrationId]);
+      await client.query('COMMIT');
+      console.log(`[ExitOut Stack] Team ${registrationId} fully exited. Removed team_scores_lite row.`);
+    } catch (e) {
+      await client.query('ROLLBACK');
+      console.error('[ExitOut Stack] Failed to finalize team exit cleanup:', e.message);
+    } finally {
+      client.release();
+    }
+  } catch (e) {
+    console.error('[ExitOut Stack] maybeFinalizeTeamExit error:', e.message);
+  }
+}
+
+/**
  * Add a card to the exitout stack for a specific team
  * IMMEDIATELY reduces venue crowd count when card taps EXITOUT
  * @param {string} registrationId - The team's registration ID
@@ -50,6 +88,8 @@ async function addToStack(registrationId, tagId) {
     console.error(`[ExitOut Stack] Failed to immediately reduce venue crowd for EXITOUT:`, venueError);
     // Don't fail the stack operation due to venue count error, but log it
   }
+  // After adding, see if entire team has exited
+  maybeFinalizeTeamExit(registrationId);
   
   return {
     registrationId,

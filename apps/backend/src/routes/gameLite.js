@@ -139,15 +139,15 @@ router.get('/eligible-teams', async (_req, res) => {
       )
       SELECT r.id AS registration_id,
              r.group_size,
-             COALESCE(ts.total_points, 0) AS score,
+             ts.total_points AS score,
              tl.latest_label,
              tl.latest_time
       FROM registration r
-      LEFT JOIN team_scores_lite ts ON ts.registration_id = r.id
+      JOIN team_scores_lite ts ON ts.registration_id = r.id -- only teams with active score row
       LEFT JOIN team_location tl ON tl.registration_id = r.id
       WHERE r.group_size BETWEEN $1 AND $2
-        AND COALESCE(ts.total_points, 0) >= $3
-      ORDER BY ts.total_points DESC NULLS LAST, r.id DESC;
+        AND ts.total_points >= $3
+      ORDER BY ts.total_points DESC, r.id DESC;
     `;
 
     const { rows } = await pool.query(sql, [minGroupSize, maxGroupSize, minPointsRequired]);
