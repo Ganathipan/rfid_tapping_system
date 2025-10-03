@@ -34,18 +34,41 @@ This system enables real-time tracking of RFID card interactions across multiple
 ## 🏗️ Architecture Overview
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   ESP8266       │    │   MQTT Broker   │    │   Backend API   │
-│   RFID Reader   │───▶│   (Mosquitto)   │───▶│   (Node.js)     │
-│                 │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-                                                        ▼
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │   PostgreSQL    │    │   React Frontend│
-                       │   Database      │◀───│   (Vite + SPA)  │
-                       │                 │    │                 │
-                       └─────────────────┘    └─────────────────┘
+┌───────────────────────────────┐         MQTT (rfid/<PORTAL>)           ┌──────────────────────────────┐
+│  ESP8266 (ESP-01) + RDM6300   │──────────────────────────────────────▶│           MQTT Broker        │
+│  ─ UART 9600 read             │                                        │        Mosquitto :1885       │
+│  ─ Minimal JSON payload       │                                        │         Topics: rfid/#       │
+│      {"reader","label","tag"} │                                        │       (ACL/TLS optional)     │
+│  ─ LittleFS offline queue     │                                        └──────────────┬───────────────┘
+│  ─ (optional) GET /reader-cfg │       HTTP (bootstrap cfg)                            │
+└──────────────┬────────────────┘───────────────────────────────────────────────────────┘
+               │
+               │ MQTT SUB (rfid/#)                                                      Socket.IO (push)
+               │                                               REST (JSON)             taps:append | occupancy:update
+               ▼                                               (GET/POST)               analytics:update
+┌──────────────────────────────┐            ┌───────────────────────────────────────────────┐           ┌────────────────────────────────┐
+│     Reader Config API        │◀──────────│               Backend API (Node.js)           │──────────▶│      React Frontend (SPA)      │
+│  /api/reader-config/:rIndex  │            │  Express REST + Socket.IO + MQTT consumer     │           │  Vite + React Query            │
+└──────────────────────────────┘            │  Endpoints:                                   │           │  Pages:                        │
+                                            │   • /api/analytics/summary                    │           │   • Live Analytics             │
+                                            │   • /api/cluster-occupancy                    │           │   • Crowd Map                  │
+                                            │   • /api/analytics/tap-velocity               │           │   • Public Crowd Display       │
+                                            │   • /api/analytics/session-funnel             │           │   • Desk: Register / Exit      │
+                                            │   • /api/analytics/live-feed                  │           │   • Quick Lookup               │
+                                            │   • /api/desk/register, /api/desk/exit        │           │  IndexedDB offline queue (Desk)│
+                                            │   • /api/cards/:tag/state                     │           └────────────────┬───────────────┘
+                                            └────────────────────────┬──────────────────────┘                            │
+                                                                     │                                                   │ REST (poll 5–15s)
+                                                                     │ SQL                                               │  + Socket deltas
+                                                                     ▼                                                   │
+                                          ┌───────────────────────────────────────────────┐                              │
+                                          │               PostgreSQL Database             │◀────────────────────────────┘
+                                          │  Tables: logs, reader_config, venue_state,    │
+                                          │          (members, registration, rfid_cards,  │
+                                          │           team_scores_lite, visits_lite …)    │
+                                          │  Indexes: log_time, portal, rfid_card_id      │
+                                          └───────────────────────────────────────────────┘
+
 ```
 
 ### 📁 Project Structure
@@ -449,8 +472,8 @@ All hardware settings are in the `HARDWARE` section:
 ```javascript
 const HARDWARE = {
   WIFI: {
-    SSID: 'UoP_Dev',         // WiFi network name
-    PASSWORD: 's6RBwfAB7H',  // WiFi password
+    SSID: 'WiFi-SSID',         // WiFi network name
+    PASSWORD: 'WiFI-Password',  // WiFi password
     TIMEOUT_MS: 20000,       // Connection timeout
   },
   READERS: [
@@ -577,7 +600,7 @@ ESP8266 (NodeMCU)     RDM6300 RFID Reader
 ┌─────────────────┐   ┌──────────────────┐
 │              3V3│───│VCC               │
 │              GND│───│GND               │
-│           D4(GPIO2)│───│TX (Data Out)     │
+│        D4(GPIO2)│───│TX (Data Out)     │
 └─────────────────┘   └──────────────────┘
 
 Optional Status LED:
@@ -614,8 +637,8 @@ npm run config:dev
 // Copy settings from: firmware/esp01_rdm6300_mqtt/config.h
 // Into your main .ino file
 
-#define WIFI_SSID "UoP_Dev"
-#define WIFI_PASSWORD "s6RBwfAB7H"
+#define WIFI_SSID "WiFi-SSID"
+#define WIFI_PASSWORD "WiFi-Password"
 #define MQTT_SERVER "localhost"
 #define MQTT_PORT 1883
 #define READER_ID "REGISTER"
@@ -1096,13 +1119,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📞 Support
-
-For support and questions:
-- 📧 Email: support@rfid-system.com
-- 📱 GitHub Issues: [Create an issue](https://github.com/yourusername/rfid_tapping_system/issues)
-- 📚 Documentation: This README.md file
-
 ---
-
-**🎉 Happy coding with your RFID Tapping System!** 🚀
