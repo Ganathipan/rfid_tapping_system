@@ -26,6 +26,11 @@ export async function getStatus(rfid) {
   return api(`/tags/status/${rfid}`);
 }
 
+// NEW FEATURE: Card History API
+export async function getCardHistory(cardId, limit = 20) {
+  return api(`/api/exitout/card-history/${encodeURIComponent(cardId)}?limit=${limit}`);
+}
+
 // -------------- Game Lite client --------------
 async function apiGet(path, extraHeaders = {}) {
   return api(path, { method: 'GET', headers: extraHeaders });

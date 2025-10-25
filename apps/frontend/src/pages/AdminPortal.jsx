@@ -1,8 +1,43 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, readerConfig } from '../api';
 import { Skeleton } from '../ui/Skeleton.jsx';
 import { Card, CardBody } from '../ui/Card.jsx';
 import Table from '../ui/Table.jsx';
+import Button from '../ui/Button.jsx';
+
+function CardHistoryLookup() {
+  const [cardId, setCardId] = useState('');
+  const navigate = useNavigate();
+
+  const handleLookup = () => {
+    if (cardId.trim()) {
+      navigate(`/admin/card-history/${encodeURIComponent(cardId.trim())}`);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLookup();
+    }
+  };
+
+  return (
+    <div className="flex gap-3">
+      <input
+        type="text"
+        value={cardId}
+        onChange={(e) => setCardId(e.target.value)}
+        onKeyPress={handleKeyPress}
+        placeholder="Enter RFID Card ID (e.g., ABC123)"
+        className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded focus:outline-none focus:border-cyan-400"
+      />
+      <Button onClick={handleLookup} disabled={!cardId.trim()}>
+        View History
+      </Button>
+    </div>
+  );
+}
 
 export default function AdminPortal() {
   const [registrations, setRegistrations] = useState([]);
@@ -89,22 +124,13 @@ export default function AdminPortal() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardBody>
-            <h2 className="mb-2 text-xl font-semibold">Game Lite</h2>
-            <p className="mb-3 text-white/80">Manage scoring, thresholds, cluster rules, and redemptions.</p>
-            {/* Button removed as requested */}
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <h2 className="mb-2 text-xl font-semibold">Kiosks</h2>
-            <p className="mb-3 text-white/80">Directory of per-cluster live displays.</p>
-            {/* Keep card; no extra button here if you also want this hidden */}
-          </CardBody>
-        </Card>
-      </div>
+      {/* Card History Lookup */}
+      <Card>
+        <CardBody>
+          <h2 className="mb-3 text-xl font-semibold">Card History Lookup</h2>
+          <CardHistoryLookup />
+        </CardBody>
+      </Card>
 
       {msg && <div className="text-amber-300 text-sm">{msg}</div>}
 

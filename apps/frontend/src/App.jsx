@@ -16,6 +16,7 @@ const ClusterDirectory = lazy(()=>import('./pages/kiosk/ClusterDirectory'));
 const ClusterDisplay = lazy(()=>import('./pages/kiosk/ClusterDisplay'));
 const ExitOutPage = lazy(()=>import('./pages/ExitOutPage'));
 const AnalyticsPage = lazy(()=>import('./pages/Analytics.jsx'));
+const CardHistoryPage = lazy(()=>import('./pages/CardHistory.jsx'));
 
 
 export default function App() {
@@ -134,6 +135,7 @@ export default function App() {
               <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
               <Route path="/admin/exitout" element={<ExitOutPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
+              <Route path="/admin/card-history/:cardId" element={<CardHistoryPage />} />
               <Route path="/kiosk" element={<ClusterDirectory />} />
               <Route path="/kiosk/cluster/:clusterLabel" element={<ClusterDisplay />} />
             </Route>

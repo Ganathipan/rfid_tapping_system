@@ -160,7 +160,7 @@ export default function GameLiteAdmin() {
       <Card>
         <CardBody>
           <div className="mb-3 flex items-center justify-between">
-            <h1 className="text-xl font-bold">Game Lite — Config</h1>
+            <h1 className="text-xl font-bold">Game Configuration</h1>
             {saving && <span className="text-xs text-white/60">Saving…</span>}
           </div>
           <div className="grid gap-3 md:grid-cols-6">
@@ -189,7 +189,7 @@ export default function GameLiteAdmin() {
       <Card>
         <CardBody>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Per-Cluster Rules</h2>
+            <h2 className="text-lg font-semibold">Cluster Rules</h2>
             <div className="flex gap-2">
               <Button variant="outline" onClick={load}>Refresh</Button>
               <Button variant="primary" onClick={addOrUpdateRule}>Add / Update Rule</Button>

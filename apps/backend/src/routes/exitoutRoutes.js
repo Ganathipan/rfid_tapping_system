@@ -569,4 +569,104 @@ router.get('/health', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/exitout/card-history/:cardId
+ * NEW FEATURE: Get complete tap history for a specific RFID card
+ * Example: /api/exitout/card-history/ABC123?limit=50
+ */
+router.get('/card-history/:cardId', async (req, res) => {
+  const { cardId } = req.params;
+  const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 100);
+  
+  if (!cardId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Card ID is required'
+    });
+  }
+  
+  try {
+    // Get complete tap history for this card
+    const historyQuery = `
+      SELECT 
+        l.log_time,
+        l.label,
+        l.portal,
+        l.id as log_id,
+        CASE 
+          WHEN l.label LIKE 'CLUSTER%' THEN 'CLUSTER_VISIT'
+          WHEN l.label = 'REGISTER' THEN 'REGISTRATION'
+          WHEN l.label = 'EXITOUT' THEN 'EXIT'
+          ELSE 'OTHER'
+        END as event_type
+      FROM logs l
+      WHERE l.rfid_card_id = $1
+      ORDER BY l.log_time DESC
+      LIMIT $2
+    `;
+    
+    const historyResult = await pool.query(historyQuery, [cardId, limit]);
+    
+    // Get card details and current status
+    const cardQuery = `
+      SELECT 
+        rc.rfid_card_id,
+        rc.status,
+        rc.portal,
+        rc.created_at as card_created,
+        m.registration_id,
+        m.created_at as member_since,
+        r.team_name,
+        r.group_size
+      FROM rfid_cards rc
+      LEFT JOIN members m ON rc.rfid_card_id = m.rfid_card_id
+      LEFT JOIN registration r ON m.registration_id = r.id
+      WHERE rc.rfid_card_id = $1
+    `;
+    
+    const cardResult = await pool.query(cardQuery, [cardId]);
+    
+    // Calculate statistics
+    const stats = {
+      totalTaps: historyResult.rows.length,
+      clusterVisits: historyResult.rows.filter(r => r.event_type === 'CLUSTER_VISIT').length,
+      registrations: historyResult.rows.filter(r => r.event_type === 'REGISTRATION').length,
+      exits: historyResult.rows.filter(r => r.event_type === 'EXIT').length,
+      firstSeen: historyResult.rows.length > 0 ? historyResult.rows[historyResult.rows.length - 1].log_time : null,
+      lastSeen: historyResult.rows.length > 0 ? historyResult.rows[0].log_time : null
+    };
+    
+    // Get unique clusters visited
+    const clustersVisited = [...new Set(
+      historyResult.rows
+        .filter(r => r.event_type === 'CLUSTER_VISIT')
+        .map(r => r.label)
+    )];
+    
+    res.json({
+      success: true,
+      cardId: cardId,
+      cardDetails: cardResult.rows[0] || null,
+      statistics: stats,
+      clustersVisited: clustersVisited,
+      history: historyResult.rows,
+      pagination: {
+        limit: limit,
+        returned: historyResult.rows.length,
+        hasMore: historyResult.rows.length === limit
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error(`[Card History] Error getting history for ${cardId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve card history',
+      message: error.message,
+      cardId
+    });
+  }
+});
+
 module.exports = router;
