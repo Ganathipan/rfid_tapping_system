@@ -4,6 +4,18 @@
 
 A comprehensive solution for RFID-based event management, crowd tracking, and interactive gaming experiences. Built with modern technologies including Node.js, React, PostgreSQL, MQTT, and ESP8266 firmware.
 
+## 📚 Documentation
+
+- 📁 **[Documentation Index](docs/README.md)** - Complete documentation navigation
+- 📁 **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Complete project organization and file structure  
+- 📁 **[Project Organization Report](PROJECT_ORGANIZATION_REPORT.md)** - Recent reorganization summary
+- 📁 **[Testing Documentation](docs/testing/)** - Comprehensive testing guides and reports
+  - [Comprehensive Testing Completion](docs/testing/COMPREHENSIVE_TESTING_COMPLETION.md) - Complete testing status & coverage
+  - [Analytics Testing Resolution](docs/testing/ANALYTICS_TESTING_RESOLUTION.md) - Analytics testing solutions
+  - [React Act Warnings Explained](docs/testing/REACT_ACT_WARNINGS_EXPLAINED.md) - React testing fixes
+  - [Unit Testing Summary](docs/testing/UNIT_TESTING_SUMMARY.md) - Unit testing implementation
+- 📁 **[Deployment](docs/deployment/)** - Deployment configurations and guides
+
 ## ✨ Recent Enhancements (2025 Q3–Q4)
 
 | Feature | Description | Benefit |
