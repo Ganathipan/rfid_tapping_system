@@ -137,8 +137,8 @@ async function syncRfidCardsFromLogs() {
 // ===================================================================
 router.post('/updateCount', async (req, res) => {
   const { portal, count } = req.body || {};
-  if (!portal) return badReq(res, 'Portal is required');
-  if (!count || isNaN(count) || count < 1) return badReq(res, 'Count must be >= 1');
+  if (!portal) return res.status(400).json({ error: 'Portal is required' });
+  if (!count || isNaN(count) || count < 1) return res.status(400).json({ error: 'Count must be >= 1' });
   try {
     // Find latest registration for this portal and previous size
     const latestRes = await pool.query(
@@ -188,8 +188,8 @@ router.post('/register', async (req, res) => {
     lang = null
   } = req.body || {};
 
-  if (!portal) return badReq(res, 'Portal is required');
-  if (!group_size || isNaN(group_size) || group_size < 1) return badReq(res, 'Group size must be >= 1');
+  if (!portal) return res.status(400).json({ error: 'Portal is required' });
+  if (!group_size || isNaN(group_size) || group_size < 1) return res.status(400).json({ error: 'Group size must be >= 1' });
 
   try {
     await syncRfidCardsFromLogs();
@@ -378,8 +378,8 @@ async function releaseTag(client, tagId, portal) {
 // ===================================================================
 router.post('/link', async (req, res) => {
   const { portal, leaderId, asLeader, tagId: suppliedTagId } = req.body || {};
-  if (!portal) return badReq(res, 'Portal is required');
-  if (!leaderId) return badReq(res, 'Leader ID is required');
+  if (!portal) return res.status(400).json({ error: 'Portal is required' });
+  if (!leaderId) return res.status(400).json({ error: 'Leader ID is required' });
   let tagId; // declare in function scope so it's accessible after try block
   try {
     await syncRfidCardsFromLogs();
@@ -519,7 +519,7 @@ router.get('/unassigned-fifo', async (req, res) => {
 // ===================================================================
 router.post('/skip', async (req, res) => {
   const { tagId } = req.body || {};
-  if (!tagId) return badReq(res, 'tagId is required');
+  if (!tagId) return res.status(400).json({ error: 'tagId is required' });
   try {
     const card = await pool.query(`SELECT rfid_card_id, status FROM rfid_cards WHERE rfid_card_id=$1`, [tagId]);
     if (card.rowCount === 0) return res.status(404).json({ error: 'Card not found' });

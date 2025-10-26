@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const STORE_FILE = process.env.GAMELITE_CONFIG_FILE || path.join(__dirname, '..', '..', 'config', 'gameLite.config.json');
+const STORE_FILE = process.env.GAMELITE_CONFIG_FILE || path.join(__dirname, '..', '..', 'config', 'game-lite.config.json');
 
 function loadSync() {
   try {
