@@ -1,30 +1,20 @@
 {
-  "enabled": true,
+  "enabled": false,
   "rules": {
     "eligibleLabelPrefix": "CLUSTER",
-    "pointsPerMemberFirstVisit": 1,
+    "pointsPerMemberFirstVisit": 10,
     "pointsPerMemberRepeatVisit": 0,
     "awardOnlyFirstVisit": true,
-    "minGroupSize": 2,
-    "maxGroupSize": 10,
-    "minPointsRequired": 4,
+    "minGroupSize": 1,
+    "maxGroupSize": 9999,
+    "minPointsRequired": 3,
     "clusterRules": {
       "CLUSTER1": {
-        "awardPoints": 2,
-        "redeemable": false,
-        "redeemPoints": 2
+        "awardPoints": 10
       },
       "CLUSTER2": {
-        "awardPoints": 5,
-        "redeemable": false,
-        "redeemPoints": 0
-      },
-      "CLUSTER3": {
-        "awardPoints": 4,
-        "redeemable": true,
-        "redeemPoints": 4
+        "awardPoints": 20
       }
-    },
-    "enabled": true
+    }
   }
 }

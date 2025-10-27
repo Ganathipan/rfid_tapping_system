@@ -9,16 +9,21 @@ describe('Game Lite Configuration', () => {
   let configStore;
 
   beforeEach(() => {
-    // Clear the require cache
+    // Clear the require cache for both modules
     delete require.cache[require.resolve('../../src/config/gameLiteConfig.js')];
+    delete require.cache[require.resolve('../../src/config/gameLiteConfigStore')];
     
     // Clear mocks
     jest.clearAllMocks();
     
-    // Mock the config store
+    // Get the mock after clearing cache
     configStore = require('../../src/config/gameLiteConfigStore');
     
-    // Reset to a clean state
+    // Ensure the mock is properly set up
+    configStore.loadSync.mockReturnValue(null);
+    configStore.saveSync.mockImplementation(() => {});
+    
+    // Reset to a clean state - this will now pick up the fresh mock
     gameLiteConfig = require('../../src/config/gameLiteConfig.js');
   });
 

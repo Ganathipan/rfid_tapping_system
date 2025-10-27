@@ -62,7 +62,10 @@ async function verifyInitialConnection(retries = 3, delayMs = 1500) {
   return false;
 }
 
-verifyInitialConnection();
+// Skip verification in test environment to prevent async logging issues
+if (process.env.NODE_ENV !== 'test') {
+  verifyInitialConnection();
+}
 
 pool.on('error', (err) => {
   console.error('Unexpected PG error (pool idle client error):', err);

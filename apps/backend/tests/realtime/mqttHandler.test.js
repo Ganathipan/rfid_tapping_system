@@ -32,12 +32,20 @@ const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 
 describe('MQTT Handler', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalJestWorkerId = process.env.JEST_WORKER_ID;
+
   beforeEach(() => {
     // Clear module cache FIRST to force re-import
     delete require.cache[require.resolve('../../src/realtime/mqttHandler.js')];
     
+    // Temporarily set environment to non-test mode for MQTT connection testing
+    process.env.NODE_ENV = 'development';
+    delete process.env.JEST_WORKER_ID;
+    
     // Don't clear ALL mocks, just reset specific ones
     mockPool.query.mockClear();
+    mqtt.connect.mockClear();
     
     // Mock console methods
     console.log = jest.fn();
@@ -49,6 +57,12 @@ describe('MQTT Handler', () => {
   });
 
   afterEach(() => {
+    // Restore environment variables
+    process.env.NODE_ENV = originalNodeEnv;
+    if (originalJestWorkerId) {
+      process.env.JEST_WORKER_ID = originalJestWorkerId;
+    }
+    
     // Restore console methods
     console.log = originalConsoleLog;
     console.error = originalConsoleError;
