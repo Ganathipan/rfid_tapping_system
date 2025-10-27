@@ -168,7 +168,6 @@ export default function ExitOutPage() {
       {stack.length === 0 ? (
         <Card className="text-center py-12">
           <div className="text-white/70">
-            <div className="text-6xl mb-4">🎉</div>
             <h3 className="text-xl font-semibold mb-2 text-white">No Cards in ExitOut Stack</h3>
             <p>All teams have been processed or no exitout taps have occurred.</p>
           </div>
