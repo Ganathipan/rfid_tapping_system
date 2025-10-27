@@ -507,6 +507,11 @@ describe('GameLiteAdmin', () => {
       
       // Should handle error gracefully and show loader
       expect(screen.getByTestId('loader')).toBeInTheDocument();
+      
+      // Wait for any async operations to complete to prevent unhandled promise rejections
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
     });
   });
 

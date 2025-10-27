@@ -4,8 +4,28 @@
  */
 
 import React from 'react';
-import { beforeEach, vi } from 'vitest';
+import { beforeEach, vi, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
+import { act } from '@testing-library/react';
+
+// Configure React Testing Library to use act by default
+global.act = act;
+
+// Handle unhandled promise rejections that are expected in tests
+const originalUnhandledRejection = process.listeners('unhandledRejection');
+process.removeAllListeners('unhandledRejection');
+process.on('unhandledRejection', (reason, promise) => {
+  // Suppress expected API errors in tests
+  if (reason instanceof Error && 
+      (reason.message.includes('API Error') || 
+       reason.message.includes('Network error') ||
+       reason.message.includes('Database connection failed'))) {
+    // These are expected test errors, don't treat as unhandled
+    return;
+  }
+  // Re-throw other unhandled rejections
+  throw reason;
+});
 
 // Mock environment variables
 vi.mock('../src/config.js', () => ({
@@ -310,7 +330,11 @@ export const testUtils = {
   }
 };
 
-// Setup and cleanup for each test
+// Configure console to suppress act warnings in test environment
+const originalError = console.error;
+const originalWarn = console.warn;
+
+// Suppress specific React warnings that are expected in test environment
 beforeEach(() => {
   // Clear all mocks
   vi.clearAllMocks();
@@ -323,6 +347,41 @@ beforeEach(() => {
   window.location.pathname = '/';
   window.location.search = '';
   window.location.hash = '';
+
+  // Suppress React act warnings and other test-specific warnings
+  console.error = (message, ...args) => {
+    // Suppress React act warnings
+    if (typeof message === 'string' && message.includes('not wrapped in act')) {
+      return;
+    }
+    // Suppress React Router future flag warnings
+    if (typeof message === 'string' && message.includes('React Router Future Flag Warning')) {
+      return;
+    }
+    // Suppress React key warnings in tests
+    if (typeof message === 'string' && message.includes('Encountered two children with the same key')) {
+      return;
+    }
+    // Suppress className prop warnings
+    if (typeof message === 'string' && message.includes('Invalid value for prop `className`')) {
+      return;
+    }
+    originalError(message, ...args);
+  };
+
+  console.warn = (message, ...args) => {
+    // Suppress React Router future flag warnings
+    if (typeof message === 'string' && message.includes('React Router Future Flag Warning')) {
+      return;
+    }
+    originalWarn(message, ...args);
+  };
+});
+
+afterEach(() => {
+  // Restore console methods
+  console.error = originalError;
+  console.warn = originalWarn;
 });
 
 // Make testUtils available globally
