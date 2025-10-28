@@ -5,7 +5,7 @@
  * Reader Index: 8
  * Reader ID: REGISTER
  * Portal: portal1
- * Generated: 2025-10-28T19:56:28.727Z
+ * Generated: 2025-10-28T20:02:19.837Z
  * 
  * Copy these values into your main.ino file or include this file.
  */

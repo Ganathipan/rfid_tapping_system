@@ -531,10 +531,6 @@ if ($frontendProc) {
   Write-Error "Frontend failed to start"
 }
 
-# Start monitoring tools
-$monitorProc = Start-MqttMonitor
-if ($monitorProc) { $processes += $monitorProc }
-
 $dbProc = Start-DatabaseConsole
 if ($dbProc) { $processes += $dbProc }
 
