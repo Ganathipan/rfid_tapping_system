@@ -1,4 +1,4 @@
-const pool = require('../../src/db/pool');
+const pool = require('../../../src/db/pool');
 
 describe('Real-time Services Integration Tests', () => {
   beforeAll(async () => {
@@ -10,7 +10,7 @@ describe('Real-time Services Integration Tests', () => {
     let mqttHandler;
 
     beforeAll(() => {
-      mqttHandler = require('../../src/realtime/mqttHandler');
+      mqttHandler = require('../../../src/realtime/mqttHandler');
     });
 
     test('should provide MQTT handler functionality', () => {
@@ -134,7 +134,7 @@ describe('Real-time Services Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        clusterBus = require('../../src/realtime/clusterBus');
+        clusterBus = require('../../../src/realtime/clusterBus');
       } catch (error) {
         console.log('Cluster Bus not available:', error.message);
       }
@@ -237,7 +237,7 @@ describe('Real-time Services Integration Tests', () => {
 
     test('should handle real-time venue state updates', async () => {
       try {
-        const venueState = require('../../src/services/venueState');
+        const venueState = require('../../../src/services/venueState');
         
         // Simulate real-time crowd updates
         const initialCount = venueState.getCurrentCrowd();

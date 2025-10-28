@@ -1,4 +1,4 @@
-const pool = require('../../src/db/pool');
+const pool = require('../../../src/db/pool');
 
 describe('Service Layer Unit Integration Tests', () => {
   beforeAll(async () => {
@@ -20,7 +20,7 @@ describe('Service Layer Unit Integration Tests', () => {
     let venueState;
 
     beforeAll(() => {
-      venueState = require('../../src/services/venueState');
+      venueState = require('../../../src/services/venueState');
     });
 
     test('should provide venue state functions', () => {
@@ -70,7 +70,7 @@ describe('Service Layer Unit Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        gameLiteService = require('../../src/services/gameLiteService');
+        gameLiteService = require('../../../src/services/gameLiteService');
       } catch (error) {
         console.log('Game Lite Service not available:', error.message);
       }
@@ -165,7 +165,7 @@ describe('Service Layer Unit Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        registrationService = require('../../src/services/registrationService');
+        registrationService = require('../../../src/services/registrationService');
       } catch (error) {
         console.log('Registration Service not available:', error.message);
       }
@@ -196,7 +196,7 @@ describe('Service Layer Unit Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        checkService = require('../../src/services/checkService');
+        checkService = require('../../../src/services/checkService');
       } catch (error) {
         console.log('Check Service not available:', error.message);
       }
@@ -227,7 +227,7 @@ describe('Service Layer Unit Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        statsController = require('../../src/services/statsController');
+        statsController = require('../../../src/services/statsController');
       } catch (error) {
         console.log('Stats Controller not available:', error.message);
       }
@@ -268,7 +268,7 @@ describe('Service Layer Unit Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        eventController = require('../../src/services/eventController');
+        eventController = require('../../../src/services/eventController');
       } catch (error) {
         console.log('Event Controller not available:', error.message);
       }
@@ -298,7 +298,7 @@ describe('Service Layer Unit Integration Tests', () => {
 
     beforeAll(() => {
       try {
-        exitoutStackService = require('../../src/services/exitoutStackService');
+        exitoutStackService = require('../../../src/services/exitoutStackService');
       } catch (error) {
         console.log('Exitout Stack Service not available:', error.message);
       }

@@ -1,4 +1,4 @@
-const pool = require('../../src/db/pool');
+const pool = require('../../../src/db/pool');
 
 // Check if pool is mocked (for tests that mock database)
 const isPoolMocked = () => {

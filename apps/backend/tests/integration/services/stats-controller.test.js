@@ -1,7 +1,7 @@
 const request = require('supertest');
-const app = require('../../src/app');
-const pool = require('../../src/db/pool');
-const statsController = require('../../src/services/statsController');
+const app = require('../../../src/app');
+const pool = require('../../../src/db/pool');
+const statsController = require('../../../src/services/statsController');
 
 describe('Stats Controller Integration Tests', () => {
   beforeAll(async () => {

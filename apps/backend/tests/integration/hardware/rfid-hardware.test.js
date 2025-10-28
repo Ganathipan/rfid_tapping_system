@@ -1,6 +1,6 @@
 const request = require('supertest');
-const app = require('../../src/app');
-const pool = require('../../src/db/pool');
+const app = require('../../../src/app');
+const pool = require('../../../src/db/pool');
 
 describe('RFID Hardware Routes Integration Tests', () => {
   beforeAll(async () => {

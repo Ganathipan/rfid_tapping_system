@@ -1,5 +1,5 @@
-const pool = require('../../src/db/pool');
-const postInternal = require('../../src/utils/postInternal');
+const pool = require('../../../src/db/pool');
+const postInternal = require('../../../src/utils/postInternal');
 
 describe('Utilities Integration Tests', () => {
   beforeAll(async () => {
@@ -106,13 +106,13 @@ describe('Utilities Integration Tests', () => {
 
   describe('Configuration Integration', () => {
     test('should load environment configuration', () => {
-      const env = require('../../src/config/env');
+      const env = require('../../../src/config/env');
       expect(env).toBeDefined();
       expect(typeof env).toBe('object');
     });
 
     test('should have required configuration values', () => {
-      const env = require('../../src/config/env');
+      const env = require('../../../src/config/env');
       
       // Test for common configuration properties
       const expectedConfigs = ['PORT', 'NODE_ENV', 'DATABASE_URL'];
@@ -125,7 +125,7 @@ describe('Utilities Integration Tests', () => {
 
     test('should handle game lite configuration', () => {
       try {
-        const gameLiteConfig = require('../../src/config/gameLiteConfig');
+        const gameLiteConfig = require('../../../src/config/gameLiteConfig');
         expect(gameLiteConfig).toBeDefined();
         expect(typeof gameLiteConfig).toBe('object');
       } catch (error) {
@@ -136,7 +136,7 @@ describe('Utilities Integration Tests', () => {
 
     test('should handle configuration store', () => {
       try {
-        const configStore = require('../../src/config/configStore');
+        const configStore = require('../../../src/config/configStore');
         expect(configStore).toBeDefined();
         
         if (typeof configStore.get === 'function') {
@@ -154,14 +154,14 @@ describe('Utilities Integration Tests', () => {
 
   describe('Real-time Integration Utilities', () => {
     test('should handle MQTT handler configuration', () => {
-      const mqttHandler = require('../../src/realtime/mqttHandler');
+      const mqttHandler = require('../../../src/realtime/mqttHandler');
       expect(mqttHandler).toBeDefined();
       expect(typeof mqttHandler).toBe('object');
     });
 
     test('should handle cluster bus configuration', () => {
       try {
-        const clusterBus = require('../../src/realtime/clusterBus');
+        const clusterBus = require('../../../src/realtime/clusterBus');
         expect(clusterBus).toBeDefined();
         expect(typeof clusterBus).toBe('object');
       } catch (error) {
@@ -171,7 +171,7 @@ describe('Utilities Integration Tests', () => {
     });
 
     test('should manage real-time connection states', () => {
-      const mqttHandler = require('../../src/realtime/mqttHandler');
+      const mqttHandler = require('../../../src/realtime/mqttHandler');
       
       // Test if handler has expected properties
       const expectedProperties = ['client', 'isConnected', 'connect', 'disconnect'];
@@ -186,7 +186,7 @@ describe('Utilities Integration Tests', () => {
   describe('Service Layer Integration', () => {
     test('should load event controller', () => {
       try {
-        const eventController = require('../../src/services/eventController');
+        const eventController = require('../../../src/services/eventController');
         expect(eventController).toBeDefined();
         expect(typeof eventController).toBe('object');
       } catch (error) {
@@ -196,7 +196,7 @@ describe('Utilities Integration Tests', () => {
 
     test('should load registration service', () => {
       try {
-        const registrationService = require('../../src/services/registrationService');
+        const registrationService = require('../../../src/services/registrationService');
         expect(registrationService).toBeDefined();
         expect(typeof registrationService).toBe('object');
       } catch (error) {
@@ -206,7 +206,7 @@ describe('Utilities Integration Tests', () => {
 
     test('should load check service', () => {
       try {
-        const checkService = require('../../src/services/checkService');
+        const checkService = require('../../../src/services/checkService');
         expect(checkService).toBeDefined();
         expect(typeof checkService).toBe('object');
       } catch (error) {
@@ -216,7 +216,7 @@ describe('Utilities Integration Tests', () => {
 
     test('should load venue state service', () => {
       try {
-        const venueState = require('../../src/services/venueState');
+        const venueState = require('../../../src/services/venueState');
         expect(venueState).toBeDefined();
         expect(typeof venueState).toBe('object');
       } catch (error) {

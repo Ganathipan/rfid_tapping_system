@@ -1,9 +1,9 @@
 // Mock the database pool for integration testing
-jest.mock('../../src/db/pool', () => global.testUtils.mockPool);
+jest.mock('../../../src/db/pool', () => global.testUtils.mockPool);
 
 const request = require('supertest');
-const app = require('../../src/app');
-const pool = require('../../src/db/pool');
+const app = require('../../../src/app');
+const pool = require('../../../src/db/pool');
 
 describe('Services Integration Tests', () => {
   beforeAll(async () => {

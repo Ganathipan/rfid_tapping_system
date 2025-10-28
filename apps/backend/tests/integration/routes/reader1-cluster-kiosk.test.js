@@ -1,15 +1,15 @@
 // Mock the database pool for integration testing
-jest.mock('../../src/db/pool', () => global.testUtils.mockPool);
+jest.mock('../../../src/db/pool', () => global.testUtils.mockPool);
 
 // Mock the reader1ClusterBus to avoid database connections during SSE tests
-jest.mock('../../src/realtime/reader1ClusterBus', () => ({
+jest.mock('../../../src/realtime/reader1ClusterBus', () => ({
   startReader1ClusterBus: jest.fn().mockResolvedValue(true),
   subscribe: jest.fn().mockReturnValue(() => {}) // Return unsubscribe function
 }));
 
 const request = require('supertest');
-const app = require('../../src/app');
-const pool = require('../../src/db/pool');
+const app = require('../../../src/app');
+const pool = require('../../../src/db/pool');
 
 describe('Reader1 Cluster Kiosk Integration Tests', () => {
   let databaseReady = false;

@@ -1,4 +1,4 @@
-const { postInternal } = require('../../src/utils/postInternal');
+const { postInternal } = require('../../../src/utils/postInternal');
 const http = require('http');
 
 describe('PostInternal Utility Integration Tests', () => {
