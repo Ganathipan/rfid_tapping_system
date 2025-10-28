@@ -2,10 +2,10 @@
  * ESP8266 RFID Reader Configuration
  * Auto-generated from master-config.js
  * Environment: development
- * Reader Index: 1
+ * Reader Index: 8
  * Reader ID: REGISTER
  * Portal: portal1
- * Generated: 2025-10-28T00:27:50.436Z
+ * Generated: 2025-10-28T00:27:50.442Z
  * 
  * Copy these values into your main.ino file or include this file.
  */
@@ -16,7 +16,7 @@ const char* password = "s6RBwfAB7H";
 const char* serverBase = "http://localhost:4000";
 const char* mqtt_server = "localhost";
 const int mqtt_port = 1883;
-const int rIndex = 1;
+const int rIndex = 8;
 String readerID = "REGISTER";
 String portal = "portal1";
 

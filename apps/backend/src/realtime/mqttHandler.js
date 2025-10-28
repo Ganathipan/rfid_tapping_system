@@ -35,7 +35,9 @@ if (!isTestEnvironment) {
 
   client.on('message', async (topic, message) => {
     try {
+      console.log(`[MQTT DEBUG] Raw message received: "${message.toString()}"`);
       const m = JSON.parse(message.toString());
+      console.log(`[MQTT DEBUG] Parsed JSON:`, m);
 
       // Support both new format {reader, label, tag_id} and legacy {portal, label, rfid_card_id, tag}
       const tagHex = String(m.tag_id ?? m.tag ?? m.rfid_card_id ?? '').trim().toUpperCase();
@@ -47,6 +49,8 @@ if (!isTestEnvironment) {
       if (label === 'REGISTER' && portal.toLowerCase() === 'exitout') {
         label = 'EXITOUT';
       }
+
+      console.log(`[MQTT DEBUG] Processed: tag=${tagHex}, portal=${portal}, label=${label}`);
 
       if (!tagHex || !portal) {
         console.warn('[MQTT] missing tag_id/portal:', m);
@@ -61,6 +65,7 @@ if (!isTestEnvironment) {
     console.log(`[MQTT] logged tap ${tagHex} @ ${portal} (${label})`);
     } catch (e) {
       console.error('[MQTT] handle error:', e.message);
+      console.error('[MQTT] Raw message was:', message.toString());
     }
   });
 

@@ -70,8 +70,8 @@ describe('Analytics Component', () => {
     // Act
     await renderAnalytics();
 
-    // Assert - Check for datetime inputs (using current date pattern)
-    const datetimeInputs = screen.getAllByDisplayValue(/2025-10-27T/);
+    // Assert - Check for datetime inputs (using flexible date pattern)
+    const datetimeInputs = screen.getAllByDisplayValue(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/);
     expect(datetimeInputs).toHaveLength(2); // From and To inputs
   });
 

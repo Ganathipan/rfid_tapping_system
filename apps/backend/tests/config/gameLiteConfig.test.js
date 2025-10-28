@@ -224,7 +224,18 @@ describe('Game Lite Configuration', () => {
     });
 
     it('should save config when updated', () => {
-      gameLiteConfig.updateConfig({ enabled: false });
+      // Clear require cache and recreate module with fresh mock
+      delete require.cache[require.resolve('../../src/config/gameLiteConfig.js')];
+      
+      // Ensure mock is ready before requiring the module again
+      configStore.loadSync.mockReturnValue(null);
+      configStore.saveSync.mockImplementation(() => {});
+      
+      // Require the module again to pick up the fresh mock
+      const freshGameLiteConfig = require('../../src/config/gameLiteConfig.js');
+      
+      // Now test the update
+      freshGameLiteConfig.updateConfig({ enabled: false });
 
       expect(configStore.saveSync).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: false })

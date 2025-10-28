@@ -5,7 +5,7 @@
  * Reader Index: 2
  * Reader ID: ENTEROUT
  * Portal: portal2
- * Generated: 2025-10-01T07:47:59.694Z
+ * Generated: 2025-10-28T00:27:50.439Z
  * 
  * Copy these values into your main.ino file or include this file.
  */

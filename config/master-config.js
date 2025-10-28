@@ -53,7 +53,7 @@ const NETWORK = {
   // MQTT Broker Configuration
   MQTT: {
     HOST: 'localhost',          // MQTT broker IP
-    PORT: 1885,                    // MQTT broker port
+    PORT: 1883,                    // MQTT broker port
     PROTOCOL: 'mqtt',              // mqtt or mqtts
     CLIENT_ID_PREFIX: 'rfid-system', // Client ID prefix
     USERNAME: null,                // MQTT username (null for no auth)

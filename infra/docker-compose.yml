@@ -18,7 +18,7 @@ services:
     command: mosquitto -c /mosquitto-no-auth/mosquitto.conf
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto-no-auth/mosquitto.conf:ro
-    ports: ["1883:1885"]
+    ports: ["1883:1883"]
     networks: [rfid-network]
 
   backend:
@@ -30,7 +30,7 @@ services:
       - PORT=4000
       - DATABASE_URL=postgresql://postgres:Gana11602@postgres:5432/rfid
       - PG_SSL=false
-      - MQTT_URL=mqtt://mosquitto:1885
+      - MQTT_URL=mqtt://mosquitto:1883
       - GAMELITE_ADMIN_KEY=dev-admin-key-2024
     depends_on: [postgres, mosquitto]
     ports: ["4000:4000"]

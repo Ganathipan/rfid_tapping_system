@@ -31,7 +31,7 @@ const char* serverBase  = "http://10.30.9.163:4000";
 
 // MQTT broker
 const char* mqtt_server = "10.30.9.163";
-const int   mqtt_port   = 1885;
+const int   mqtt_port   = 1883;
 
 // Unique per device
 const int   rIndex      = 8;           // physical reader index

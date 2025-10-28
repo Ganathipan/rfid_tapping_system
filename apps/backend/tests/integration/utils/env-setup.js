@@ -6,7 +6,7 @@
 // Set test environment variables before any modules are loaded
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/rfid_test';
-process.env.MQTT_URL = 'mqtt://localhost:1885';
+process.env.MQTT_URL = 'mqtt://localhost:1883';
 process.env.INTERNAL_BASE = 'http://localhost:4000';
 
 // Load test environment variables from .env.test if it exists
