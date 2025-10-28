@@ -1,7 +1,7 @@
 module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/integration/**/*.test.js'],
-  setupFilesAfterEnv: ['<rootDir>/tests/integration/setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/tests/integration/utils/setup.js'],
   testTimeout: 30000, // 30 seconds for integration tests
   collectCoverageFrom: [
     'src/**/*.js',
@@ -17,5 +17,5 @@ module.exports = {
   clearMocks: true,
   restoreMocks: true,
   // Set environment variables for tests
-  setupFiles: ['<rootDir>/tests/integration/env-setup.js']
+  setupFiles: ['<rootDir>/tests/integration/utils/env-setup.js']
 };
