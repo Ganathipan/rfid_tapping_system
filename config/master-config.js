@@ -27,14 +27,14 @@ const ENVIRONMENT = process.env.NODE_ENV || 'development'; // 'development', 'st
 const NETWORK = {
   // Backend API Configuration
   BACKEND: {
-    HOST: 'localhost',           // Backend server IP
+    HOST: '192.168.8.2',           // Backend server IP
     PORT: 4000,                    // Backend server port
     PROTOCOL: 'http',              // http or https
   },
 
   // Frontend Configuration  
   FRONTEND: {
-    HOST: 'localhost',             // Frontend host for development
+    HOST: '192.168.8.2',             // Frontend host for development
     PORT: 5173,                    // Frontend port (Vite default)
     PROTOCOL: 'http',              // http or https
   },
@@ -52,7 +52,7 @@ const NETWORK = {
 
   // MQTT Broker Configuration
   MQTT: {
-    HOST: 'localhost',          // MQTT broker IP
+    HOST: '192.168.8.2',          // MQTT broker IP
     PORT: 1883,                    // MQTT broker port
     PROTOCOL: 'mqtt',              // mqtt or mqtts
     CLIENT_ID_PREFIX: 'rfid-system', // Client ID prefix
@@ -188,7 +188,7 @@ const ENVIRONMENT_OVERRIDES = {
         PASSWORD: 'Gana11602',
       },
       MQTT: {
-        HOST: 'localhost',
+        HOST: '192.168.8.2',
         PORT: 1883,
       }
     },

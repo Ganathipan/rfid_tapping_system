@@ -23,18 +23,18 @@
 #include <LittleFS.h>
 
 // ================== USER CONFIG ==================
-const char* ssid        = "UoP_Dev";
-const char* password    = "s6RBwfAB7H";
+const char* ssid        = "Gana Dialog 4G";
+const char* password    = "ROOM1492";
 
 // Optional boot-time config server (non-fatal if unavailable)
-const char* serverBase  = "http://10.30.9.163:4000";
+const char* serverBase  = "http://192.168.8.2:4000";
 
 // MQTT broker
-const char* mqtt_server = "10.30.9.163";
+const char* mqtt_server = "192.168.8.2";
 const int   mqtt_port   = 1883;
 
 // Unique per device
-const int   rIndex      = 8;           // physical reader index
+const int   rIndex      = 5;           // physical reader index
 
 // Fallback runtime config (overridden by fetch)
 String readerID = "REGISTER";
@@ -225,10 +225,10 @@ void queue_tryFlush(size_t maxFlush = 50) {
 // Build a JSON doc for a tap and return serialized string
 // Build a *minimal* JSON doc for a tap and return serialized string
 String buildTapJson(const String& tagHex) {
-  StaticJsonDocument<160> doc;
-  doc["reader"] = portal;     // logical channel (e.g., "portal1")
-  doc["label"]  = readerID;   // human-readable (e.g., "REGISTER")
-  doc["tag_id"] = tagHex;     // uppercase HEX
+  StaticJsonDocument<192> doc;
+  doc["label"]   = readerID; // "REGISTER"
+  doc["portal"]  = portal;   // "portal1"
+  doc["tag_id"]  = tagHex;   // uppercase HEX
   String out;
   serializeJson(doc, out);
   return out;
@@ -289,21 +289,21 @@ void loop() {
   ensureMqtt();
 
   // read tag (non-blocking)
-  if (rdm6300.get_new_tag_id()) {
-    unsigned long raw = rdm6300.get_tag_id();
-    // LED on during capture
-    led_on();
+if (rdm6300.get_new_tag_id()) {
+  unsigned long raw = rdm6300.get_tag_id();
+  blink(2, 80, 80);  // if it blinks, UART read is working
+  led_on();
 
-    // hex (uppercase, no 0x)
-    String tagHex = String(raw, HEX); tagHex.toUpperCase();
+  // --- Zero-padded 8-digit tag ID ---
+  char buf[9];
+  snprintf(buf, sizeof(buf), "%08X", (uint32_t)raw);
+  String tagHex(buf);
 
-    // build payload and send/queue
-    String payload = buildTapJson(tagHex);
-    publishOrEnqueueTap(payload);
+  String payload = buildTapJson(tagHex);
+  publishOrEnqueueTap(payload);
 
-    // LED off after handling
-    led_off();
-  }
+  led_off();
+}
 
   // opportunistically flush a few queued lines each pass
   if (WiFi.status() == WL_CONNECTED && mqttClient.connected()) {
