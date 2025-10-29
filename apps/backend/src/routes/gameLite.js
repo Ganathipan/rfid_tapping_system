@@ -174,6 +174,208 @@ router.get('/leaderboard', async (req, res) => {
   }
 });
 
+// Test endpoint for comprehensive system testing with hex RFID format
+router.get('/test-scoring', async (req, res) => {
+  const results = {
+    timestamp: new Date().toISOString(),
+    tests: [],
+    summary: { passed: 0, failed: 0, warnings: 0 }
+  };
+
+  // Helper function to add test result
+  const addTest = (name, status, message, data = null) => {
+    results.tests.push({ name, status, message, data });
+    if (status === 'PASS') results.summary.passed++;
+    else if (status === 'FAIL') results.summary.failed++;
+    else if (status === 'WARN') results.summary.warnings++;
+  };
+
+  try {
+    // Test 1: Check game configuration
+    addTest('Configuration Check', 'INFO', 'Checking game configuration...');
+    const config = getConfig();
+    if (config.enabled) {
+      addTest('Game Status', 'PASS', 'Game is enabled', { enabled: config.enabled });
+    } else {
+      addTest('Game Status', 'FAIL', 'Game is disabled - enable in config', { enabled: config.enabled });
+    }
+
+    const clusterRules = config.rules?.clusterRules || {};
+    const clusterCount = Object.keys(clusterRules).length;
+    if (clusterCount > 0) {
+      addTest('Cluster Rules', 'PASS', `${clusterCount} cluster rules configured`, { 
+        clusters: Object.keys(clusterRules),
+        rules: clusterRules 
+      });
+    } else {
+      addTest('Cluster Rules', 'FAIL', 'No cluster rules configured');
+    }
+
+    // Test 2: Database connectivity
+    addTest('Database Check', 'INFO', 'Testing database connectivity...');
+    try {
+      const dbTest = await pool.query('SELECT 1 as test');
+      if (dbTest.rowCount > 0) {
+        addTest('Database Connection', 'PASS', 'Database is accessible');
+      } else {
+        addTest('Database Connection', 'FAIL', 'Database query returned no results');
+      }
+    } catch (dbError) {
+      addTest('Database Connection', 'FAIL', `Database error: ${dbError.message}`);
+    }
+
+    // Test 3: Check for teams with hex RFID cards
+    addTest('Team Data Check', 'INFO', 'Checking for registered teams with hex RFID cards...');
+    try {
+      const teamsQuery = await pool.query(`
+        SELECT r.id as registration_id, r.group_size, 
+               COUNT(m.id) as member_count,
+               STRING_AGG(m.rfid_card_id, ', ') as rfid_cards
+        FROM registration r 
+        LEFT JOIN members m ON m.registration_id = r.id 
+        WHERE m.rfid_card_id ~ '^[0-9A-F]{8}$'
+        GROUP BY r.id, r.group_size 
+        LIMIT 5
+      `);
+      
+      if (teamsQuery.rowCount > 0) {
+        addTest('Teams with Hex RFID', 'PASS', `Found ${teamsQuery.rowCount} teams with hex RFID cards`, {
+          count: teamsQuery.rowCount,
+          samples: teamsQuery.rows
+        });
+      } else {
+        addTest('Teams with Hex RFID', 'WARN', 'No teams found with hex RFID cards (A1B2C3D4 format)');
+      }
+    } catch (teamError) {
+      addTest('Teams with Hex RFID', 'FAIL', `Team query error: ${teamError.message}`);
+    }
+
+    // Test 4: Check team scores
+    addTest('Scoring Check', 'INFO', 'Checking team scoring system...');
+    try {
+      const scoresQuery = await pool.query(`
+        SELECT registration_id, total_points 
+        FROM team_scores_lite 
+        ORDER BY total_points DESC 
+        LIMIT 10
+      `);
+      
+      if (scoresQuery.rowCount > 0) {
+        const totalTeamsWithScores = scoresQuery.rowCount;
+        const topScore = scoresQuery.rows[0].total_points;
+        addTest('Team Scores', 'PASS', `${totalTeamsWithScores} teams have scores, top score: ${topScore}`, {
+          count: totalTeamsWithScores,
+          topScores: scoresQuery.rows
+        });
+      } else {
+        addTest('Team Scores', 'WARN', 'No teams have scores yet - simulate RFID taps to generate scores');
+      }
+    } catch (scoreError) {
+      addTest('Team Scores', 'FAIL', `Score query error: ${scoreError.message}`);
+    }
+
+    // Test 5: Test hex RFID format validation
+    addTest('Hex RFID Validation', 'INFO', 'Testing hex RFID format validation...');
+    const testRfids = ['A1B2C3D4', 'E5F6A7B8', 'invalid', '12345', 'GHIJKLMN'];
+    const hexPattern = /^[0-9A-F]{8}$/;
+    
+    let validHexCount = 0;
+    const validationResults = testRfids.map(rfid => {
+      const isValid = hexPattern.test(rfid);
+      if (isValid) validHexCount++;
+      return { rfid, valid: isValid };
+    });
+    
+    addTest('Hex Format Validation', 'PASS', `${validHexCount}/${testRfids.length} test RFIDs passed validation`, {
+      results: validationResults
+    });
+
+    // Test 6: Simulate RFID tap if we have test data
+    addTest('RFID Simulation', 'INFO', 'Testing RFID tap simulation...');
+    try {
+      // Look for a test RFID card in hex format
+      const testRfidQuery = await pool.query(`
+        SELECT m.rfid_card_id, m.registration_id 
+        FROM members m 
+        WHERE m.rfid_card_id ~ '^[0-9A-F]{8}$' 
+        LIMIT 1
+      `);
+      
+      if (testRfidQuery.rowCount > 0) {
+        const testRfid = testRfidQuery.rows[0].rfid_card_id;
+        const teamId = testRfidQuery.rows[0].registration_id;
+        
+        // Get current score before simulation
+        const scoreBefore = await getTeamScore(teamId);
+        
+        addTest('RFID Tap Simulation', 'PASS', `Simulation ready with RFID: ${testRfid}`, {
+          testRfid,
+          teamId,
+          currentScore: scoreBefore,
+          note: 'Use POST /api/tags/rfidRead with reader=CLUSTER1, portal=reader1, tag=' + testRfid
+        });
+      } else {
+        addTest('RFID Tap Simulation', 'WARN', 'No hex RFID cards available for simulation testing');
+      }
+    } catch (simError) {
+      addTest('RFID Tap Simulation', 'FAIL', `Simulation test error: ${simError.message}`);
+    }
+
+    // Test 7: Check required tables exist
+    addTest('Schema Check', 'INFO', 'Verifying required database tables...');
+    try {
+      const tableChecks = [
+        'registration',
+        'members', 
+        'team_scores_lite',
+        'logs',
+        'rfid_cards'
+      ];
+      
+      const schemaResults = [];
+      for (const table of tableChecks) {
+        try {
+          const tableQuery = await pool.query(`SELECT COUNT(*) as count FROM ${table} LIMIT 1`);
+          schemaResults.push({ table, exists: true, count: parseInt(tableQuery.rows[0].count) });
+        } catch (tableError) {
+          schemaResults.push({ table, exists: false, error: tableError.message });
+        }
+      }
+      
+      const existingTables = schemaResults.filter(t => t.exists).length;
+      if (existingTables === tableChecks.length) {
+        addTest('Schema Validation', 'PASS', `All ${existingTables} required tables exist`, { tables: schemaResults });
+      } else {
+        addTest('Schema Validation', 'FAIL', `Only ${existingTables}/${tableChecks.length} required tables exist`, { tables: schemaResults });
+      }
+    } catch (schemaError) {
+      addTest('Schema Validation', 'FAIL', `Schema check error: ${schemaError.message}`);
+    }
+
+  } catch (error) {
+    addTest('Test Framework', 'FAIL', `Test execution error: ${error.message}`);
+  }
+
+  // Add troubleshooting guide
+  results.troubleshooting = {
+    checklist: [
+      '✅ Backend server running? (cd apps/backend && npm run dev)',
+      '❓ Database connected? (PostgreSQL with "rfid" database)',
+      '❓ MQTT broker running? (for real RFID hardware)',
+      '❓ Teams registered with members and hex RFID cards?',
+      '❓ RFID card IDs in hex format (e.g., A1B2C3D4, E5F6A7B8)?'
+    ],
+    nextSteps: [
+      'If game is disabled: Enable in apps/backend/config/game-lite.config.json',
+      'If no teams: Register teams with hex RFID cards using the registration system',
+      'If no scores: Simulate RFID taps using POST /api/tags/rfidRead',
+      'Check cluster configuration in game-lite.config.json for proper point values'
+    ]
+  };
+
+  res.json(results);
+});
+
 module.exports = router;
 
 // Admin-only convenience: initialize schema (no-op now that schema.sql owns DDL)

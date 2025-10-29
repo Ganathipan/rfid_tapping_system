@@ -57,12 +57,20 @@ if (!isTestEnvironment) {
         return;
       }
 
-      await pool.query(
-        `INSERT INTO logs (log_time, rfid_card_id, portal, label) VALUES (NOW(), $1, $2, $3)`,
+      const result = await pool.query(
+        `INSERT INTO logs (log_time, rfid_card_id, portal, label) VALUES (NOW(), $1, $2, $3) RETURNING id, log_time, rfid_card_id, portal, label`,
         [tagHex, portal, label]
       );
 
-    console.log(`[MQTT] logged tap ${tagHex} @ ${portal} (${label})`);
+      console.log(`[MQTT] logged tap ${tagHex} @ ${portal} (${label})`);
+
+      // Game Lite post-insert hook (non-blocking best-effort) - same as rfidHardware.js
+      try {
+        const { handlePostLogInserted } = require('../services/gameLiteService');
+        await handlePostLogInserted(result.rows[0]);
+      } catch (hookErr) {
+        console.warn('[MQTT GameLite hook] error:', hookErr.message || hookErr);
+      }
     } catch (e) {
       console.error('[MQTT] handle error:', e.message);
       console.error('[MQTT] Raw message was:', message.toString());

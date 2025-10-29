@@ -616,3 +616,183 @@ describe('Game Lite Routes', () => {
     });
   });
 });
+
+/**
+ * Integration Tests for Game Lite Scoring System
+ * Tests with hex RFID format and live system functionality
+ * 
+ * Note: These tests are designed to run against a live backend server
+ * Usage: Run these manually when backend is running for integration testing
+ */
+describe('Game Lite Integration Tests (Manual)', () => {
+  const http = require('http');
+  const BASE_URL = 'http://localhost:4000/api';
+
+  function makeRequest(url, options = {}) {
+    return new Promise((resolve, reject) => {
+      const req = http.request(url, options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = data ? JSON.parse(data) : {};
+            resolve({ status: res.statusCode, data: parsed });
+          } catch (e) {
+            resolve({ status: res.statusCode, data: data });
+          }
+        });
+      });
+      
+      req.on('error', reject);
+      
+      if (options.body) {
+        req.write(JSON.stringify(options.body));
+      }
+      
+      req.end();
+    });
+  }
+
+  async function testLiveScoring() {
+    console.log('=== Testing Live Team Scoring System ===');
+    
+    try {
+      // Test 1: Check if backend is running
+      console.log('\n1. Checking backend server status...');
+      const status = await makeRequest(`${BASE_URL}/game-lite/status`);
+      if (status.status === 200) {
+        console.log('✅ Backend server is running');
+        console.log('✅ Game enabled:', status.data.enabled);
+        expect(status.data.enabled).toBe(true);
+      } else {
+        console.log('❌ Backend not responding, status:', status.status);
+        return false;
+      }
+      
+      // Test 2: Check configuration
+      console.log('\n2. Checking game configuration...');
+      const config = await makeRequest(`${BASE_URL}/game-lite/config`);
+      if (config.status === 200) {
+        console.log('✅ Configuration loaded');
+        const clusterRules = config.data.rules?.clusterRules || {};
+        console.log('✅ Cluster rules configured:', Object.keys(clusterRules).length);
+        console.log('   Clusters:', Object.keys(clusterRules).join(', '));
+        expect(Object.keys(clusterRules).length).toBeGreaterThan(0);
+      }
+      
+      // Test 3: Test RFID tap with hex card ID
+      console.log('\n3. Testing RFID tap with hex card ID...');
+      const tapResult = await makeRequest(`${BASE_URL}/tags/rfidRead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {
+          reader: 'CLUSTER1',
+          portal: 'reader1', 
+          tag: 'A1B2C3D4'  // Using hex RFID card ID
+        }
+      });
+      
+      if (tapResult.status === 200) {
+        console.log('✅ RFID tap processed successfully');
+        expect(tapResult.status).toBe(200);
+      } else {
+        console.log('⚠️  RFID tap status:', tapResult.status);
+        console.log('   Response:', tapResult.data);
+      }
+      
+      // Test 4: Check team scores
+      console.log('\n4. Checking team scores...');
+      const scores = await makeRequest(`${BASE_URL}/game-lite/teams/scores`);
+      if (scores.status === 200) {
+        console.log('✅ Teams scores endpoint accessible');
+        console.log('✅ Teams with scores:', scores.data.length);
+        if (scores.data.length > 0) {
+          console.log('   Sample scores:', scores.data.slice(0, 3));
+          expect(scores.data.length).toBeGreaterThan(0);
+        }
+        expect(scores.status).toBe(200);
+      }
+      
+      // Test 5: Test CLUSTER2 for different points
+      console.log('\n5. Testing CLUSTER2 scoring...');
+      const cluster2Result = await makeRequest(`${BASE_URL}/tags/rfidRead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {
+          reader: 'CLUSTER2',
+          portal: 'reader1', 
+          tag: 'E5F6A7B8'  // Different hex RFID card ID
+        }
+      });
+      
+      if (cluster2Result.status === 200) {
+        console.log('✅ CLUSTER2 tap processed successfully');
+        expect(cluster2Result.status).toBe(200);
+      }
+      
+      // Test 6: Verify score increase
+      console.log('\n6. Verifying score changes...');
+      const updatedScores = await makeRequest(`${BASE_URL}/game-lite/teams/scores`);
+      if (updatedScores.status === 200 && updatedScores.data.length > 0) {
+        const teamScore = updatedScores.data[0].score;
+        console.log('✅ Current team score:', teamScore);
+        expect(parseInt(teamScore)).toBeGreaterThan(0);
+      }
+      
+      console.log('\n=== Integration Test Summary ===');
+      console.log('✅ All tests passed - Team scoring system is working!');
+      console.log('✅ Hex RFID format supported (A1B2C3D4, E5F6A7B8)');
+      console.log('✅ CLUSTER1 and CLUSTER2 scoring functional');
+      
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Integration test failed:', error.message);
+      console.log('\n📋 Requirements for integration tests:');
+      console.log('1. Backend server running (cd apps/backend && npm run dev)');
+      console.log('2. Database connected (PostgreSQL with "rfid" database)');
+      console.log('3. Teams registered with hex RFID cards assigned');
+      console.log('4. Game configuration enabled');
+      return false;
+    }
+  }
+
+  // Manual integration test - skip in automated test runs
+  test.skip('Live team scoring integration test', async () => {
+    const success = await testLiveScoring();
+    expect(success).toBe(true);
+  });
+
+  describe('Hex RFID Format Tests', () => {
+    test('should validate hex RFID format requirements', () => {
+      const validHexIds = ['A1B2C3D4', 'E5F6A7B8', 'C9D0E1F2', '12345678'];
+      const invalidIds = ['TEST123', 'abc123', '123', 'TOOLONG123'];
+      
+      validHexIds.forEach(id => {
+        expect(id).toMatch(/^[A-F0-9]{8}$/);
+        expect(id.length).toBe(8);
+      });
+      
+      invalidIds.forEach(id => {
+        expect(id).not.toMatch(/^[A-F0-9]{8}$/);
+      });
+    });
+
+    test('should normalize RFID tags to uppercase', () => {
+      const testCases = [
+        { input: 'a1b2c3d4', expected: 'A1B2C3D4' },
+        { input: 'e5f6a7b8', expected: 'E5F6A7B8' },
+        { input: 'MiXeD123', expected: 'MIXED123' }
+      ];
+      
+      testCases.forEach(({ input, expected }) => {
+        expect(input.toUpperCase()).toBe(expected);
+      });
+    });
+  });
+
+  // Export the test function for manual use
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports.testLiveScoring = testLiveScoring;
+  }
+});

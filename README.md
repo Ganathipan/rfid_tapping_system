@@ -417,7 +417,7 @@ npm run start:local
 **Core Components:**
 - **ESP8266 Development Board** (NodeMCU v3, Wemos D1 Mini, or similar)
 - **RDM6300 125kHz RFID Reader Module**
-- **125kHz RFID Cards/Tags** (EM4100 compatible)
+- **125kHz RFID Cards/Tags** (EM4100 compatible, 8-char hex format: A1B2C3D4)
 - **Jumper Wires** (Male-to-Female)
 - **Breadboard** (optional, for prototyping)
 - **USB Cable** (for programming ESP8266)
@@ -692,9 +692,11 @@ POST /api/tags/link
   "portal": "portal1",
   "leaderId": 91,
   "asLeader": true,
-  "tagId": "42008319"
+  "tagId": "A1B2C3D4"
 }
 ```
+
+**Note:** RFID card IDs must be in 8-character uppercase hex format (e.g., A1B2C3D4, E5F6A7B8) for proper team scoring functionality.
 
 ---
 

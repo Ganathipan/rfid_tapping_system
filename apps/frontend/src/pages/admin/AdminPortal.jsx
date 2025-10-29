@@ -153,54 +153,6 @@ export default function AdminPortal() {
         </CardBody></Card>
       </div>
 
-      <div className="flex items-center gap-2">
-        <label className="text-white/70 text-sm">Filter by type:</label>
-        <select className="rounded border border-white/10 bg-black/30 px-2 py-1" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-          <option value="">All</option>
-          <option value="school">School</option>
-          <option value="university">University</option>
-          <option value="general">General</option>
-        </select>
-      </div>
-
-      <div className="overflow-auto rounded-2xl border border-white/10">
-        <table className="min-w-full text-sm">
-          <thead className="bg-white/5 text-white/90">
-            <tr>
-              <th className="px-3 py-2 text-left font-semibold">#</th>
-              <th className="px-3 py-2 text-left font-semibold">ID</th>
-              <th className="px-3 py-2 text-left font-semibold">Portal</th>
-              <th className="px-3 py-2 text-left font-semibold">Type</th>
-              <th className="px-3 py-2 text-left font-semibold">Province</th>
-              <th className="px-3 py-2 text-left font-semibold">District</th>
-              <th className="px-3 py-2 text-left font-semibold">School/University</th>
-              <th className="px-3 py-2 text-left font-semibold">Age</th>
-              <th className="px-3 py-2 text-left font-semibold">Sex</th>
-              <th className="px-3 py-2 text-left font-semibold">Size</th>
-            </tr>
-          </thead>
-          <tbody className="text-white/90">
-            {filtered.map((r, i) => {
-              const type = r.school ? 'school' : (r.university ? 'university' : 'general');
-              return (
-                <tr key={r.id} className="odd:bg-white/0 even:bg-white/[0.03] hover:bg-white/[0.06]">
-                  <td className="px-3 py-2">{i + 1}</td>
-                  <td className="px-3 py-2 font-mono">#{r.id}</td>
-                  <td className="px-3 py-2">{r.portal}</td>
-                  <td className="px-3 py-2">{type}</td>
-                  <td className="px-3 py-2">{r.province || '-'}</td>
-                  <td className="px-3 py-2">{r.district || '-'}</td>
-                  <td className="px-3 py-2">{r.school || r.university || '-'}</td>
-                  <td className="px-3 py-2">{r.age_range || '-'}</td>
-                  <td className="px-3 py-2">{r.sex || '-'}</td>
-                  <td className="px-3 py-2">{r.group_size}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
       {/* Reader Config Management */}
       <Card>
         <CardBody>
@@ -273,6 +225,56 @@ export default function AdminPortal() {
           />
         </CardBody>
       </Card>
+
+      <div className="flex items-center gap-2">
+        <label className="text-white/70 text-sm">Filter by type:</label>
+        <select className="rounded border border-white/10 bg-black/30 px-2 py-1" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+          <option value="">All</option>
+          <option value="school">School</option>
+          <option value="university">University</option>
+          <option value="general">General</option>
+        </select>
+      </div>
+
+      <div className="overflow-auto rounded-2xl border border-white/10">
+        <table className="min-w-full text-sm">
+          <thead className="bg-white/5 text-white/90">
+            <tr>
+              <th className="px-3 py-2 text-left font-semibold">#</th>
+              <th className="px-3 py-2 text-left font-semibold">ID</th>
+              <th className="px-3 py-2 text-left font-semibold">Portal</th>
+              <th className="px-3 py-2 text-left font-semibold">Type</th>
+              <th className="px-3 py-2 text-left font-semibold">Province</th>
+              <th className="px-3 py-2 text-left font-semibold">District</th>
+              <th className="px-3 py-2 text-left font-semibold">School/University</th>
+              <th className="px-3 py-2 text-left font-semibold">Age</th>
+              <th className="px-3 py-2 text-left font-semibold">Sex</th>
+              <th className="px-3 py-2 text-left font-semibold">Size</th>
+            </tr>
+          </thead>
+          <tbody className="text-white/90">
+            {filtered.map((r, i) => {
+              const type = r.school ? 'school' : (r.university ? 'university' : 'general');
+              return (
+                <tr key={r.id} className="odd:bg-white/0 even:bg-white/[0.03] hover:bg-white/[0.06]">
+                  <td className="px-3 py-2">{i + 1}</td>
+                  <td className="px-3 py-2 font-mono">#{r.id}</td>
+                  <td className="px-3 py-2">{r.portal}</td>
+                  <td className="px-3 py-2">{type}</td>
+                  <td className="px-3 py-2">{r.province || '-'}</td>
+                  <td className="px-3 py-2">{r.district || '-'}</td>
+                  <td className="px-3 py-2">{r.school || r.university || '-'}</td>
+                  <td className="px-3 py-2">{r.age_range || '-'}</td>
+                  <td className="px-3 py-2">{r.sex || '-'}</td>
+                  <td className="px-3 py-2">{r.group_size}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      
     </div>
   );
 }
