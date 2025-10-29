@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Button from '../ui/Button.jsx';
+import Button from '../../ui/Button.jsx';
 
 export default function PortalSelection({ onPortalSelect }) {
   const [selectedPortal, setSelectedPortal] = useState('');

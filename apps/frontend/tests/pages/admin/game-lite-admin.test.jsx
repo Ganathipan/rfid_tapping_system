@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import GameLiteAdmin from '../../../src/pages/admin/GameLiteAdmin.jsx';
+import GameLiteAdmin from '../../../src/pages/gameAdmin/GameLiteAdmin.jsx';
 import { gameLite } from '../../../src/api';
 
 // Mock the API module

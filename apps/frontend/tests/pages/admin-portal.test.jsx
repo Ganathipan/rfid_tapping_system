@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import AdminPortal from '../../src/pages/AdminPortal.jsx';
+import AdminPortal from '../../src/pages/admin/AdminPortal.jsx';
 import * as api from '../../src/api.js';
 
 // Mock the API module

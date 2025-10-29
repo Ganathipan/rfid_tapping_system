@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
-import TagAssignment from '../../src/pages/TagAssignment.jsx';
+import TagAssignment from '../../src/pages/registration/TagAssignment.jsx';
 import { api } from '../../src/api';
 
 // Mock the api module
@@ -11,7 +11,7 @@ vi.mock('../../src/api', () => ({
 }));
 
 // Mock the child components
-vi.mock('../../src/pages/MemberAssignment', () => ({
+vi.mock('../../src/pages/registration/MemberAssignment', () => ({
   default: ({ portal, leaderId, memberCount, onDone }) => (
     <div data-testid="member-assignment">
       <div>Portal: {portal}</div>
@@ -22,7 +22,7 @@ vi.mock('../../src/pages/MemberAssignment', () => ({
   )
 }));
 
-vi.mock('../../src/pages/AdminPanel', () => ({
+vi.mock('../../src/pages/admin/AdminPanel', () => ({
   default: () => (
     <div data-testid="admin-panel">Admin Panel</div>
   )

@@ -6,17 +6,20 @@ import AppShell from './layouts/AppShell.jsx';
 import { Skeleton } from './ui/Skeleton.jsx';
 
 // Lazy loaded pages
-const PortalSelection = lazy(()=>import('./pages/PortalSelection'));
+const PortalSelection = lazy(()=>import('./pages/registration/PortalSelection'));
 const Home = lazy(()=>import('./pages/Home.jsx'));
-const RegistrationFlow = lazy(()=>import('./pages/RegistrationFlow'));
-const TagAssignment = lazy(()=>import('./pages/TagAssignment'));
-const AdminPortal = lazy(()=>import('./pages/AdminPortal'));
-const GameLiteAdmin = lazy(()=>import('./pages/admin/GameLiteAdmin'));
+const RegistrationFlow = lazy(()=>import('./pages/registration/RegistrationFlow'));
+const TagAssignment = lazy(()=>import('./pages/registration/TagAssignment'));
+const MemberAssignment = lazy(()=>import('./pages/registration/MemberAssignment'));
+const RegistrationForm = lazy(()=>import('./pages/registration/RegistrationForm'));
+const AdminPortal = lazy(()=>import('./pages/admin/AdminPortal.jsx'));
+const AdminPanel = lazy(()=>import('./pages/Admin/AdminPanel.jsx'));
+const GameLiteAdmin = lazy(()=>import('./pages/gameAdmin/GameLiteAdmin.jsx'));
 const ClusterDirectory = lazy(()=>import('./pages/kiosk/ClusterDirectory'));
 const ClusterDisplay = lazy(()=>import('./pages/kiosk/ClusterDisplay'));
-const ExitOutPage = lazy(()=>import('./pages/ExitOutPage'));
-const AnalyticsPage = lazy(()=>import('./pages/Analytics.jsx'));
-const CardHistoryPage = lazy(()=>import('./pages/CardHistory.jsx'));
+const ExitOutPage = lazy(()=>import('./pages/exit/ExitOutPage'));
+const AnalyticsPage = lazy(()=>import('./pages/analytics/Analytics.jsx'));
+const CardHistoryPage = lazy(()=>import('./pages/admin/CardHistory.jsx'));
 
 
 export default function App() {
@@ -132,6 +135,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/registration" element={<RootFlow />} />
               <Route path="/admin" element={<AdminPortal />} />
+              <Route path="/admin/panel" element={<AdminPanel />} />
               <Route path="/admin/game-lite" element={<GameLiteAdmin />} />
               <Route path="/admin/exitout" element={<ExitOutPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />

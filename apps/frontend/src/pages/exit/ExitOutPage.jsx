@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
-import { Card } from '../ui/Card';
-import Button from '../ui/Button';
-import Loader from '../ui/Loader';
-import Toast from '../ui/Toast';
+import { api } from '../../api';
+import { Card } from '../../ui/Card';
+import Button from '../../ui/Button';
+import Loader from '../../ui/Loader';
+import Toast from '../../ui/Toast';
 
 export default function ExitOutPage() {
   const [stack, setStack] = useState([]);

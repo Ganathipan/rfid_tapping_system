@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PortalSelection from '../../src/pages/PortalSelection.jsx';
+import PortalSelection from '../../src/pages/registration/PortalSelection.jsx';
 
 // Mock the Button component
 vi.mock('../../src/ui/Button.jsx', () => ({

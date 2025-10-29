@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Skeleton } from '../ui/Skeleton.jsx';
-import { api } from '../api';
-import SelectField from '../components/SelectField';
-import AdminPortal from './AdminPortal';
+import { Skeleton } from '../../ui/Skeleton.jsx';
+import { api } from '../../api';
+import SelectField from '../../components/SelectField';
+import AdminPortal from '../admin/AdminPortal';
 
 // SearchableSelect component for school and university search
 const SearchableSelect = ({ label, options, value, onChange, disabled, placeholder }) => {

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { api } from '../api';
-import { Skeleton, SkeletonGrid } from '../ui/Skeleton.jsx';
+import { api } from '../../api.js';
+import { Skeleton, SkeletonGrid } from '../../ui/Skeleton.jsx';
 // Card components are named exports; no default Card used here.
-import Loader from '../ui/Loader.jsx';
-import Button from '../ui/Button.jsx';
+import Loader from '../../ui/Loader.jsx';
+import Button from '../../ui/Button.jsx';
 
 function KPI({ label, value, suffix, tooltip }) {
   return (

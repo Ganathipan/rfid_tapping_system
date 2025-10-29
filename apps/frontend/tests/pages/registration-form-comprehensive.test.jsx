@@ -6,7 +6,7 @@
 import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import RegistrationForm from '../../src/pages/RegistrationForm.jsx';
+import RegistrationForm from '../../src/pages/registration/RegistrationForm.jsx';
 import { api } from '../../src/api.js';
 
 // Mock the API
@@ -15,7 +15,7 @@ vi.mock('../../src/api.js', () => ({
 }));
 
 // Mock MemberAssignment component
-vi.mock('../../src/pages/MemberAssignment', () => ({
+vi.mock('../../src/pages/registration/MemberAssignment', () => ({
   default: ({ portal, leaderId, memberCount, onDone }) => (
     <div data-testid="member-assignment">
       <div>Portal: {portal}</div>

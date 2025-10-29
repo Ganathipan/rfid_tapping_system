@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
-import Confirmation from '../../src/pages/Confirmation.jsx';
+import Confirmation from '../../src/pages/admin/Confirmation.jsx';
 
 // Mock the UI components
 vi.mock('../../src/ui/Button.jsx', () => ({

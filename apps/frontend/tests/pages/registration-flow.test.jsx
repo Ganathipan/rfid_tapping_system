@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import RegistrationFlow from '../../src/pages/RegistrationFlow.jsx';
+import RegistrationFlow from '../../src/pages/registration/RegistrationFlow.jsx';
 import { api } from '../../src/api';
 
 // Mock the API module
@@ -10,7 +10,7 @@ vi.mock('../../src/api', () => ({
 }));
 
 // Mock AdminPortal component
-vi.mock('../../src/pages/AdminPortal', () => ({
+vi.mock('../../src/pages/admin/AdminPortal', () => ({
   default: () => <div data-testid="admin-portal">Admin Portal</div>
 }));
 

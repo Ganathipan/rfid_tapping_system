@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import AdminPanel from '../../src/pages/AdminPanel.jsx';
+import AdminPanel from '../../src/pages/admin/AdminPanel.jsx';
 import { api } from '../../src/api.js';
 
 // Mock the API

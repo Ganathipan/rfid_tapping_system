@@ -6,7 +6,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Analytics from '../../src/pages/Analytics.jsx';
+import Analytics from '../../src/pages/analytics/Analytics.jsx';
 import { api } from '../../src/api.js';
 
 describe('Analytics Component', () => {

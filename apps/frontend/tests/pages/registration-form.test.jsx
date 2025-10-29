@@ -6,7 +6,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import RegistrationForm from '../../src/pages/RegistrationForm.jsx';
+import RegistrationForm from '../../src/pages/registration/RegistrationForm.jsx';
 
 describe('RegistrationForm Component', () => {
   beforeEach(() => {

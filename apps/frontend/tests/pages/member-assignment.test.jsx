@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import MemberAssignment from '../../src/pages/MemberAssignment.jsx';
+import MemberAssignment from '../../src/pages/registration/MemberAssignment.jsx';
 import { api } from '../../src/api';
 
 // Mock the API

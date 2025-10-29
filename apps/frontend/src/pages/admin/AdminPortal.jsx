@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, readerConfig } from '../api';
-import { Skeleton } from '../ui/Skeleton.jsx';
-import { Card, CardBody } from '../ui/Card.jsx';
-import Table from '../ui/Table.jsx';
-import Button from '../ui/Button.jsx';
+import { api, readerConfig } from '../../api.js';
+import { Skeleton } from '../../ui/Skeleton.jsx';
+import { Card, CardBody } from '../../ui/Card.jsx';
+import Table from '../../ui/Table.jsx';
+import Button from '../../ui/Button.jsx';
 
 function CardHistoryLookup() {
   const [cardId, setCardId] = useState('');

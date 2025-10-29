@@ -7,7 +7,7 @@ import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import CardHistory from '../../src/pages/CardHistory.jsx';
+import CardHistory from '../../src/pages/admin/CardHistory.jsx';
 import { getCardHistory } from '../../src/api';
 
 // Mock the API

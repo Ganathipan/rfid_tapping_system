@@ -28,7 +28,7 @@ vi.mock('react-router-dom', () => ({
 }));
 
 // Mock all lazy-loaded components
-vi.mock('../../src/pages/PortalSelection', () => ({
+vi.mock('../../src/pages/registration/PortalSelection', () => ({
   default: ({ onPortalSelect }) => (
     <div data-testid="portal-selection">
       <h2>Select Portal</h2>

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCardHistory } from '../api';
-import { Card, CardBody } from '../ui/Card.jsx';
-import Button from '../ui/Button.jsx';
-import Loader from '../ui/Loader.jsx';
-import Badge from '../ui/Badge.jsx';
-import Table from '../ui/Table.jsx';
+import { getCardHistory } from '../../api.js';
+import { Card, CardBody } from '../../ui/Card.jsx';
+import Button from '../../ui/Button.jsx';
+import Loader from '../../ui/Loader.jsx';
+import Badge from '../../ui/Badge.jsx';
+import Table from '../../ui/Table.jsx';
 
 export default function CardHistoryPage() {
   const { cardId } = useParams();
