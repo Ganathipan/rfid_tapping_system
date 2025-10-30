@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => {
         '/api': `http://${backendHost}:${backendPort}`,
       },
     },
+    preview: {
+      host: env.VITE_DEV_HOST || '192.168.8.2',
+      port: parseInt(env.VITE_DEV_PORT, 10) || 5173,
+    },
     build: {
       outDir: 'dist',
       sourcemap: true

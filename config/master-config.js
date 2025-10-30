@@ -27,15 +27,15 @@ const ENVIRONMENT = process.env.NODE_ENV || 'development'; // 'development', 'st
 const NETWORK = {
   // Backend API Configuration
   BACKEND: {
-    HOST: '192.168.8.2',           // Backend server IP
-    PORT: 4000,                    // Backend server port
+    HOST: process.env.NETWORK_IP || '192.168.8.2',           // Backend server IP
+    PORT: parseInt(process.env.BACKEND_PORT) || 4000,        // Backend server port
     PROTOCOL: 'http',              // http or https
   },
 
   // Frontend Configuration  
   FRONTEND: {
-    HOST: '192.168.8.2',             // Frontend host for development
-    PORT: 5173,                    // Frontend port (Vite default)
+    HOST: process.env.NETWORK_IP || '192.168.8.2',             // Frontend host for development
+    PORT: parseInt(process.env.FRONTEND_PORT) || 5173,        // Frontend port (Vite default)
     PROTOCOL: 'http',              // http or https
   },
 
@@ -52,7 +52,7 @@ const NETWORK = {
 
   // MQTT Broker Configuration
   MQTT: {
-    HOST: '192.168.8.2',          // MQTT broker IP
+    HOST: process.env.NETWORK_IP || '192.168.8.2',          // MQTT broker IP
     PORT: 1883,                    // MQTT broker port
     PROTOCOL: 'mqtt',              // mqtt or mqtts
     CLIENT_ID_PREFIX: 'rfid-system', // Client ID prefix
@@ -89,15 +89,15 @@ const HARDWARE = {
     },
     {
       INDEX: 2,
-      ID: 'ENTEROUT', 
-      PORTAL: 'portal2',
+      ID: 'EXITOUT', 
+      PORTAL: 'exitout',
       DESCRIPTION: 'Entry/Exit Portal',
       MAC_ADDRESS: null,
     },
     {
       INDEX: 8,
-      ID: 'REGISTER',
-      PORTAL: 'portal1', 
+      ID: 'CLUSTER1',
+      PORTAL: 'reader1', 
       DESCRIPTION: 'Main Registration',
       MAC_ADDRESS: null,
     }

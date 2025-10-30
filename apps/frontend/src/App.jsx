@@ -13,7 +13,7 @@ const TagAssignment = lazy(()=>import('./pages/registration/TagAssignment'));
 const MemberAssignment = lazy(()=>import('./pages/registration/MemberAssignment'));
 const RegistrationForm = lazy(()=>import('./pages/registration/RegistrationForm'));
 const AdminPortal = lazy(()=>import('./pages/admin/AdminPortal.jsx'));
-const AdminPanel = lazy(()=>import('./pages/Admin/AdminPanel.jsx'));
+const AdminPanel = lazy(()=>import('./pages/admin/AdminPanel.jsx'));
 const GameLiteAdmin = lazy(()=>import('./pages/gameAdmin/GameLiteAdmin.jsx'));
 const ClusterDirectory = lazy(()=>import('./pages/kiosk/ClusterDirectory'));
 const ClusterDisplay = lazy(()=>import('./pages/kiosk/ClusterDisplay'));
@@ -58,7 +58,7 @@ export default function App() {
   async function refreshHealth() {
     try {
       const d = await api('/health');
-      setHealth(d.status || 'ok');
+      setHealth(d.ok ? 'healthy' : 'error');
     } catch (err) {
       setHealth('error');
     }

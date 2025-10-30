@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../../api';
 import MemberAssignment from './MemberAssignment';
-import AdminPanel from '../Admin/AdminPanel';
+import AdminPanel from '../admin/AdminPanel';
 
 export default function TagAssignment({ registrationData, selectedPortal, onComplete }) {
   const [step, setStep] = useState('leader'); // leader | members

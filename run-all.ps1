@@ -13,7 +13,8 @@ param(
   [switch] $NoMqtt,
   [switch] $SkipFrontend,
   [switch] $SkipBackend,
-  [switch] $ProdMode
+  [switch] $ProdMode,
+  [switch] $NoConfig
 )
 
 # ============================================================================
@@ -70,25 +71,26 @@ $MosquittoPath = $MosquittoPaths | Where-Object {
 
 function Write-Header($Message, $Color = 'Cyan') {
   Write-Host ""
-  Write-Host "=" * 60 -ForegroundColor $Color
+  Write-Host ("=" * 60) -ForegroundColor $Color
   Write-Host " $Message" -ForegroundColor $Color
-  Write-Host "=" * 60 -ForegroundColor $Color
+  Write-Host ("=" * 60) -ForegroundColor $Color
 }
 
 function Write-Step($Message, $Color = 'Yellow') {
+  Write-Host ""
   Write-Host "> $Message" -ForegroundColor $Color
 }
 
 function Write-Success($Message) {
-  Write-Host "✅ $Message" -ForegroundColor Green
+  Write-Host "[OK] $Message" -ForegroundColor Green
 }
 
 function Write-Warning($Message) {
-  Write-Host "⚠️  $Message" -ForegroundColor Yellow
+  Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
 function Write-Error($Message) {
-  Write-Host "❌ $Message" -ForegroundColor Red
+  Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
 function Ensure-Command($CommandName) {
@@ -99,8 +101,21 @@ function Ensure-Command($CommandName) {
 
 function Test-Port($Port, $HostName = 'localhost') {
   try {
-    $tcpConnection = Test-NetConnection -ComputerName $HostName -Port $Port -WarningAction SilentlyContinue
-    return $tcpConnection.TcpTestSucceeded
+    $tcpClient = New-Object System.Net.Sockets.TcpClient
+    $tcpClient.ReceiveTimeout = 3000  # 3 second timeout
+    $tcpClient.SendTimeout = 3000     # 3 second timeout
+    
+    # Use async connect with timeout
+    $connectTask = $tcpClient.ConnectAsync($HostName, $Port)
+    $completed = $connectTask.Wait(3000)  # 3 second timeout
+    
+    if ($completed -and $tcpClient.Connected) {
+      $tcpClient.Close()
+      return $true
+    } else {
+      $tcpClient.Close()
+      return $false
+    }
   } catch {
     return $false
   }
@@ -112,16 +127,22 @@ function Wait-ForPort($Port, $HostName = 'localhost', $TimeoutSeconds = 30) {
   
   while ($elapsed -lt $TimeoutSeconds) {
     if (Test-Port -Port $Port -HostName $HostName) {
+      Write-Host ""  # New line after dots
       Write-Success "Service available on $HostName`:$Port"
       return $true
     }
-    Start-Sleep -Seconds 1
-    $elapsed++
+    Start-Sleep -Milliseconds 500  # Check more frequently
+    $elapsed += 0.5
     Write-Host "." -NoNewline -ForegroundColor DarkGray
+    
+    # Progress indicator every 5 seconds
+    if (($elapsed % 5) -eq 0) {
+      Write-Host " ($elapsed/$TimeoutSeconds)s" -NoNewline -ForegroundColor DarkGray
+    }
   }
   
   Write-Host ""
-  Write-Error "Timeout waiting for $HostName`:$Port"
+  Write-Error "Timeout waiting for $HostName`:$Port after $TimeoutSeconds seconds"
   return $false
 }
 
@@ -225,7 +246,7 @@ function Update-Configuration {
       $env:MQTT_PORT = $MqttPort
       
       Push-Location $Root
-      & node $configScript
+      & node $configScript development
       Pop-Location
       
       Write-Success "Configuration files updated"
@@ -475,7 +496,41 @@ try {
 
 # Configuration update
 Write-Header "Configuration"
-Update-Configuration
+if ($NoConfig) {
+  Write-Warning "Skipping configuration update (-NoConfig)"
+  
+  # Check actual frontend config content
+  $frontendConfigPath = Join-Path $FrontendDir 'src\config.js'
+  if (Test-Path $frontendConfigPath) {
+    try {
+      $configContent = Get-Content $frontendConfigPath -Raw
+      if ($configContent -match "export const API_BASE = '([^']+)'") {
+        $currentApiBase = $matches[1]
+        $expectedApiBase = "http://$NetworkIP`:$BackendPort"
+        
+        Write-Host "Current frontend config points to: " -NoNewline -ForegroundColor Yellow
+        if ($currentApiBase -eq $expectedApiBase) {
+          Write-Host $currentApiBase -ForegroundColor Green
+          Write-Success "Frontend configuration is already correct"
+        } else {
+          Write-Host $currentApiBase -ForegroundColor Red
+          Write-Host "Expected backend address: " -NoNewline -ForegroundColor Yellow  
+          Write-Host $expectedApiBase -ForegroundColor Green
+          Write-Host "Consider running without -NoConfig to update configurations" -ForegroundColor Cyan
+        }
+      } else {
+        Write-Warning "Could not parse frontend configuration"
+      }
+    } catch {
+      Write-Warning "Could not read frontend configuration: $($_.Exception.Message)"
+    }
+  } else {
+    Write-Warning "Frontend config file not found at: $frontendConfigPath"
+    Write-Host "Consider running without -NoConfig to generate configuration files" -ForegroundColor Cyan
+  }
+} else {
+  Update-Configuration
+}
 
 # Service startup
 Write-Header "Starting Services"
@@ -542,16 +597,16 @@ Write-Header "RFID System Status" 'Green'
 
 # Service status
 $services = @(
-  @{ Name = "Database"; Status = "✅ Connected"; Details = "$DbHost`:$DbPort/$DbName" }
-  @{ Name = "MQTT Broker"; Status = if ($mqttProc -or (Test-Port -Port $MqttPort -HostName $NetworkIP)) { "✅" } else { "❌" }; Details = "$NetworkIP`:$MqttPort" }
-  @{ Name = "Backend API"; Status = if ($backendProc -or (Test-Port -Port $BackendPort -HostName $NetworkIP)) { "✅" } else { "❌" }; Details = "$NetworkIP`:$BackendPort" }
-  @{ Name = "Frontend UI"; Status = if ($frontendProc -or (Test-Port -Port $FrontendPort -HostName $NetworkIP)) { "✅" } else { "❌" }; Details = "$NetworkIP`:$FrontendPort" }
-  @{ Name = "MQTT Monitor"; Status = if ($monitorProc) { "✅" } else { "⚠️" }; Details = "Real-time console" }
-  @{ Name = "DB Console"; Status = if ($dbProc) { "✅" } else { "⚠️" }; Details = "SQL query interface" }
+  @{ Name = "Database"; Status = "[OK] Connected"; Details = "$DbHost`:$DbPort/$DbName" }
+  @{ Name = "MQTT Broker"; Status = if ($mqttProc -or (Test-Port -Port $MqttPort -HostName $NetworkIP)) { "[OK]" } else { "[FAIL]" }; Details = "$NetworkIP`:$MqttPort" }
+  @{ Name = "Backend API"; Status = if ($backendProc -or (Test-Port -Port $BackendPort -HostName $NetworkIP)) { "[OK]" } else { "[FAIL]" }; Details = "$NetworkIP`:$BackendPort" }
+  @{ Name = "Frontend UI"; Status = if ($frontendProc -or (Test-Port -Port $FrontendPort -HostName $NetworkIP)) { "[OK]" } else { "[FAIL]" }; Details = "$NetworkIP`:$FrontendPort" }
+  @{ Name = "MQTT Monitor"; Status = if ($monitorProc) { "[OK]" } else { "[OPT]" }; Details = "Real-time console" }
+  @{ Name = "DB Console"; Status = if ($dbProc) { "[OK]" } else { "[OPT]" }; Details = "SQL query interface" }
 )
 
 foreach ($service in $services) {
-  $status = if ($service.Status -match "✅") { "Running" } elseif ($service.Status -match "❌") { "Failed" } else { "Optional" }
+  $status = if ($service.Status -match "\[OK\]") { "Running" } elseif ($service.Status -match "\[FAIL\]") { "Failed" } else { "Optional" }
   Write-Host ("{0} {1}: {2} ({3})" -f $service.Status, $service.Name, $status, $service.Details) -ForegroundColor $(
     if ($status -eq "Running") { "Green" } 
     elseif ($status -eq "Failed") { "Red" } 
@@ -561,22 +616,11 @@ foreach ($service in $services) {
 
 Write-Host ""
 Write-Header "Access URLs" 'Cyan'
-Write-Host "🌐 Frontend Web App: http://$NetworkIP`:$FrontendPort" -ForegroundColor White
-Write-Host "🔧 Backend API: http://$NetworkIP`:$BackendPort" -ForegroundColor White
-Write-Host "📊 Health Check: http://$NetworkIP`:$BackendPort/health" -ForegroundColor White
-Write-Host "📈 Analytics: http://$NetworkIP`:$FrontendPort/analytics" -ForegroundColor White
-Write-Host "⚙️  Admin Panel: http://$NetworkIP`:$FrontendPort/admin" -ForegroundColor White
+Write-Host "[WEB] Frontend Web App: http://$NetworkIP`:$FrontendPort" -ForegroundColor White
+Write-Host "[API] Backend API: http://$NetworkIP`:$BackendPort" -ForegroundColor White
+Write-Host "[CHK] Health Check: http://$NetworkIP`:$BackendPort/health" -ForegroundColor White
 
-Write-Host ""
-Write-Header "MQTT Testing" 'Cyan'
-Write-Host "📡 Publish test message:" -ForegroundColor White
-Write-Host "   mosquitto_pub -h $NetworkIP -p $MqttPort -t `"rfid/test`" -m `"{\\`"test\\`":\\`"message\\`"}`"" -ForegroundColor Gray
-Write-Host "📨 Subscribe to messages:" -ForegroundColor White  
-Write-Host "   mosquitto_sub -h $NetworkIP -p $MqttPort -t `"rfid/#`" -v" -ForegroundColor Gray
 
-Write-Host ""
-Write-Host "🚀 RFID System is ready! All services are running." -ForegroundColor Green
-Write-Host "📱 Connect your ESP8266 devices to: $NetworkIP" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Press ENTER to stop all services and cleanup..." -ForegroundColor Yellow
 [void](Read-Host)
@@ -587,7 +631,7 @@ Write-Host "Press ENTER to stop all services and cleanup..." -ForegroundColor Ye
 
 Write-Header "Shutting Down Services" 'Magenta'
 
-# Stop all processes
+# Stop all tracked processes
 foreach ($proc in $processes) {
   if ($proc -and -not $proc.HasExited) {
     try { 
@@ -600,10 +644,79 @@ foreach ($proc in $processes) {
   }
 }
 
-# Clean up any remaining mosquitto processes
-Write-Step "Cleaning up any remaining MQTT processes..."
+# Clean up all Node.js processes (backend/frontend)
+Write-Step "Cleaning up Node.js processes..."
 try {
-  Get-Process -Name "mosquitto" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+  $nodeProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue
+  if ($nodeProcesses) {
+    Write-Step "Found $($nodeProcesses.Count) Node.js process(es), stopping them..."
+    foreach ($nodeProc in $nodeProcesses) {
+      try {
+        Stop-Process -Id $nodeProc.Id -Force -ErrorAction SilentlyContinue
+        Write-Success "Stopped Node.js process PID: $($nodeProc.Id)"
+      } catch {
+        Write-Warning "Could not stop Node.js process PID $($nodeProc.Id): $($_.Exception.Message)"
+      }
+    }
+  }
+} catch {
+  # Ignore errors - processes may already be stopped
+}
+
+# Clean up any remaining mosquitto processes
+Write-Step "Cleaning up MQTT processes..."
+try {
+  $mqttProcesses = Get-Process -Name "mosquitto" -ErrorAction SilentlyContinue
+  if ($mqttProcesses) {
+    foreach ($mqttProc in $mqttProcesses) {
+      try {
+        Stop-Process -Id $mqttProc.Id -Force -ErrorAction SilentlyContinue
+        Write-Success "Stopped MQTT process PID: $($mqttProc.Id)"
+      } catch {
+        Write-Warning "Could not stop MQTT process PID $($mqttProc.Id): $($_.Exception.Message)"
+      }
+    }
+  }
+} catch {
+  # Ignore errors - processes may already be stopped
+}
+
+# Clean up PostgreSQL processes (database console)
+Write-Step "Cleaning up PostgreSQL processes..."
+try {
+  $psqlProcesses = Get-Process -Name "psql" -ErrorAction SilentlyContinue
+  if ($psqlProcesses) {
+    Write-Step "Found $($psqlProcesses.Count) PostgreSQL process(es), stopping them..."
+    foreach ($psqlProc in $psqlProcesses) {
+      try {
+        Stop-Process -Id $psqlProc.Id -Force -ErrorAction SilentlyContinue
+        Write-Success "Stopped PostgreSQL process PID: $($psqlProc.Id)"
+      } catch {
+        Write-Warning "Could not stop PostgreSQL process PID $($psqlProc.Id): $($_.Exception.Message)"
+      }
+    }
+  }
+} catch {
+  # Ignore errors - processes may already be stopped
+}
+
+# Clean up CMD windows from our script (more comprehensive)
+Write-Step "Cleaning up CMD windows..."
+try {
+  $cmdProcesses = Get-Process -Name "cmd" -ErrorAction SilentlyContinue | Where-Object { 
+    $_.MainWindowTitle -match "(RFID|Database Console|Backend Server|Frontend Server|MQTT Monitor)" 
+  }
+  if ($cmdProcesses) {
+    Write-Step "Found $($cmdProcesses.Count) CMD window(s), stopping them..."
+    foreach ($cmdProc in $cmdProcesses) {
+      try {
+        Stop-Process -Id $cmdProc.Id -Force -ErrorAction SilentlyContinue
+        Write-Success "Stopped CMD window PID: $($cmdProc.Id) - $($cmdProc.MainWindowTitle)"
+      } catch {
+        Write-Warning "Could not stop CMD process PID $($cmdProc.Id): $($_.Exception.Message)"
+      }
+    }
+  }
 } catch {
   # Ignore errors - processes may already be stopped
 }
@@ -612,4 +725,4 @@ try {
 Remove-Database
 
 Write-Header "Cleanup Complete" 'Green'
-Write-Host "All services stopped. Thank you for using RFID Tapping System! 🎯" -ForegroundColor Green
+Write-Host "All services stopped. Thank you for using RFID Tapping System!" -ForegroundColor Green

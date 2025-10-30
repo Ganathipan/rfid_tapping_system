@@ -3,9 +3,9 @@
  * Auto-generated from master-config.js
  * Environment: development
  * Reader Index: 8
- * Reader ID: REGISTER
- * Portal: portal1
- * Generated: 2025-10-29T11:59:16.601Z
+ * Reader ID: CLUSTER1
+ * Portal: reader1
+ * Generated: 2025-10-30T19:22:51.124Z
  * 
  * Copy these values into your main.ino file or include this file.
  */
@@ -17,8 +17,8 @@ const char* serverBase = "http://192.168.8.2:4000";
 const char* mqtt_server = "192.168.8.2";
 const int mqtt_port = 1883;
 const int rIndex = 8;
-String readerID = "REGISTER";
-String portal = "portal1";
+String readerID = "CLUSTER1";
+String portal = "reader1";
 
 /*
  * Additional Configuration:
