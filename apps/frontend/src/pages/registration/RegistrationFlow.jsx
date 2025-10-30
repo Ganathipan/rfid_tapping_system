@@ -138,6 +138,11 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   const [schools, setSchools] = useState([]);
   const [universities, setUniversities] = useState([]);
   
+  // Loading states
+  const [loadingProvinces, setLoadingProvinces] = useState(true);
+  const [loadingUniversities, setLoadingUniversities] = useState(true);
+  const [dataError, setDataError] = useState('');
+  
   // Individual form data
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
@@ -186,20 +191,29 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
   // Data loading directly from frontend public data
   const loadProvinces = async () => {
     try {
+      setLoadingProvinces(true);
       const res = await fetch('/data/provinces.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setProvinces(json);
-    } catch {
+      setDataError('');
+    } catch (error) {
+      console.error('Failed to load provinces:', error);
       setProvinces([]);
+      setDataError('Failed to load provinces data');
+    } finally {
+      setLoadingProvinces(false);
     }
   };
 
   const loadDistricts = async (province) => {
     try {
       const res = await fetch('/data/districts_by_province.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setDistricts(json[province] || []);
-    } catch {
+    } catch (error) {
+      console.error('Failed to load districts for', province, ':', error);
       setDistricts([]);
     }
   };
@@ -208,20 +222,29 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     try {
       const url = `/data/schools/${encodeURIComponent(province)}/${encodeURIComponent(district)}.json`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setSchools(json);
-    } catch {
+    } catch (error) {
+      console.error('Failed to load schools for', province, district, ':', error);
       setSchools([]);
     }
   };
 
   const loadUniversities = async () => {
     try {
+      setLoadingUniversities(true);
       const res = await fetch('/data/universities.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setUniversities(json);
-    } catch {
+      setDataError('');
+    } catch (error) {
+      console.error('Failed to load universities:', error);
       setUniversities([]);
+      setDataError('Failed to load universities data');
+    } finally {
+      setLoadingUniversities(false);
     }
   };
 
@@ -454,12 +477,26 @@ export default function RegistrationFlow({ selectedPortal, onRegistrationComplet
     }
   }
 
-  const loadingInitial = provinces.length === 0 && universities.length === 0; // crude heuristic
+  const loadingInitial = loadingProvinces || loadingUniversities;
 
   const renderTypeSelection = () => (
     <div>
       <h3 style={{ marginTop: 0 }}>Registration Type</h3>
       <div className="small mut" style={{ marginBottom: 12 }}>Portal: <b>{selectedPortal}</b></div>
+      
+      {dataError && (
+        <div style={{ 
+          padding: '12px', 
+          background: '#2d1b1b', 
+          border: '1px solid #d32f2f', 
+          borderRadius: '8px', 
+          marginBottom: '16px',
+          color: '#ffcdd2'
+        }}>
+          ⚠️ {dataError} - Registration may have limited functionality
+        </div>
+      )}
+      
       <label style={{ display: 'block', marginBottom: 6 }}>Select Registration Type</label>
       {loadingInitial && (
         <div style={{ display:'flex', gap:12, width:'100%', marginBottom:16 }}>

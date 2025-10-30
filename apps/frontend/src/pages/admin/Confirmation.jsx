@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Card, CardBody } from "../ui/Card.jsx";
-import Button from "../ui/Button.jsx";
+import { Card, CardBody } from "../../ui/Card.jsx";
+import Button from "../../ui/Button.jsx";
 
 export default function Confirmation({ title = "Registration Complete", subtitle = "Your team is ready to go!", ctaPath = "/", ctaText = "Back to Home" }) {
   return (

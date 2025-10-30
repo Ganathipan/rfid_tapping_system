@@ -11,7 +11,6 @@ const Home = lazy(()=>import('./pages/Home.jsx'));
 const RegistrationFlow = lazy(()=>import('./pages/registration/RegistrationFlow'));
 const TagAssignment = lazy(()=>import('./pages/registration/TagAssignment'));
 const MemberAssignment = lazy(()=>import('./pages/registration/MemberAssignment'));
-const RegistrationForm = lazy(()=>import('./pages/registration/RegistrationForm'));
 const AdminPortal = lazy(()=>import('./pages/admin/AdminPortal.jsx'));
 const AdminPanel = lazy(()=>import('./pages/admin/AdminPanel.jsx'));
 const GameLiteAdmin = lazy(()=>import('./pages/gameAdmin/GameLiteAdmin.jsx'));
