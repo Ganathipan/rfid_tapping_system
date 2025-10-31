@@ -9,7 +9,7 @@ describe('MQTT Integration Tests', () => {
     testEmitter = new EventEmitter();
     
     // Connect to MQTT broker (adjust URL as needed)
-    const mqttUrl = process.env.MQTT_URL || 'mqtt://localhost:1883';
+    const mqttUrl = process.env.MQTT_URL || 'mqtt://broker.hivemq.com:1883';
     client = mqtt.connect(mqttUrl);
     
     await new Promise((resolve, reject) => {

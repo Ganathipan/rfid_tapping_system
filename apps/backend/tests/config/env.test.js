@@ -6,7 +6,7 @@ jest.mock('../../../../config/master-config.js', () => ({
     NODE_ENV: 'test',
     PORT: 3001,
     DATABASE_URL: 'postgresql://localhost:5432/testdb',
-    MQTT_BROKER_URL: 'mqtt://localhost:1883'
+    MQTT_BROKER_URL: 'mqtt://broker.hivemq.com1883'
   }))
 }));
 
