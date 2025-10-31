@@ -106,6 +106,9 @@ firmware/**/*.map
 firmware/**/.build/
 firmware/**/libraries/
 
+# Firmware configuration files (auto-generated)
+firmware/config/
+
 # Test coverage and reports
 coverage/
 .nyc_output/
