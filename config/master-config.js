@@ -188,7 +188,7 @@ const ENVIRONMENT_OVERRIDES = {
         PASSWORD: 'Gana11602',
       },
       MQTT: {
-        HOST: '192.168.8.2',
+        HOST: 'localhost',
         PORT: 1883,
       }
     },

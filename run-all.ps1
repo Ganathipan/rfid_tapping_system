@@ -4,7 +4,7 @@ param(
   [int]    $DbPort = 5432,
   [string] $DbUser = 'postgres',
   [string] $PgPassword = 'Gana11602',
-  [string] $NetworkIP = '192.168.8.2',
+  [string] $NetworkIP = 'localhost',
   [int]    $BackendPort = 4000,
   [int]    $FrontendPort = 5173,
   [int]    $MqttPort = 1883,
