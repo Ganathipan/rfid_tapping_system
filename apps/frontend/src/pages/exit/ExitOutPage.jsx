@@ -182,11 +182,11 @@ export const ExitOutPage = () => {
   // --- FUNCTION TO HANDLE FEEDBACK SUBMISSION ---
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
-    // console.log({
-    //     registration_id: currentRegistrationId,
-    //     rating: rating,
-    //     comment: comment,
-    //   });
+    console.log({
+        registration_id: currentRegistrationId,
+        rating: rating,
+        comment: comment,
+      });
     setIsFeedbackLoading(true);
     clearMessages();
     try {
