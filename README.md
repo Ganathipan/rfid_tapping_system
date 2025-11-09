@@ -283,7 +283,7 @@ sudo systemctl start mosquitto
 
 ```bash
 # Login as postgres user
-psql postgres #"username"
+psql -U postgres #here postgres is the password
 
 # In PostgreSQL shell:
 CREATE DATABASE rfid;
