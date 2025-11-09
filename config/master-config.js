@@ -45,7 +45,7 @@ const NETWORK = {
     PORT: 5432,                    // PostgreSQL port
     NAME: 'rfid',                  // Database name
     USERNAME: 'postgres',          // Database username
-    PASSWORD: 'New1',          // Database password
+    PASSWORD: 'Gana11602',          // Database password
     SSL: false,                    // Enable SSL connection
     MAX_CONNECTIONS: 20,           // Connection pool size
   },
@@ -185,7 +185,7 @@ const ENVIRONMENT_OVERRIDES = {
     NETWORK: {
       DATABASE: {
         HOST: 'localhost',
-        PASSWORD: 'New1',
+        PASSWORD: 'Gana11602',
       },
       MQTT: {
         HOST: 'localhost',

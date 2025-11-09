@@ -3,7 +3,7 @@ param(
   [string] $DbHost = 'localhost',
   [int]    $DbPort = 5432,
   [string] $DbUser = 'postgres',
-  [string] $PgPassword = 'New1',
+  [string] $PgPassword = 'Gana11602',
   [string] $NetworkIP = 'localhost',
   [int]    $BackendPort = 4000,
   [int]    $FrontendPort = 5173,
