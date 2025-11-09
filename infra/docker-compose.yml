@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_PASSWORD: New1
+      POSTGRES_PASSWORD: Gana11602
       POSTGRES_DB: rfid
       POSTGRES_USER: postgres
     ports: ["5432:5432"]

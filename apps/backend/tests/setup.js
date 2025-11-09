@@ -8,7 +8,7 @@
 // Mock environment variables
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/rfid_test';
-process.env.MQTT_URL = 'mqtt://broker.hivemq.com:1883';
+process.env.MQTT_URL = 'mqtt://localhost:1883';
 
 // Mock PostgreSQL pool
 const mockPool = {
