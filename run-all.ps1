@@ -316,7 +316,7 @@ function Start-MqttBroker {
   }
   
   # Use the specific config file as requested - always start with this config
-  $mqttConfigFile = "D:\UOP_Files\Academics\Semester04\2YP_Project (2)\GIT\rfid_tapping_system\infra\mosquitto\mosquitto.conf"
+  $mqttConfigFile = "D:\UOP_Files\Academics\Semester04\2YP_Project\prototype\rfid_tapping_system\infra\mosquitto\mosquitto.conf"
   
   if (-not (Test-Path $mqttConfigFile)) {
     Write-Error "MQTT config file not found at: $mqttConfigFile"
