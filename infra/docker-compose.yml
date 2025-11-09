@@ -28,7 +28,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=4000
-      - DATABASE_URL=postgresql://postgres:Gana11602@postgres:5432/rfid
+      - DATABASE_URL=postgresql://postgres:New1@postgres:5432/rfid
       - PG_SSL=false
       - MQTT_URL=mqtt://mosquitto:1883
       - GAMELITE_ADMIN_KEY=dev-admin-key-2024
