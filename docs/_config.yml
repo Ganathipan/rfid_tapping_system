@@ -1,9 +1,9 @@
 # This theme is based on https://github.com/jekyll/minima
 # Please refer above link to know the available configurations
 
-title: ""
+title: "RFID-Based Visitor Tracking and Engagement System for EngEx 2025"
 remote_theme: cepdnaclk/eYY-project-theme
-description: ""
+description: "A complete RFID-based visitor tracking and engagement system for EngEx 2025. Powered by LF RFID + ESP-01 hardware, MQTT messaging, a Node.js backend, PostgreSQL database, and React dashboards, it delivers live analytics, scoring, and robust multi-booth tracking under heavy event traffic."
 markdown: kramdown
 
 kramdown:

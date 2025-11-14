@@ -1,29 +1,33 @@
 {
+    "visibility" : true,
+    "title": "RFID-Based Visitor Tracking and Engagement System for EngEx 2025",
+    "description": "A complete RFID-based visitor tracking and engagement system for EngEx 2025. Powered by LF RFID + ESP-01 hardware, MQTT messaging, a Node.js backend, PostgreSQL database, and React dashboards, it delivers live analytics, scoring, and robust multi-booth tracking under heavy event traffic.",
     "team": [
         {
-            "name": "Team Member Name 1",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
+            "name": "S. Ganathipan",
+            "email": "e21148@eng.pdn.ac.lk",
+            "eNumber": "E/21/148"
         },
         {
-            "name": "Team Member Name 2",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
+            "name": "V.G. Amirsha",
+            "email": "e21152@eng.pdn.ac.lk",
+            "eNumber": "E/21/152"
         },
         {
-            "name": "Team Member Name 3",
-            "email": "email@eng.pdn.ac.lk",
-            "eNumber": "E/yy/xxx"
+            "name": "K. Kartheepan",
+            "email": "e21214@eng.pdn.ac.lk",
+            "eNumber": "E/21/214"
+        },
+        {
+            "name": "S. KAVISHANTHAN",
+            "email": "e21220@eng.pdn.ac.lk",
+            "eNumber": "E/21/220"
         }
     ],
     "supervisors": [
         {
-            "name": "Dr. Supervisor 1",
-            "email": "email@eng.pdn.ac.lk"
-        },
-        {
-            "name": "Supervisor 2",
-            "email": "email@eng.pdn.ac.lk"
+            "name": "Ms. Yasodha Vimukthi",
+            "email": "yasodhav@eng.pdn.ac.lk"
         }
     ],
     "tags": []
