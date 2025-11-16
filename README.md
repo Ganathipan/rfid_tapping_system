@@ -524,22 +524,6 @@ pm2 save
 pm2 startup
 ```
 
-### Cloud Platforms
-
-**Vercel (Frontend):**
-```bash
-# Vercel config auto-generated in deployment/vercel.json
-npm run config:prod
-vercel --prod
-```
-
-**Railway (Full Stack):**
-```bash
-# Railway config auto-generated in deployment/railway.json  
-npm run config:prod
-railway deploy
-```
-
 ---
 
 ## 🛠️ API Reference
