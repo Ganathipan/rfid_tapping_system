@@ -10,14 +10,25 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
-# Environment variables
+# Environment variables and sensitive configuration
 .env
 .env.*
 !.env.template
+!.env.example
 .env.local
 .env.development
 .env.staging  
 .env.production
+
+# Local deployment configuration (contains passwords/IPs)
+deploy-local.ps1
+deploy-local.local.ps1
+config/master-config.local.js
+
+# Configuration files with sensitive data
+config/secrets.*
+secrets.json
+*.secret.*
 
 # Logs and debug files
 logs/
