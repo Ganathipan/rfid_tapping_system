@@ -1,13 +1,13 @@
 param(
   [string] $DbName = 'rfid',
-  [string] $DbHost = 'localhost',
-  [int]    $DbPort = 5432,
-  [string] $DbUser = 'postgres',
-  [string] $PgPassword = 'Gana11602',
-  [string] $NetworkIP = 'localhost',
-  [int]    $BackendPort = 4000,
-  [int]    $FrontendPort = 5173,
-  [int]    $MqttPort = 1883,
+  [string] $DbHost = 'localhost',       # Change this to your actual database host
+  [int]    $DbPort = 5432,              # Port for PostgreSQL database
+  [string] $DbUser = 'rfidDatabase',    # Change this to your actual rfid database user
+  [string] $PgPassword = 'ChangeMe',    # Change this to your actual rfid database password
+  [string] $NetworkIP = 'localhost',    # Change this to your machine's network IP if needed
+  [int]    $BackendPort = 4000,         # Port for backend server
+  [int]    $FrontendPort = 5173,        # Port for frontend server
+  [int]    $MqttPort = 1883,            # Port for MQTT broker
   [switch] $NoInitDb,
   [switch] $NoDropDb,
   [switch] $NoMqtt,
