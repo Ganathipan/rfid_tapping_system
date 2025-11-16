@@ -15,7 +15,7 @@ $DbName = 'rfid'                    # Database name
 $DbHost = 'localhost'               # Database host  
 $DbPort = 5432                      # Database port
 $DbUser = 'postgres'                # Database user
-$PgPassword = 'New1'                # Database password (CHANGE THIS!)
+$PgPassword = 'CHANGE_ME'           # Database password (CHANGE THIS!)
 
 $NetworkIP = 'localhost'            # Network IP for services
 $BackendPort = 4000                 # Backend API port

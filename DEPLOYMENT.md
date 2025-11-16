@@ -40,7 +40,7 @@ Edit these at the top of `deploy-local.ps1` (lines 10-20):
 | `$DbHost` | `localhost` | Database server host |
 | `$DbPort` | `5432` | Database server port |
 | `$DbUser` | `postgres` | Database user |
-| `$PgPassword` | `New1` | Database password (⚠️ change this!) |
+| `$PgPassword` | `CHANGE_ME` | Database password (⚠️ **MUST CHANGE THIS!**) |
 | `$NetworkIP` | `localhost` | Network IP for services |
 | `$BackendPort` | `4000` | Backend API port |
 | `$FrontendPort` | `5173` | Frontend dev server port |

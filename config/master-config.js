@@ -27,14 +27,14 @@ const ENVIRONMENT = process.env.NODE_ENV || 'development'; // 'development', 'st
 const NETWORK = {
   // Backend API Configuration
   BACKEND: {
-    HOST: process.env.BACKEND_HOST || process.env.NETWORK_IP || '192.168.8.2',
+    HOST: process.env.BACKEND_HOST || process.env.NETWORK_IP || 'localhost',
     PORT: parseInt(process.env.BACKEND_PORT) || 4000,
     PROTOCOL: process.env.BACKEND_PROTOCOL || 'http',
   },
 
   // Frontend Configuration  
   FRONTEND: {
-    HOST: process.env.FRONTEND_HOST || process.env.NETWORK_IP || '192.168.8.2',
+    HOST: process.env.FRONTEND_HOST || process.env.NETWORK_IP || 'localhost',
     PORT: parseInt(process.env.FRONTEND_PORT) || 5173,
     PROTOCOL: process.env.FRONTEND_PROTOCOL || 'http',
   },
@@ -45,14 +45,14 @@ const NETWORK = {
     PORT: parseInt(process.env.DB_PORT) || 5432,
     NAME: process.env.DB_NAME || 'rfid',
     USERNAME: process.env.DB_USER || 'postgres',
-    PASSWORD: process.env.DB_PASSWORD || 'New1',
+    PASSWORD: process.env.DB_PASSWORD || 'CHANGE_ME_DB_PASSWORD',
     SSL: process.env.DB_SSL === 'true' || false,
     MAX_CONNECTIONS: parseInt(process.env.DB_MAX_CONNECTIONS) || 20,
   },
 
   // MQTT Broker Configuration
   MQTT: {
-    HOST: process.env.MQTT_HOST || process.env.NETWORK_IP || '192.168.8.2',
+    HOST: process.env.MQTT_HOST || process.env.NETWORK_IP || 'localhost',
     PORT: parseInt(process.env.MQTT_PORT) || 1883,
     PROTOCOL: process.env.MQTT_PROTOCOL || 'mqtt',
     CLIENT_ID_PREFIX: process.env.MQTT_CLIENT_ID_PREFIX || 'rfid-system',
@@ -72,8 +72,8 @@ const NETWORK = {
 const HARDWARE = {
   // WiFi Network Settings (for ESP8266 devices)
   WIFI: {
-    SSID: process.env.WIFI_SSID || 'UoP_Dev',
-    PASSWORD: process.env.WIFI_PASSWORD || 's6RBwfAB7H',
+    SSID: process.env.WIFI_SSID || 'YOUR_WIFI_SSID',
+    PASSWORD: process.env.WIFI_PASSWORD || 'YOUR_WIFI_PASSWORD',
     TIMEOUT_MS: parseInt(process.env.WIFI_TIMEOUT_MS) || 20000,
     RETRY_ATTEMPTS: parseInt(process.env.WIFI_RETRY_ATTEMPTS) || 3,
   },
@@ -126,7 +126,7 @@ const SECURITY = {
 
   // CORS Configuration
   CORS: {
-    ORIGINS: (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000,http://10.30.6.239:5173').split(','),
+    ORIGINS: (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(','),
     CREDENTIALS: process.env.CORS_CREDENTIALS !== 'false',
     METHODS: (process.env.CORS_METHODS || 'GET,POST,PUT,DELETE,OPTIONS').split(',')
   },
