@@ -99,11 +99,11 @@ graph LR
     E -->|Control| C
 ```
 
-1. **RFID readers** detect cards at registration, exits, and activity zones
-2. **MQTT broker** routes messages in real-time across the system
-3. **Backend API** processes events, updates database, and manages game logic
-4. **Live dashboards** display analytics, leaderboards, and admin controls
-5. **Interactive interface** engages visitors with games and feedback
+**RFID readers** detect cards at registration, exits, and activity zones
+**MQTT broker** routes messages in real-time across the system
+**Backend API** processes events, updates database, and manages game logic
+**Live dashboards** display analytics, leaderboards, and admin controls
+**Interactive interface** engages visitors with games and feedback
 
 </div>
 
@@ -143,10 +143,10 @@ graph LR
 ```
 
 **Access your system:**
-- 🌐 **Dashboard**: http://localhost:5173
-- 🔌 **API**: http://localhost:4000
-- 💾 **Database**: localhost:5432
-- 📡 **MQTT**: localhost:1883
+🌐 **Dashboard**: http://localhost:5173
+🔌 **API**: http://localhost:4000
+💾 **Database**: localhost:5432
+📡 **MQTT**: localhost:1883
 
 **Automatic Cleanup:** Press ENTER when finished to stop all services, close windows, stop Mosquitto, and drop database (unless `-NoDropDb` specified).
 
@@ -160,13 +160,13 @@ graph LR
 
 ## 📊 System Highlights
 
-- ✅ **Production Ready** - Fully tested and deployment-ready
-- 🧪 **99.9% Test Success** - 1,455+ passing tests across all components  
-- 📈 **89% Code Coverage** - Comprehensive test coverage
-- 🔒 **Secure** - No hardcoded credentials, proper secret management
-- 🎨 **Modern UI** - Responsive design for mobile and desktop
-- ⚡ **Real-Time** - Live updates via WebSocket and MQTT
-- 🔧 **Easy Setup** - Single-script automated deployment
+✅ **Production Ready** - Fully tested and deployment-ready
+🧪 **99.9% Test Success** - 1,455+ passing tests across all components  
+📈 **89% Code Coverage** - Comprehensive test coverage
+🔒 **Secure** - No hardcoded credentials, proper secret management
+🎨 **Modern UI** - Responsive design for mobile and desktop
+⚡ **Real-Time** - Live updates via WebSocket and MQTT
+🔧 **Easy Setup** - Single-script automated deployment
 
 </div>
 
@@ -177,13 +177,10 @@ graph LR
 ## 👥 Team
 
 **University of Peradeniya - Department of Computer Engineering**
-
-| Name | Email |
-|------|-------|
-| S. Ganathipan | [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) |
-| V.G. Amirsha | [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) |
-| K. Kartheepan | [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) |
-| S. Kavishanthan | [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) |
+S. Ganathipan - [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) |
+V.G. Amirsha - [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) |
+K. Kartheepan - [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) |
+S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) |
 
 **Supervisor:** Ms. Yasodha Vimukthi ([yasodhav@eng.pdn.ac.lk](mailto:yasodhav@eng.pdn.ac.lk))
 
@@ -195,11 +192,11 @@ graph LR
 
 ## 🔗 Links
 
-- 📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code
-- 📖 [**Complete Documentation**](../README.md) - Detailed setup & API docs
-- 🚀 [**Deployment Guide**](../DEPLOYMENT.md) - Step-by-step installation
-- 🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/)
-- 🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/)
+📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code
+📖 [**Complete Documentation**](../README.md) - Detailed setup & API docs
+🚀 [**Deployment Guide**](../DEPLOYMENT.md) - Step-by-step installation
+🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/)
+🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/)
 
 </div>
 
@@ -223,7 +220,6 @@ This project demonstrates the integration of IoT hardware, real-time systems, we
 <div align="center">
 
 **Made with ❤️ for EngEx 2025**
-
 *Transforming event experiences through intelligent RFID technology*
 
 </div>
