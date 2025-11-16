@@ -23,13 +23,19 @@ title: RFID Tapping System - Production Ready Event Management Solution
 
 ---
 
+<div align="center">
+
 ## 🎯 What is this?
 
 An **intelligent RFID-based system** designed for large-scale events like exhibitions and conferences. It combines IoT hardware, real-time data processing, and interactive dashboards to transform how events track visitors, manage crowds, and engage attendees.
 
 **Built for EngEx 2025** | University of Peradeniya
 
+</div>
+
 ---
+
+<div align="center">
 
 ## ✨ Key Features
 
@@ -76,7 +82,11 @@ An **intelligent RFID-based system** designed for large-scale events like exhibi
 </tr>
 </table>
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 🏗️ How It Works
 
@@ -95,7 +105,11 @@ graph LR
 4. **Live dashboards** display analytics, leaderboards, and admin controls
 5. **Interactive interface** engages visitors with games and feedback
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 💻 Technology Stack
 
@@ -108,7 +122,11 @@ graph LR
 | **Database** | PostgreSQL |
 | **Testing** | Jest, Vitest (1,455+ tests) |
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 🚀 Quick Start
 
@@ -130,7 +148,11 @@ notepad deploy-local.ps1
 
 > 📖 **Need more details?** Check the [complete documentation](../README.md) in the main repository.
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 📊 System Highlights
 
@@ -142,7 +164,11 @@ notepad deploy-local.ps1
 - ⚡ **Real-Time** - Live updates via WebSocket and MQTT
 - 🔧 **Easy Setup** - Single-script automated deployment
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 👥 Team
 
@@ -157,7 +183,11 @@ notepad deploy-local.ps1
 
 **Supervisor:** Ms. Yasodha Vimukthi ([yasodhav@eng.pdn.ac.lk](mailto:yasodhav@eng.pdn.ac.lk))
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 🔗 Links
 
@@ -167,7 +197,11 @@ notepad deploy-local.ps1
 - 🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/)
 - 🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/)
 
+</div>
+
 ---
+
+<div align="center">
 
 ## 🎓 Academic Context
 
@@ -177,6 +211,8 @@ notepad deploy-local.ps1
 **Event:** EngEx 2025 - Engineering Exhibition
 
 This project demonstrates the integration of IoT hardware, real-time systems, web technologies, and database management to solve real-world event management challenges.
+
+</div>
 
 ---
 
