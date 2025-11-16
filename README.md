@@ -23,7 +23,7 @@ This RFID system is **100% complete and launch-ready** with comprehensive testin
 
 ### 🔧 **Quick Start**
 ```powershell
-# 1. Edit configuration (set database password, ports, etc.)
+# 1. Edit lines 10-20 in the script (database password, etc.)
 notepad deploy-local.ps1
 
 # 2. Run deployment
@@ -36,7 +36,7 @@ notepad deploy-local.ps1
 - **Database**: localhost:5432 (PostgreSQL)
 - **MQTT Broker**: localhost:1883 (Mosquitto)
 
-> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and configuration options.
+> 📖 First-time users: Edit only the configuration variables at the top of `deploy-local.ps1` (lines 10-20). See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ## ✨ Core Features & Capabilities
 
@@ -121,39 +121,45 @@ This system enables real-time tracking of RFID card interactions across multiple
 
 ## 🚀 Quick Start
 
-### Option 1: Automated Deployment (Recommended)
+### Automated Deployment (Recommended)
 
-**Windows PowerShell:**
+**For first-time users:**
 
-```powershell
-# 1. Edit configuration variables
-notepad deploy-local.ps1
+1. **Edit configuration** - Open the script and change lines 10-20:
+   ```powershell
+   notepad deploy-local.ps1
+   ```
+   Update these variables:
+   - `$DbName` - Database name (default: 'rfid')
+   - `$DbHost` - Database host (default: 'localhost')
+   - `$DbPort` - Database port (default: 5432)
+   - `$DbUser` - Database user (default: 'postgres')
+   - `$PgPassword` - **Database password (CHANGE THIS!)**
+   - Network settings (ports for backend, frontend, MQTT)
 
-# 2. Run automated deployment
-.\deploy-local.ps1
-```
+2. **Run deployment**:
+   ```powershell
+   .\deploy-local.ps1
+   ```
 
-This script automatically:
-- Generates all configuration files
+The script automatically:
+- Generates all configuration files (.env files)
 - Initializes PostgreSQL database with schema and seed data
 - Starts Mosquitto MQTT broker
 - Launches backend API server
 - Launches frontend application
 
-**See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.**
+**System URLs After Deployment:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:4000
+- **Database**: localhost:5432
+- **MQTT Broker**: localhost:1883
 
-### Option 2: Manual Setup
+> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for advanced options and troubleshooting.
 
-### 1. Clone Repository
+### Manual Setup
 
-```bash
-git clone <repository-url>
-cd rfid_tapping_system
-```
-
-### 2. Manual Installation
-
-Follow the detailed [Installation](#-installation) section below for manual setup steps.
+For manual step-by-step installation, follow the detailed [Installation](#-installation) section below.
 
 ---
 
