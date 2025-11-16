@@ -1,16 +1,22 @@
-# Local Deployment Scripts
+# Local Deployment Script
 
-This directory contains PowerShell scripts for easy local deployment of the RFID Tapping System.
+Simple PowerShell script for easy local deployment of the RFID Tapping System.
 
 ## Quick Start
 
-### Option 1: Simple Deployment (Recommended)
+### For First-Time Users
 
-1. **Edit configuration** (optional):
+1. **Edit configuration variables** (lines 10-20 in the script):
    ```powershell
    notepad deploy-local.ps1
    ```
-   Update database credentials, ports, etc. if needed.
+   Change these values:
+   - `$DbName` - Database name (default: 'rfid')
+   - `$DbHost` - Database host (default: 'localhost')
+   - `$DbPort` - Database port (default: 5432)
+   - `$DbUser` - Database user (default: 'postgres')
+   - `$PgPassword` - **Database password (CHANGE THIS!)**
+   - Network settings (ports for backend, frontend, MQTT)
 
 2. **Run deployment**:
    ```powershell
@@ -18,23 +24,15 @@ This directory contains PowerShell scripts for easy local deployment of the RFID
    ```
 
 That's it! The script will:
-- Generate configuration files
+- Generate configuration files (.env files)
 - Initialize the PostgreSQL database
 - Start the MQTT broker (Mosquitto)
 - Launch the backend API server
 - Launch the frontend application
 
-### Option 2: Advanced Deployment
-
-Use `start-local.ps1` directly with command-line parameters:
-
-```powershell
-.\start-local.ps1 -DbName "rfid" -DbPassword "YourPassword" -BackendPort 4000
-```
-
 ## Configuration Variables
 
-Edit these in `deploy-local.ps1`:
+Edit these at the top of `deploy-local.ps1` (lines 10-20):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
