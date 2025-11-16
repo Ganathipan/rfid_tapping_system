@@ -6,104 +6,220 @@ permalink: index.html
 repository-name: e21-co227-RFID-Hardware-and-Tag-Lifecycle
 title: RFID Tapping System - Production Ready Event Management Solution
 ---
-# RFID-Based Visitor Tracking and Engagement System
 
-## Team
+<div align="center">
 
-- E/21/148, S. Ganathipan, [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk)
-- E/21/152, V.G. Amirsha, [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk)
-- E/21/214, K. Kartheepan, [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk)
-- E/21/220, S. Kavishanthan, [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk)
+# 🎫 RFID Tapping System
 
-## Supervisor
+### Production-Ready Event Management & Visitor Tracking
 
-- Ms. Yasodha Vimukthi, [yasodhav@eng.pdn.ac.lk](mailto:yasodhav@eng.pdn.ac.lk)
+*Real-time analytics • Interactive gaming • IoT integration*
 
-## Table of Contents
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=flat-square)](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
+[![Tests](https://img.shields.io/badge/Tests-99.9%25%20Passing-brightgreen?style=flat-square)](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
+[![Coverage](https://img.shields.io/badge/Coverage-89.33%25-green?style=flat-square)](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
 
-1. [Introduction](#introduction)
-2. [Solution Architecture](#solution-architecture)
-3. [Key Features](#key-features)
-4. [Technology Stack](#technology-stack)
-5. [Links](#links)
+</div>
 
 ---
 
-## Introduction
+<div align="center">
 
-A complete RFID-based visitor tracking and engagement system for **EngEx 2025**. Powered by LF RFID + ESP-01 hardware, MQTT messaging, Node.js backend, PostgreSQL database, and React dashboards, delivering live analytics, scoring, and robust multi-booth tracking under heavy event traffic.
+## 🎯 What is this?
 
-### Problem Statement
+An **intelligent RFID-based system** designed for large-scale events like exhibitions and conferences. It combines IoT hardware, real-time data processing, and interactive dashboards to transform how events track visitors, manage crowds, and engage attendees.
 
-Large-scale university exhibitions struggle with:
+**Built for EngEx 2025** | University of Peradeniya
 
-- Real-time crowd monitoring and management
-- Efficient visitor registration and tracking
-- Engaging interactive experiences for attendees
-- Data-driven insights for event optimization
-
-### Our Solution
-
-An integrated IoT system providing:
-
-- **Instant RFID registration** with automated queue management
-- **Real-time analytics** for crowd density and visitor flow
-- **Interactive gaming** with live leaderboards and team scoring
-- **Multi-zone tracking** across exhibition booths and clusters
-- **Admin dashboard** for live event monitoring and control
-
-## Solution Architecture
-
-**Hardware Layer:**
-
-- ESP8266 (ESP-01) + RDM6300 RFID readers deployed across exhibition zones
-- WiFi connectivity with automatic reconnection and MQTT communication
-
-**Communication Layer:**
-
-- MQTT broker (Mosquitto) handling real-time message routing
-- JSON message format for reliable data transmission
-
-**Backend Services:**
-
-- Node.js REST API with Express framework
-- PostgreSQL database for data persistence and analytics
-- Real-time WebSocket connections for live updates
-
-**Frontend Applications:**
-
-- React SPA with responsive design for mobile/desktop
-- Live analytics dashboard with real-time crowd metrics
-- Admin panel for system configuration and monitoring
-- Interactive gaming interface with leaderboards
-
-## Key Features
-
-- **Real-time Visitor Tracking**: FIFO queue management for fair card processing and live status monitoring
-- **Interactive Gaming**: Team scoring system with live leaderboards and achievement tracking
-- **Live Analytics Dashboard**: Real-time crowd metrics, venue occupancy, and visitor flow analysis
-- **Multi-Zone Support**: Scalable deployment across multiple exhibition areas and booths
-- **Admin Control Panel**: Complete system configuration, monitoring, and management tools
-- **IoT Integration**: Production-ready ESP8266 firmware with automatic WiFi reconnection
-- **Mobile Responsive**: Cross-platform web interface optimized for tablets and smartphones
-
-## Technology Stack
-
-| Layer                       | Technologies                                         |
-| --------------------------- | ---------------------------------------------------- |
-| **Hardware**          | ESP8266 (ESP-01), RDM6300 125kHz RFID Reader         |
-| **IoT Communication** | MQTT (Mosquitto), WiFi, JSON messaging               |
-| **Backend**           | Node.js, Express.js, PostgreSQL, WebSocket           |
-| **Frontend**          | React.js, Vite, TailwindCSS, Responsive Design       |
-| **Testing**           | Jest, Vitest (99.9% backend, 100% frontend coverage) |
-
-## Links
-
-- [Project Repository](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
-- [Project Page](https://cepdnaclk.github.io/e21-co227-RFID-Hardware-and-Tag-Lifecycle/)
-- [Complete Documentation](../README.md)
-- [Department of Computer Engineering](http://www.ce.pdn.ac.lk/) 
-- [University of Peradeniya](https://eng.pdn.ac.lk/)
+</div>
 
 ---
-*Developed for CO227 Computer Engineering Project, University of Peradeniya*
+
+<div align="center">
+
+## ✨ Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🔄 Real-Time Tracking
+- Instant RFID card detection
+- Live visitor flow monitoring
+- Multi-zone booth tracking
+- FIFO queue management
+
+</td>
+<td width="50%">
+
+### 📊 Smart Analytics
+- Real-time crowd metrics
+- Historical trend analysis
+- Venue occupancy insights
+- Visitor behavior patterns
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🎮 Interactive Gaming
+- Team-based scoring system
+- Live leaderboards
+- Achievement tracking
+- Engagement rewards
+
+</td>
+<td width="50%">
+
+### 🛠️ Admin Control
+- System configuration panel
+- Live event monitoring
+- User management
+- Complete data control
+
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+<div align="center">
+
+## 🏗️ How It Works
+
+```mermaid
+graph LR
+    A[RFID Reader] -->|WiFi/MQTT| B[Message Broker]
+    B -->|Real-time| C[Backend API]
+    C -->|Store| D[Database]
+    C -->|Updates| E[Live Dashboard]
+    E -->|Control| C
+```
+
+1. **RFID readers** detect cards at registration, exits, and activity zones
+2. **MQTT broker** routes messages in real-time across the system
+3. **Backend API** processes events, updates database, and manages game logic
+4. **Live dashboards** display analytics, leaderboards, and admin controls
+5. **Interactive interface** engages visitors with games and feedback
+
+</div>
+
+---
+
+<div align="center">
+
+## 💻 Technology Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Hardware** | ESP8266 + RDM6300 RFID (125kHz) |
+| **IoT** | MQTT (Mosquitto), WiFi, JSON |
+| **Backend** | Node.js, Express, WebSocket |
+| **Frontend** | React, Vite, TailwindCSS |
+| **Database** | PostgreSQL |
+| **Testing** | Jest, Vitest (1,455+ tests) |
+
+</div>
+
+---
+
+<div align="center">
+
+## 🚀 Quick Start
+
+**One command deployment:**
+
+```powershell
+# Edit configuration (database password, etc.)
+notepad deploy-local.ps1
+
+# Deploy the entire system
+.\deploy-local.ps1
+```
+
+**Access your system:**
+- 🌐 **Dashboard**: http://localhost:5173
+- 🔌 **API**: http://localhost:4000
+- 💾 **Database**: localhost:5432
+- 📡 **MQTT**: localhost:1883
+
+> 📖 **Need more details?** Check the [complete documentation](../README.md) in the main repository.
+
+</div>
+
+---
+
+<div align="center">
+
+## 📊 System Highlights
+
+- ✅ **Production Ready** - Fully tested and deployment-ready
+- 🧪 **99.9% Test Success** - 1,455+ passing tests across all components  
+- 📈 **89% Code Coverage** - Comprehensive test coverage
+- 🔒 **Secure** - No hardcoded credentials, proper secret management
+- 🎨 **Modern UI** - Responsive design for mobile and desktop
+- ⚡ **Real-Time** - Live updates via WebSocket and MQTT
+- 🔧 **Easy Setup** - Single-script automated deployment
+
+</div>
+
+---
+
+<div align="center">
+
+## 👥 Team
+
+**University of Peradeniya - Department of Computer Engineering**
+
+| Name | Email |
+|------|-------|
+| S. Ganathipan | [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) |
+| V.G. Amirsha | [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) |
+| K. Kartheepan | [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) |
+| S. Kavishanthan | [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) |
+
+**Supervisor:** Ms. Yasodha Vimukthi ([yasodhav@eng.pdn.ac.lk](mailto:yasodhav@eng.pdn.ac.lk))
+
+</div>
+
+---
+
+<div align="center">
+
+## 🔗 Links
+
+- 📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code
+- 📖 [**Complete Documentation**](../README.md) - Detailed setup & API docs
+- 🚀 [**Deployment Guide**](../DEPLOYMENT.md) - Step-by-step installation
+- 🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/)
+- 🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/)
+
+</div>
+
+---
+
+<div align="center">
+
+## 🎓 Academic Context
+
+**Course:** CO227 Computer Engineering Project  
+**Institution:** University of Peradeniya  
+**Year:** 2024-2025  
+**Event:** EngEx 2025 - Engineering Exhibition
+
+This project demonstrates the integration of IoT hardware, real-time systems, web technologies, and database management to solve real-world event management challenges.
+
+</div>
+
+---
+
+<div align="center">
+
+**Made with ❤️ for EngEx 2025**
+
+*Transforming event experiences through intelligent RFID technology*
+
+</div>

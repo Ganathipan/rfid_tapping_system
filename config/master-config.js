@@ -27,41 +27,41 @@ const ENVIRONMENT = process.env.NODE_ENV || 'development'; // 'development', 'st
 const NETWORK = {
   // Backend API Configuration
   BACKEND: {
-    HOST: process.env.NETWORK_IP || '192.168.8.2',           // Backend server IP
-    PORT: parseInt(process.env.BACKEND_PORT) || 4000,        // Backend server port
-    PROTOCOL: 'http',              // http or https
+    HOST: process.env.BACKEND_HOST || process.env.NETWORK_IP || 'localhost',
+    PORT: parseInt(process.env.BACKEND_PORT) || 4000,
+    PROTOCOL: process.env.BACKEND_PROTOCOL || 'http',
   },
 
   // Frontend Configuration  
   FRONTEND: {
-    HOST: process.env.NETWORK_IP || '192.168.8.2',             // Frontend host for development
-    PORT: parseInt(process.env.FRONTEND_PORT) || 5173,        // Frontend port (Vite default)
-    PROTOCOL: 'http',              // http or https
+    HOST: process.env.FRONTEND_HOST || process.env.NETWORK_IP || 'localhost',
+    PORT: parseInt(process.env.FRONTEND_PORT) || 5173,
+    PROTOCOL: process.env.FRONTEND_PROTOCOL || 'http',
   },
 
   // Database Configuration
   DATABASE: {
-    HOST: 'localhost',             // Database server IP
-    PORT: 5432,                    // PostgreSQL port
-    NAME: 'rfid',                  // Database name
-    USERNAME: 'postgres',          // Database username
-    PASSWORD: 'New1',          // Database password
-    SSL: false,                    // Enable SSL connection
-    MAX_CONNECTIONS: 20,           // Connection pool size
+    HOST: process.env.DB_HOST || 'localhost',
+    PORT: parseInt(process.env.DB_PORT) || 5432,
+    NAME: process.env.DB_NAME || 'rfid',
+    USERNAME: process.env.DB_USER || 'postgres',
+    PASSWORD: process.env.DB_PASSWORD || 'CHANGE_ME_DB_PASSWORD',
+    SSL: process.env.DB_SSL === 'true' || false,
+    MAX_CONNECTIONS: parseInt(process.env.DB_MAX_CONNECTIONS) || 20,
   },
 
   // MQTT Broker Configuration
   MQTT: {
-    HOST: process.env.NETWORK_IP || '192.168.8.2',          // MQTT broker IP
-    PORT: 1883,                    // MQTT broker port
-    PROTOCOL: 'mqtt',              // mqtt or mqtts
-    CLIENT_ID_PREFIX: 'rfid-system', // Client ID prefix
-    USERNAME: null,                // MQTT username (null for no auth)
-    PASSWORD: null,                // MQTT password (null for no auth)
+    HOST: process.env.MQTT_HOST || process.env.NETWORK_IP || 'localhost',
+    PORT: parseInt(process.env.MQTT_PORT) || 1883,
+    PROTOCOL: process.env.MQTT_PROTOCOL || 'mqtt',
+    CLIENT_ID_PREFIX: process.env.MQTT_CLIENT_ID_PREFIX || 'rfid-system',
+    USERNAME: process.env.MQTT_USERNAME || null,
+    PASSWORD: process.env.MQTT_PASSWORD || null,
     TOPICS: {
-      RFID_BASE: 'rfid',          // Base topic for RFID events
-      HEALTH: 'health',            // Health check topic
-      CONFIG: 'config',            // Configuration topic
+      RFID_BASE: process.env.MQTT_TOPIC_RFID || 'rfid',
+      HEALTH: process.env.MQTT_TOPIC_HEALTH || 'health',
+      CONFIG: process.env.MQTT_TOPIC_CONFIG || 'config',
     }
   }
 };
@@ -72,43 +72,43 @@ const NETWORK = {
 const HARDWARE = {
   // WiFi Network Settings (for ESP8266 devices)
   WIFI: {
-    SSID: 'UoP_Dev',              // WiFi network name
-    PASSWORD: 's6RBwfAB7H',       // WiFi password
-    TIMEOUT_MS: 20000,            // Connection timeout
-    RETRY_ATTEMPTS: 3,            // Number of retry attempts
+    SSID: process.env.WIFI_SSID || 'YOUR_WIFI_SSID',
+    PASSWORD: process.env.WIFI_PASSWORD || 'YOUR_WIFI_PASSWORD',
+    TIMEOUT_MS: parseInt(process.env.WIFI_TIMEOUT_MS) || 20000,
+    RETRY_ATTEMPTS: parseInt(process.env.WIFI_RETRY_ATTEMPTS) || 3,
   },
 
   // RFID Reader Configuration
   READERS: [
     {
-      INDEX: 1,                   // Physical reader index
-      ID: 'REGISTER',             // Reader identifier
-      PORTAL: 'portal1',          // Portal/location name
-      DESCRIPTION: 'Registration Portal',
-      MAC_ADDRESS: null,          // Optional: specific device MAC
+      INDEX: 1,
+      ID: process.env.READER_1_ID || 'REGISTER',
+      PORTAL: process.env.READER_1_PORTAL || 'portal1',
+      DESCRIPTION: process.env.READER_1_DESC || 'Registration Portal',
+      MAC_ADDRESS: process.env.READER_1_MAC || null,
     },
     {
       INDEX: 2,
-      ID: 'EXITOUT', 
-      PORTAL: 'exitout',
-      DESCRIPTION: 'Entry/Exit Portal',
-      MAC_ADDRESS: null,
+      ID: process.env.READER_2_ID || 'EXITOUT', 
+      PORTAL: process.env.READER_2_PORTAL || 'exitout',
+      DESCRIPTION: process.env.READER_2_DESC || 'Entry/Exit Portal',
+      MAC_ADDRESS: process.env.READER_2_MAC || null,
     },
     {
       INDEX: 8,
-      ID: 'CLUSTER1',
-      PORTAL: 'reader1', 
-      DESCRIPTION: 'Main Registration',
-      MAC_ADDRESS: null,
+      ID: process.env.READER_8_ID || 'CLUSTER1',
+      PORTAL: process.env.READER_8_PORTAL || 'reader1', 
+      DESCRIPTION: process.env.READER_8_DESC || 'Main Registration',
+      MAC_ADDRESS: process.env.READER_8_MAC || null,
     }
   ],
 
   // ESP8266 Hardware Settings
   ESP8266: {
-    LED_PIN: 2,                   // LED pin number
-    BAUD_RATE: 9600,             // Serial communication speed
-    FLASH_SIZE: '1M',            // Flash memory size
-    FILESYSTEM: 'LittleFS',       // Filesystem type
+    LED_PIN: parseInt(process.env.ESP_LED_PIN) || 2,
+    BAUD_RATE: parseInt(process.env.ESP_BAUD_RATE) || 9600,
+    FLASH_SIZE: process.env.ESP_FLASH_SIZE || '1M',
+    FILESYSTEM: process.env.ESP_FILESYSTEM || 'LittleFS',
   }
 };
 
@@ -117,30 +117,25 @@ const HARDWARE = {
 // =============================================================================
 const SECURITY = {
   // API Keys and Secrets
-  GAME_LITE_ADMIN_KEY: 'dev-admin-key-2024',
-  JWT_SECRET: 'your-jwt-secret-key-here',
+  GAME_LITE_ADMIN_KEY: process.env.GAMELITE_ADMIN_KEY || 'dev-admin-key-2024',
+  JWT_SECRET: process.env.JWT_SECRET || 'your-jwt-secret-key-here',
   API_RATE_LIMIT: {
-    WINDOW_MS: 15 * 60 * 1000,   // 15 minutes
-    MAX_REQUESTS: 100,            // Max requests per window
+    WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   },
 
   // CORS Configuration
   CORS: {
-    ORIGINS: [
-      'http://localhost:5173',     // Vite dev server
-      'http://localhost:3000',     // Alternative dev port
-      'http://10.30.6.239:5173',  // Network dev server
-      'https://your-production-domain.com'
-    ],
-    CREDENTIALS: true,
-    METHODS: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    ORIGINS: (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(','),
+    CREDENTIALS: process.env.CORS_CREDENTIALS !== 'false',
+    METHODS: (process.env.CORS_METHODS || 'GET,POST,PUT,DELETE,OPTIONS').split(',')
   },
 
   // Session Configuration
   SESSION: {
-    SECRET: 'session-secret-key',
-    EXPIRES_IN: '24h',
-    SECURE: false,                // Set to true in production with HTTPS
+    SECRET: process.env.SESSION_SECRET || 'session-secret-key',
+    EXPIRES_IN: process.env.SESSION_EXPIRES_IN || '24h',
+    SECURE: process.env.SESSION_SECURE === 'true' || false,
   }
 };
 
@@ -150,30 +145,30 @@ const SECURITY = {
 const APPLICATION = {
   // Logging Configuration
   LOGGING: {
-    LEVEL: ENVIRONMENT === 'production' ? 'info' : 'debug',
-    FILE_PATH: './logs/rfid-system.log',
-    MAX_FILE_SIZE: '10m',
-    MAX_FILES: 5,
+    LEVEL: process.env.LOG_LEVEL || (ENVIRONMENT === 'production' ? 'info' : 'debug'),
+    FILE_PATH: process.env.LOG_FILE_PATH || './logs/rfid-system.log',
+    MAX_FILE_SIZE: process.env.LOG_MAX_FILE_SIZE || '10m',
+    MAX_FILES: parseInt(process.env.LOG_MAX_FILES) || 5,
   },
 
   // Cache Configuration
   CACHE: {
-    TTL: 300,                     // Time to live in seconds
-    MAX_KEYS: 1000,              // Maximum number of cached keys
+    TTL: parseInt(process.env.CACHE_TTL) || 300,
+    MAX_KEYS: parseInt(process.env.CACHE_MAX_KEYS) || 1000,
   },
 
   // File Upload Configuration
   UPLOADS: {
-    MAX_FILE_SIZE: '5mb',        // Maximum file size
-    ALLOWED_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
-    UPLOAD_PATH: './uploads',
+    MAX_FILE_SIZE: process.env.MAX_FILE_SIZE || '5mb',
+    ALLOWED_TYPES: (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,application/pdf').split(','),
+    UPLOAD_PATH: process.env.UPLOAD_PATH || './uploads',
   },
 
   // Game Configuration
   GAME: {
-    MAX_PLAYERS_PER_TEAM: 6,
-    GAME_DURATION_MINUTES: 30,
-    LEADERBOARD_REFRESH_INTERVAL: 5000, // milliseconds
+    MAX_PLAYERS_PER_TEAM: parseInt(process.env.MAX_PLAYERS_PER_TEAM) || 6,
+    GAME_DURATION_MINUTES: parseInt(process.env.GAME_DURATION_MINUTES) || 30,
+    LEADERBOARD_REFRESH_INTERVAL: parseInt(process.env.LEADERBOARD_REFRESH_MS) || 5000,
   }
 };
 

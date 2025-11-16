@@ -22,12 +22,12 @@ This RFID system is **100% complete and launch-ready** with comprehensive testin
 - **Configuration Management**: Centralized config system for all environments
 
 ### 🔧 **Quick Start**
-```bash
-# Option 1: Simple startup (Recommended)
-start-system.bat
+```powershell
+# 1. Edit lines 10-20 in the script (database password, etc.)
+notepad deploy-local.ps1
 
-# Option 2: PowerShell version
-.\start-system.ps1
+# 2. Run deployment
+.\deploy-local.ps1
 ```
 
 **System URLs After Startup:**
@@ -35,6 +35,8 @@ start-system.bat
 - **Backend API**: http://localhost:4000 (REST endpoints)
 - **Database**: localhost:5432 (PostgreSQL)
 - **MQTT Broker**: localhost:1883 (Mosquitto)
+
+> 📖 First-time users: Edit only the configuration variables at the top of `deploy-local.ps1` (lines 10-20). See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ## ✨ Core Features & Capabilities
 
@@ -59,7 +61,7 @@ start-system.bat
 ### 🛠️ **Developer Experience**
 - **Comprehensive Testing**: 99.9% backend and 100% frontend test success rates
 - **Documentation**: Complete setup guides, API references, and troubleshooting
-- **Modern Stack**: Node.js, React, PostgreSQL, MQTT with containerized deployment
+- **Modern Stack**: Node.js, React, PostgreSQL, MQTT with production-ready components
 - **Configuration Management**: Single master config file generates all environment settings
 
 ## 🏗️ System Architecture
@@ -119,129 +121,123 @@ This system enables real-time tracking of RFID card interactions across multiple
 
 ## 🚀 Quick Start
 
-### 1. Clone Repository
+### Automated Deployment (Recommended)
 
-```bash
-git clone <repository-url>
-cd rfid_tapping_system
-```
+**For first-time users:**
 
-### 2. Choose Installation Method
+1. **Edit configuration** - Open the script and change lines 10-20:
+   ```powershell
+   notepad deploy-local.ps1
+   ```
+   Update these variables:
+   - `$DbName` - Database name (default: 'rfid')
+   - `$DbHost` - Database host (default: 'localhost')
+   - `$DbPort` - Database port (default: 5432)
+   - `$DbUser` - Database user (default: 'postgres')
+   - `$PgPassword` - **Database password (CHANGE THIS!)**
+   - Network settings (ports for backend, frontend, MQTT)
 
-- **[Method A: Full Docker Setup](#method-a-full-docker-setup)** (Recommended - Easiest)
-- **[Method B: Hybrid Setup](#method-b-hybrid-setup)** (Docker for services, local for development)
-- **[Method C: Full Local Setup](#method-c-full-local-setup-no-docker)** (No Docker required)
+2. **Run deployment**:
+   ```powershell
+   .\deploy-local.ps1
+   ```
+
+The script automatically:
+- Generates all configuration files (.env files)
+- Initializes PostgreSQL database with schema and seed data
+- Starts Mosquitto MQTT broker
+- Launches backend API server
+- Launches frontend application
+
+**System URLs After Deployment:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:4000
+- **Database**: localhost:5432
+- **MQTT Broker**: localhost:1883
+
+> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for advanced options and troubleshooting.
+
+### Manual Setup
+
+For manual step-by-step installation, follow the detailed [Installation](#-installation) section below.
 
 ---
 
 ## 📋 Prerequisites
 
-### Required for All Methods
-
 - **Node.js 18+** and **npm**
 - **Git** for version control
+- **PostgreSQL 14+** database server
+- **Mosquitto** MQTT broker
 - **Arduino IDE** (for ESP8266 firmware flashing)
 
-### Additional Requirements by Method
-
-| Method         | Docker        | PostgreSQL    | MQTT Broker   |
-| -------------- | ------------- | ------------- | ------------- |
-| A: Full Docker | ✅ Required   | ❌ (Included) | ❌ (Included) |
-| B: Hybrid      | ✅ Required   | ❌ (Included) | ❌ (Included) |
-| C: Local Only  | ❌ Not needed | ✅ Required   | ✅ Required   |
-
 ---
 
-## 🔧 Installation Methods
+## 🔧 Installation
 
-## Method A: Full Docker Setup
+### Option 1: Automated Installation (Recommended)
 
-*Recommended for beginners and quick prototyping*
+**Using the deployment script:**
 
-### 1. Initialize Configuration
+1. **Install Prerequisites:**
+   
+   **Windows:**
+   ```powershell
+   # Install PostgreSQL
+   winget install PostgreSQL.PostgreSQL
+   
+   # Install MQTT Broker (Mosquitto)
+   winget install EclipseMosquitto.Mosquitto
+   
+   # Install Node.js 18+ (if not already installed)
+   winget install OpenJS.NodeJS
+   ```
+   
+   **macOS:**
+   ```bash
+   # Using Homebrew
+   brew install postgresql mosquitto node
+   brew services start postgresql
+   brew services start mosquitto
+   ```
+   
+   **Ubuntu/Debian:**
+   ```bash
+   sudo apt update
+   sudo apt install postgresql postgresql-contrib mosquitto mosquitto-clients nodejs npm
+   sudo systemctl start postgresql
+   sudo systemctl start mosquitto
+   ```
 
-```bash
-# Generate all configuration files
-npm run config:dev
-```
+2. **Configure and Deploy:**
+   
+   ```powershell
+   # Edit lines 10-20 in the script (database password, ports, etc.)
+   notepad deploy-local.ps1
+   
+   # Run automated deployment
+   .\deploy-local.ps1
+   ```
 
-### 2. Start All Services
+The script automatically:
+- Generates all configuration files (.env files)
+- Creates and initializes the PostgreSQL database
+- Starts Mosquitto MQTT broker
+- Installs dependencies for backend and frontend
+- Launches backend API server
+- Launches frontend application
 
-```bash
-cd infra
-docker compose up -d
-```
-
-### 3. Verify Installation
-
-```bash
-# Check service status
-docker compose ps
-
-# Test API health
-curl http://localhost:4000/health
-
-# View logs
-docker compose logs -f backend
-```
-
-### 4. Access Applications
-
-- **Backend API**: http://localhost:4000
+**System URLs after deployment:**
 - **Frontend**: http://localhost:5173
-- **Admin Panel**: http://localhost:5173/admin
-- **Database**: localhost:5432 (postgres/password)
-- **MQTT**: localhost:1883
+- **Backend API**: http://localhost:4000
+- **Database**: postgresql://postgres@localhost:5432/rfid
+- **MQTT Broker**: mqtt://localhost:1883
 
 ---
 
-## Method B: Hybrid Setup
+### Option 2: Manual Installation (Advanced)
 
-*Best for development - Docker for services, local for apps*
-
-### 1. Initialize Configuration
-
-```bash
-npm run config:dev
-```
-
-### 2. Start Infrastructure Services Only
-
-```bash
-cd infra
-docker compose up -d postgres mosquitto
-```
-
-### 3. Start Backend Locally
-
-```bash
-cd apps/backend
-npm install
-npm run dev
-```
-
-### 4. Start Frontend Locally (New Terminal)
-
-```bash
-cd apps/frontend
-npm install
-npm run dev
-```
-
-### 5. Verify Installation
-
-```bash
-# Backend health check
-curl http://localhost:4000/health
-
-# Frontend should open automatically at http://localhost:5173
-```
-
----
-
-## Method C: Full Local Setup (No Docker)
-
-*For environments where Docker isn't available*
+For users who prefer step-by-step manual setup:
 
 ### 1. Install Prerequisites
 
@@ -283,39 +279,45 @@ sudo systemctl start mosquitto
 
 ```bash
 # Login as postgres user
-psql -U postgres #here postgres is the password
+psql -U postgres
 
 # In PostgreSQL shell:
 CREATE DATABASE rfid;
-CREATE USER rfiduser WITH PASSWORD 'rfidpass';
-GRANT ALL PRIVILEGES ON DATABASE rfid TO rfiduser;
 \q
 ```
 
 **Import Schema:**
 
 ```bash
+# Set PostgreSQL password as environment variable
+export PGPASSWORD=your_postgres_password
+
 # Import database schema
-psql -U rfiduser -d rfid -f infra/db/schema.sql
+psql -U postgres -d rfid -f infra/db/schema.sql
 ```
 
 ### 3. Configure Environment
 
-**Initialize Configuration System:**
+**Generate Configuration Files:**
 
 ```bash
 # Generate configuration files for local setup
 npm run config:dev
 ```
 
-**Manual Configuration (if needed):**
+This will automatically create:
+- `apps/backend/.env`
+- `apps/frontend/.env`
+- `firmware/config.h`
+
+**Or manually create configuration files:**
 
 Create `apps/backend/.env`:
 
 ```env
 NODE_ENV=development
 PORT=4000
-DATABASE_URL=postgresql://rfiduser:rfidpass@localhost:5432/rfid
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/rfid
 MQTT_URL=mqtt://localhost:1883
 PG_SSL=false
 GAMELITE_ADMIN_KEY=dev-admin-key-2024
@@ -351,13 +353,13 @@ npm install
 npm run dev
 ```
 
-### 5. Verify Local Installation
+### 5. Verify Installation
 
 **Check Services:**
 
 ```bash
 # Test PostgreSQL connection
-psql -U rfiduser -d rfid -c "SELECT version();"
+psql -U postgres -d rfid -c "SELECT version();"
 
 # Test MQTT broker
 mosquitto_pub -h localhost -t test/topic -m "Hello MQTT"
@@ -398,9 +400,6 @@ npm run config:prod
 
 # Validate configuration
 npm run validate
-
-# Start entire system (Docker) with fresh config
-npm run start:full
 
 # Start local development with fresh config
 npm run start:local
@@ -523,7 +522,6 @@ npm run validate            # Validate configuration
 
 # Development
 npm run start:local         # Start backend + frontend locally
-npm run start:full          # Start full Docker stack
 npm run dev:backend         # Backend development mode
 npm run dev:frontend        # Frontend development mode
 
@@ -601,28 +599,32 @@ npm run config:staging
 npm run config:prod
 ```
 
-### Docker Deployment
+### Production Setup
 
-**Single Command Deploy:**
+1. **Prepare the server** with PostgreSQL and Mosquitto installed
+2. **Generate production configs**: `npm run config:prod`
+3. **Install dependencies**: `npm run install:all`
+4. **Setup database schema**: Apply `infra/db/schema.sql` to your PostgreSQL instance
+5. **Configure environment**: Update `.env` files with production credentials
+6. **Start services**: Use a process manager like PM2 or systemd
+
+**Example with PM2:**
 ```bash
-cd infra
-docker compose up -d --build
-```
+# Install PM2
+npm install -g pm2
 
-### Cloud Platforms
+# Start backend
+cd apps/backend
+pm2 start npm --name "rfid-backend" -- start
 
-**Vercel (Frontend):**
-```bash
-# Vercel config auto-generated in deployment/vercel.json
-npm run config:prod
-vercel --prod
-```
+# Build and serve frontend
+cd apps/frontend
+npm run build
+pm2 serve dist 5173 --name "rfid-frontend"
 
-**Railway (Full Stack):**
-```bash
-# Railway config auto-generated in deployment/railway.json  
-npm run config:prod
-railway deploy
+# Save PM2 configuration
+pm2 save
+pm2 startup
 ```
 
 ---
@@ -715,8 +717,10 @@ npm install
 
 **Problem:** `Database connection failed`
 ```bash
-# Check database is running
-docker compose ps postgres
+# Check PostgreSQL is running
+sudo systemctl status postgresql  # Linux
+# or
+pg_ctl status  # Windows/macOS
 
 # Check connection details in .env
 cat apps/backend/.env | grep DATABASE
@@ -737,7 +741,8 @@ npm install
 **Problem:** `MQTT connection failed`
 ```bash
 # Check MQTT broker is running
-docker compose ps mosquitto
+sudo systemctl status mosquitto  # Linux
+# or check Mosquitto service in Task Manager/Services (Windows)
 
 # Test MQTT connection
 mosquitto_pub -h localhost -t test/topic -m "test"
@@ -762,21 +767,19 @@ mosquitto_sub -h localhost -t test/topic
 ### System Health Checks
 
 ```bash
-# Check all services
-docker compose ps
-
-# View service logs
-docker compose logs backend
-docker compose logs frontend
-docker compose logs postgres
-docker compose logs mosquitto
-
 # Test API endpoints
 curl http://localhost:4000/health
 curl http://localhost:4000/api/analytics/live
 
 # Test MQTT
 mosquitto_pub -h localhost -t "rfid/test" -m '{"test":"message"}'
+
+# Check PostgreSQL connection
+psql -U rfiduser -d rfid -c "SELECT version();"
+
+# Check Mosquitto status
+sudo systemctl status mosquitto  # Linux
+# or check Services app on Windows
 ```
 
 ---
@@ -800,7 +803,7 @@ mosquitto_pub -h localhost -t "rfid/test" -m '{"test":"message"}'
 
 Your RFID system is ready for immediate use! To get started:
 
-1. **Run the startup script**: `start-system.bat`
+1. **Run the deployment script**: `.\deploy-local.ps1` (see [DEPLOYMENT.md](DEPLOYMENT.md))
 2. **Open the web interface**: http://localhost:5173
 3. **Test MQTT communication**: Use the built-in MQTT monitor
 4. **Flash ESP8266 hardware**: Use auto-generated firmware configs
@@ -830,7 +833,7 @@ docs/
 
 #### **🚀 New Users - Quick Start**
 - Follow the [Quick Start](#-quick-start) section above
-- Use `start-system.bat` for immediate system launch
+- Use `.\deploy-local.ps1` for automated deployment (see [DEPLOYMENT.md](DEPLOYMENT.md))
 - Access web interface at http://localhost:5173
 
 #### **🔧 Developers - Development Setup**
@@ -859,12 +862,12 @@ docs/
 #### **✅ Architecture Quality**
 - **Clean Code**: Well-organized modular structure
 - **Modern Stack**: Node.js, React, PostgreSQL, MQTT with latest versions
-- **Scalable Design**: Microservices architecture with containerization
+- **Scalable Design**: Service-oriented architecture with modular components
 - **Documentation Complete**: Comprehensive guides and API references
 
 #### **✅ Development Experience**
 - **Automated Configuration**: Single master config generates all environment files
-- **Multiple Deployment Options**: Docker, hybrid, and local development setups
+- **Local Development Setup**: Complete local installation with PostgreSQL and Mosquitto
 - **Real-time Monitoring**: Built-in MQTT monitoring and analytics dashboards
 - **Hardware Integration**: Production-ready ESP8266 firmware with auto-configuration
 
