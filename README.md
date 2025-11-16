@@ -59,7 +59,7 @@ start-system.bat
 ### 🛠️ **Developer Experience**
 - **Comprehensive Testing**: 99.9% backend and 100% frontend test success rates
 - **Documentation**: Complete setup guides, API references, and troubleshooting
-- **Modern Stack**: Node.js, React, PostgreSQL, MQTT with containerized deployment
+- **Modern Stack**: Node.js, React, PostgreSQL, MQTT with production-ready components
 - **Configuration Management**: Single master config file generates all environment settings
 
 ## 🏗️ System Architecture
@@ -126,122 +126,21 @@ git clone <repository-url>
 cd rfid_tapping_system
 ```
 
-### 2. Choose Installation Method
-
-- **[Method A: Full Docker Setup](#method-a-full-docker-setup)** (Recommended - Easiest)
-- **[Method B: Hybrid Setup](#method-b-hybrid-setup)** (Docker for services, local for development)
-- **[Method C: Full Local Setup](#method-c-full-local-setup-no-docker)** (No Docker required)
+### 2. Installation
 
 ---
 
 ## 📋 Prerequisites
 
-### Required for All Methods
-
 - **Node.js 18+** and **npm**
 - **Git** for version control
+- **PostgreSQL 14+** database server
+- **Mosquitto** MQTT broker
 - **Arduino IDE** (for ESP8266 firmware flashing)
 
-### Additional Requirements by Method
-
-| Method         | Docker        | PostgreSQL    | MQTT Broker   |
-| -------------- | ------------- | ------------- | ------------- |
-| A: Full Docker | ✅ Required   | ❌ (Included) | ❌ (Included) |
-| B: Hybrid      | ✅ Required   | ❌ (Included) | ❌ (Included) |
-| C: Local Only  | ❌ Not needed | ✅ Required   | ✅ Required   |
-
 ---
 
-## 🔧 Installation Methods
-
-## Method A: Full Docker Setup
-
-*Recommended for beginners and quick prototyping*
-
-### 1. Initialize Configuration
-
-```bash
-# Generate all configuration files
-npm run config:dev
-```
-
-### 2. Start All Services
-
-```bash
-cd infra
-docker compose up -d
-```
-
-### 3. Verify Installation
-
-```bash
-# Check service status
-docker compose ps
-
-# Test API health
-curl http://localhost:4000/health
-
-# View logs
-docker compose logs -f backend
-```
-
-### 4. Access Applications
-
-- **Backend API**: http://localhost:4000
-- **Frontend**: http://localhost:5173
-- **Admin Panel**: http://localhost:5173/admin
-- **Database**: localhost:5432 (postgres/password)
-- **MQTT**: localhost:1883
-
----
-
-## Method B: Hybrid Setup
-
-*Best for development - Docker for services, local for apps*
-
-### 1. Initialize Configuration
-
-```bash
-npm run config:dev
-```
-
-### 2. Start Infrastructure Services Only
-
-```bash
-cd infra
-docker compose up -d postgres mosquitto
-```
-
-### 3. Start Backend Locally
-
-```bash
-cd apps/backend
-npm install
-npm run dev
-```
-
-### 4. Start Frontend Locally (New Terminal)
-
-```bash
-cd apps/frontend
-npm install
-npm run dev
-```
-
-### 5. Verify Installation
-
-```bash
-# Backend health check
-curl http://localhost:4000/health
-
-# Frontend should open automatically at http://localhost:5173
-```
-
----
-
-## Method C: Full Local Setup (No Docker)
-
-*For environments where Docker isn't available*
+## 🔧 Installation
 
 ### 1. Install Prerequisites
 
@@ -351,7 +250,7 @@ npm install
 npm run dev
 ```
 
-### 5. Verify Local Installation
+### 5. Verify Installation
 
 **Check Services:**
 
@@ -398,9 +297,6 @@ npm run config:prod
 
 # Validate configuration
 npm run validate
-
-# Start entire system (Docker) with fresh config
-npm run start:full
 
 # Start local development with fresh config
 npm run start:local
@@ -523,7 +419,6 @@ npm run validate            # Validate configuration
 
 # Development
 npm run start:local         # Start backend + frontend locally
-npm run start:full          # Start full Docker stack
 npm run dev:backend         # Backend development mode
 npm run dev:frontend        # Frontend development mode
 
@@ -601,12 +496,32 @@ npm run config:staging
 npm run config:prod
 ```
 
-### Docker Deployment
+### Production Setup
 
-**Single Command Deploy:**
+1. **Prepare the server** with PostgreSQL and Mosquitto installed
+2. **Generate production configs**: `npm run config:prod`
+3. **Install dependencies**: `npm run install:all`
+4. **Setup database schema**: Apply `infra/db/schema.sql` to your PostgreSQL instance
+5. **Configure environment**: Update `.env` files with production credentials
+6. **Start services**: Use a process manager like PM2 or systemd
+
+**Example with PM2:**
 ```bash
-cd infra
-docker compose up -d --build
+# Install PM2
+npm install -g pm2
+
+# Start backend
+cd apps/backend
+pm2 start npm --name "rfid-backend" -- start
+
+# Build and serve frontend
+cd apps/frontend
+npm run build
+pm2 serve dist 5173 --name "rfid-frontend"
+
+# Save PM2 configuration
+pm2 save
+pm2 startup
 ```
 
 ### Cloud Platforms
@@ -715,8 +630,10 @@ npm install
 
 **Problem:** `Database connection failed`
 ```bash
-# Check database is running
-docker compose ps postgres
+# Check PostgreSQL is running
+sudo systemctl status postgresql  # Linux
+# or
+pg_ctl status  # Windows/macOS
 
 # Check connection details in .env
 cat apps/backend/.env | grep DATABASE
@@ -737,7 +654,8 @@ npm install
 **Problem:** `MQTT connection failed`
 ```bash
 # Check MQTT broker is running
-docker compose ps mosquitto
+sudo systemctl status mosquitto  # Linux
+# or check Mosquitto service in Task Manager/Services (Windows)
 
 # Test MQTT connection
 mosquitto_pub -h localhost -t test/topic -m "test"
@@ -762,21 +680,19 @@ mosquitto_sub -h localhost -t test/topic
 ### System Health Checks
 
 ```bash
-# Check all services
-docker compose ps
-
-# View service logs
-docker compose logs backend
-docker compose logs frontend
-docker compose logs postgres
-docker compose logs mosquitto
-
 # Test API endpoints
 curl http://localhost:4000/health
 curl http://localhost:4000/api/analytics/live
 
 # Test MQTT
 mosquitto_pub -h localhost -t "rfid/test" -m '{"test":"message"}'
+
+# Check PostgreSQL connection
+psql -U rfiduser -d rfid -c "SELECT version();"
+
+# Check Mosquitto status
+sudo systemctl status mosquitto  # Linux
+# or check Services app on Windows
 ```
 
 ---
@@ -859,12 +775,12 @@ docs/
 #### **✅ Architecture Quality**
 - **Clean Code**: Well-organized modular structure
 - **Modern Stack**: Node.js, React, PostgreSQL, MQTT with latest versions
-- **Scalable Design**: Microservices architecture with containerization
+- **Scalable Design**: Service-oriented architecture with modular components
 - **Documentation Complete**: Comprehensive guides and API references
 
 #### **✅ Development Experience**
 - **Automated Configuration**: Single master config generates all environment files
-- **Multiple Deployment Options**: Docker, hybrid, and local development setups
+- **Local Development Setup**: Complete local installation with PostgreSQL and Mosquitto
 - **Real-time Monitoring**: Built-in MQTT monitoring and analytics dashboards
 - **Hardware Integration**: Production-ready ESP8266 firmware with auto-configuration
 
