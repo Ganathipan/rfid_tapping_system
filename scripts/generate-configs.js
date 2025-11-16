@@ -291,61 +291,6 @@ MQTT_PORT=${MQTT.PORT}
 }
 
 // =============================================================================
-// DEPLOYMENT CONFIGURATIONS
-// =============================================================================
-function generateDeploymentConfigs() {
-  console.log('\n🚀 Generating Deployment Configurations...');
-  
-  // Vercel configuration
-  const vercelConfig = {
-    "version": 2,
-    "builds": [
-      {
-        "src": "apps/backend/src/server.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "apps/frontend/package.json",
-        "use": "@vercel/static-build",
-        "config": {
-          "distDir": "dist"
-        }
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "/apps/backend/src/server.js"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/apps/frontend/$1"
-      }
-    ],
-    "env": getFrontendEnv(),
-    "build": {
-      "env": getBackendEnv()
-    }
-  };
-  
-  writeFileWithBackup('../deployment/vercel.json', JSON.stringify(vercelConfig, null, 2));
-  
-  // Railway configuration
-  const railwayConfig = {
-    "$schema": "https://railway.app/railway.schema.json",
-    "build": {
-      "builder": "NIXPACKS"
-    },
-    "deploy": {
-      "numReplicas": 1,
-      "restartPolicyType": "ON_FAILURE"
-    }
-  };
-  
-  writeFileWithBackup('../deployment/railway.json', JSON.stringify(railwayConfig, null, 2));
-}
-
-// =============================================================================
 // DOCUMENTATION GENERATION
 // =============================================================================
 function generateConfigDocumentation() {
@@ -442,8 +387,6 @@ This configuration generates the following files:
 - \`firmware/config/reader-*-config.h\` - Individual reader configurations
 - \`infra/docker-compose.yml\` - Docker Compose configuration
 - \`infra/.env\` - Docker environment variables
-- \`vercel.json\` - Vercel deployment configuration
-- \`railway.json\` - Railway deployment configuration
 
 ## Usage
 
@@ -476,7 +419,6 @@ function main() {
     generateFrontendConfig();
     generateFirmwareConfigs();
     generateDockerConfig();
-    generateDeploymentConfigs();
     generateConfigDocumentation();
     
     console.log('\n✅ Configuration generation completed successfully!');
@@ -502,6 +444,5 @@ module.exports = {
   generateFrontendConfig,
   generateFirmwareConfigs,
   generateDockerConfig,
-  generateDeploymentConfigs,
   generateConfigDocumentation
 };
