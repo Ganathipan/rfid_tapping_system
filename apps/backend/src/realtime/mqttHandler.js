@@ -1,7 +1,8 @@
 const mqtt = require('mqtt');
 const pool = require('../db/pool');
-const { MQTT_URL } = require('../config/env');
+const { getMqttUrl } = require('../../../../config/master-config.js');
 
+const MQTT_URL = getMqttUrl();
 const TOPIC = 'rfid/#';
 
 // Don't connect to MQTT during tests
