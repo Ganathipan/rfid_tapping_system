@@ -23,11 +23,13 @@ This RFID system is **100% complete and launch-ready** with comprehensive testin
 
 ### 🔧 **Quick Start**
 ```powershell
-# 1. Edit lines 10-20 in the script (database password, etc.)
-notepad deploy-local.ps1
-
-# 2. Run deployment
+# Run deployment with default settings
 .\deploy-local.ps1
+
+# Or customize with parameters
+.\deploy-local.ps1 -PgPassword "YourPassword" -BackendPort 4000
+
+# When done, press ENTER to automatically cleanup all services
 ```
 
 **System URLs After Startup:**
@@ -36,7 +38,9 @@ notepad deploy-local.ps1
 - **Database**: localhost:5432 (PostgreSQL)
 - **MQTT Broker**: localhost:1883 (Mosquitto)
 
-> 📖 First-time users: Edit only the configuration variables at the top of `deploy-local.ps1` (lines 10-20). See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+**Automatic Cleanup:** Press ENTER when finished to stop all services, close windows, stop Mosquitto, and drop database (unless `-NoDropDb` specified).
+
+> 📖 First-time users: Use command-line parameters to configure (see `.\deploy-local.ps1 -?` or [DEPLOYMENT.md](DEPLOYMENT.md) for all options).
 
 ## ✨ Core Features & Capabilities
 
@@ -125,29 +129,41 @@ This system enables real-time tracking of RFID card interactions across multiple
 
 **For first-time users:**
 
-1. **Edit configuration** - Open the script and change lines 10-20:
-   ```powershell
-   notepad deploy-local.ps1
-   ```
-   Update these variables:
-   - `$DbName` - Database name (default: 'rfid')
-   - `$DbHost` - Database host (default: 'localhost')
-   - `$DbPort` - Database port (default: 5432)
-   - `$DbUser` - Database user (default: 'postgres')
-   - `$PgPassword` - **Database password (CHANGE THIS!)**
-   - Network settings (ports for backend, frontend, MQTT)
-
-2. **Run deployment**:
+1. **Run deployment with default settings**:
    ```powershell
    .\deploy-local.ps1
    ```
 
+   **Or customize with parameters**:
+   ```powershell
+   # Change database password
+   .\deploy-local.ps1 -PgPassword "YourSecurePassword"
+   
+   # Use different ports
+   .\deploy-local.ps1 -BackendPort 8080 -FrontendPort 3000
+   
+   # Skip database initialization
+   .\deploy-local.ps1 -NoInitDb
+   
+   # Keep database on cleanup
+   .\deploy-local.ps1 -NoDropDb
+   ```
+
 The script automatically:
+- Verifies all prerequisites (PostgreSQL, Node.js, npm)
 - Generates all configuration files (.env files)
 - Initializes PostgreSQL database with schema and seed data
 - Starts Mosquitto MQTT broker
 - Launches backend API server
 - Launches frontend application
+- Waits for all services to be ready
+
+**When finished, press ENTER to automatically:**
+- Stop all Node.js processes (backend & frontend)
+- Close spawned PowerShell windows
+- Stop Mosquitto MQTT broker
+- Drop database (unless `-NoDropDb` specified)
+- Clean up all resources
 
 **System URLs After Deployment:**
 - **Frontend**: http://localhost:5173
@@ -155,7 +171,7 @@ The script automatically:
 - **Database**: localhost:5432
 - **MQTT Broker**: localhost:1883
 
-> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for advanced options and troubleshooting.
+> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for all parameters, advanced options and troubleshooting.
 
 ### Manual Setup
 

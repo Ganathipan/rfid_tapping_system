@@ -1,71 +1,114 @@
+param(
+  [string] $DbName = 'rfid',
+  [string] $DbHost = 'localhost',
+  [int]    $DbPort = 5432,
+  [string] $DbUser = 'postgres',
+  [string] $PgPassword = 'Gana11602',
+  [string] $NetworkIP = 'localhost',
+  [int]    $BackendPort = 4000,
+  [int]    $FrontendPort = 5173,
+  [int]    $MqttPort = 1883,
+  [switch] $NoInitDb,
+  [switch] $NoDropDb,
+  [switch] $NoMqtt,
+  [switch] $SkipFrontend,
+  [switch] $SkipBackend,
+  [switch] $ProdMode,
+  [switch] $NoConfig
+)
+
 # ============================================================================
 # RFID Tapping System - Local Deployment Script
 # ============================================================================
+# This script launches all components of the RFID system:
+# - PostgreSQL Database initialization
+# - MQTT Broker (Mosquitto)
+# - Backend API Server (Node.js/Express)
+# - Frontend Web Application (React/Vite)
 # 
-# FIRST TIME USERS: Edit the configuration variables below (lines 10-20)
-# Then run this script: .\deploy-local.ps1
-#
-# ============================================================================
-
-# ============================================================================
-# CONFIGURATION - EDIT THESE VALUES
-# ============================================================================
-# Change these values to match your environment
-$DbName = 'rfid'                    # Database name
-$DbHost = 'localhost'               # Database host  
-$DbPort = 5432                      # Database port
-$DbUser = 'postgres'                # Database user
-$PgPassword = 'Gana11602'           # Database password (CHANGE THIS!)
-
-$NetworkIP = 'localhost'            # Network IP for services
-$BackendPort = 4000                 # Backend API port
-$FrontendPort = 5173                # Frontend dev server port
-$MqttPort = 1883                    # MQTT broker port
-
-# ============================================================================
-# ADVANCED OPTIONS (Optional - uncomment to use)
-# ============================================================================
-# $NoInitDb = $true                 # Skip database initialization
-# $NoDropDb = $true                 # Don't drop existing database
-# $NoMqtt = $true                   # Skip MQTT broker startup
-# $SkipFrontend = $true             # Don't start frontend
-# $SkipBackend = $true              # Don't start backend
-# $ProdMode = $true                 # Run in production mode
-# $NoConfig = $true                 # Skip config file generation
-
-# ============================================================================
-# DO NOT EDIT BELOW THIS LINE - Script implementation starts here
+# Usage: .\deploy-local.ps1 [-NoInitDb] [-NoDropDb] [-NoMqtt] [-SkipBackend] [-SkipFrontend] [-ProdMode] [-NoConfig]
 # ============================================================================
 
 $env:PGPASSWORD = $PgPassword
 $ErrorActionPreference = 'Stop'
 
-# --- Color Output Functions ---
-function Write-Header {
-  param([string]$Message)
-  Write-Host "`n============================================================================" -ForegroundColor Cyan
-  Write-Host $Message -ForegroundColor Cyan
-  Write-Host "============================================================================`n" -ForegroundColor Cyan
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+function Write-Header($Message, $Color = 'Cyan') {
+  Write-Host ""
+  Write-Host ("=" * 76) -ForegroundColor $Color
+  Write-Host " $Message" -ForegroundColor $Color
+  Write-Host ("=" * 76) -ForegroundColor $Color
 }
 
-function Write-Step {
-  param([string]$Message)
-  Write-Host "▶ $Message" -ForegroundColor Yellow
+function Write-Step($Message, $Color = 'Yellow') {
+  Write-Host ""
+  Write-Host "> $Message" -ForegroundColor $Color
 }
 
-function Write-Success {
-  param([string]$Message)
+function Write-Success($Message) {
   Write-Host "[OK] $Message" -ForegroundColor Green
 }
 
-function Write-Warning {
-  param([string]$Message)
-  Write-Host "⚠ $Message" -ForegroundColor Yellow
+function Write-Warning($Message) {
+  Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
-function Write-Error {
-  param([string]$Message)
+function Write-Error($Message) {
   Write-Host "[ERROR] $Message" -ForegroundColor Red
+}
+
+function Ensure-Command($CommandName) {
+  if (-not (Get-Command $CommandName -ErrorAction SilentlyContinue)) {
+    throw "$CommandName not found on PATH. Please install $CommandName first."
+  }
+}
+
+function Test-Port($Port, $HostName = 'localhost') {
+  try {
+    $tcpClient = New-Object System.Net.Sockets.TcpClient
+    $tcpClient.ReceiveTimeout = 3000
+    $tcpClient.SendTimeout = 3000
+    
+    $connectTask = $tcpClient.ConnectAsync($HostName, $Port)
+    $completed = $connectTask.Wait(3000)
+    
+    if ($completed -and $tcpClient.Connected) {
+      $tcpClient.Close()
+      return $true
+    } else {
+      $tcpClient.Close()
+      return $false
+    }
+  } catch {
+    return $false
+  }
+}
+
+function Wait-ForPort($Port, $HostName = 'localhost', $TimeoutSeconds = 30) {
+  $elapsed = 0
+  Write-Step "Waiting for $HostName`:$Port to be available..."
+  
+  while ($elapsed -lt $TimeoutSeconds) {
+    if (Test-Port -Port $Port -HostName $HostName) {
+      Write-Host ""
+      Write-Success "Service available on $HostName`:$Port"
+      return $true
+    }
+    Start-Sleep -Milliseconds 500
+    $elapsed += 0.5
+    Write-Host "." -NoNewline -ForegroundColor DarkGray
+    
+    if (($elapsed % 5) -eq 0) {
+      Write-Host " ($elapsed/$TimeoutSeconds)s" -NoNewline -ForegroundColor DarkGray
+    }
+  }
+  
+  Write-Host ""
+  Write-Error "Timeout waiting for $HostName`:$Port after $TimeoutSeconds seconds"
+  return $false
 }
 
 # --- Path Configuration ---
@@ -97,14 +140,37 @@ $MosquittoPaths = @(
   "C:\mosquitto\mosquitto.exe",
   "mosquitto.exe"
 )
-$MosquittoPath = $MosquittoPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+$MosquittoPath = $MosquittoPaths | Where-Object { 
+  if ($_ -eq "mosquitto.exe") { Get-Command $_ -ErrorAction SilentlyContinue }
+  else { Test-Path $_ }
+} | Select-Object -First 1
 
 # ============================================================================
 # MAIN EXECUTION
 # ============================================================================
 
-Write-Header "RFID Tapping System - Local Deployment"
+Write-Header "RFID Tapping System - Local Deployment" 'Green'
+Write-Host "Network IP: $NetworkIP" -ForegroundColor White
+Write-Host "Database: $DbHost`:$DbPort/$DbName" -ForegroundColor White
+Write-Host "Mode: $(if ($ProdMode) { 'Production' } else { 'Development' })" -ForegroundColor White
 
+# Preflight checks
+Write-Header "Preflight Checks"
+try {
+  Ensure-Command 'psql'
+  Ensure-Command 'npm'
+  Ensure-Command 'node'
+  
+  if (-not (Test-Path $BackendDir))  { throw "Backend directory not found: $BackendDir" }
+  if (-not (Test-Path $FrontendDir)) { throw "Frontend directory not found: $FrontendDir" }
+  
+  Write-Success "All dependencies verified"
+} catch {
+  Write-Error "Preflight check failed: $($_.Exception.Message)"
+  exit 1
+}
+
+Write-Host ""
 Write-Host "Configuration:" -ForegroundColor Cyan
 Write-Host "  Database:  ${DbHost}:${DbPort}/${DbName} (user: $DbUser)" -ForegroundColor Gray
 Write-Host "  Backend:   http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
@@ -180,7 +246,10 @@ if (-not $NoInitDb) {
   if (-not $NoDropDb) {
     Write-Step "Dropping existing database '$DbName' (if exists)..."
     try {
-      psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "DROP DATABASE IF EXISTS $DbName" 2>&1 | Out-Null
+      # Terminate active connections first
+      $null = psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$DbName' AND pid <> pg_backend_pid();" 2>&1
+      # Drop database
+      psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "DROP DATABASE IF EXISTS `"$DbName`"" 2>&1 | Out-Null
       Write-Success "Database dropped (if existed)"
     }
     catch {
@@ -191,7 +260,7 @@ if (-not $NoInitDb) {
   # Create database
   Write-Step "Creating database '$DbName'..."
   try {
-    psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "CREATE DATABASE $DbName" 2>&1 | Out-Null
+    psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "CREATE DATABASE `"$DbName`"" 2>&1 | Out-Null
     Write-Success "Database '$DbName' created"
   }
   catch {
@@ -307,6 +376,13 @@ if (-not $SkipBackend) {
   Pop-Location
   Write-Success "Backend server starting in new window"
   Write-Host "  URL: http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
+  
+  # Wait for backend to start
+  if (Wait-ForPort -Port $BackendPort -HostName $NetworkIP -TimeoutSeconds 30) {
+    Write-Success "Backend server is responding"
+  } else {
+    Write-Warning "Backend server may not have started properly"
+  }
 }
 else {
   Write-Warning 'Skipping backend startup (--SkipBackend)'
@@ -348,6 +424,13 @@ if (-not $SkipFrontend) {
   Pop-Location
   Write-Success "Frontend server starting in new window"
   Write-Host "  URL: http://$NetworkIP`:$FrontendPort" -ForegroundColor Gray
+  
+  # Wait for frontend to start
+  if (Wait-ForPort -Port $FrontendPort -HostName $NetworkIP -TimeoutSeconds 30) {
+    Write-Success "Frontend server is responding"
+  } else {
+    Write-Warning "Frontend server may not have started properly"
+  }
 }
 else {
   Write-Warning 'Skipping frontend startup (--SkipFrontend)'
@@ -372,8 +455,95 @@ Write-Host "  2. Open http://$NetworkIP`:$FrontendPort in your browser" -Foregro
 Write-Host "  3. Check backend health at http://$NetworkIP`:$BackendPort/health" -ForegroundColor Gray
 Write-Host ""
 
-Write-Host "To stop all services:" -ForegroundColor Yellow
-Write-Host "  - Close the backend and frontend PowerShell windows" -ForegroundColor Gray
-Write-Host "  - Stop Mosquitto (requires admin): taskkill /IM mosquitto.exe /F" -ForegroundColor Gray
-Write-Host "    Or run PowerShell as Administrator and use: Get-Process mosquitto | Stop-Process" -ForegroundColor Gray
+Write-Host "Press ENTER to stop all services and cleanup..." -ForegroundColor Yellow
+[void](Read-Host)
+
+# ============================================================================
+# CLEANUP
+# ============================================================================
+
+Write-Header "Shutting Down Services" 'Magenta'
+
+# Stop backend and frontend PowerShell windows
+Write-Step "Stopping backend and frontend servers..."
+try {
+  $nodeProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue
+  if ($nodeProcesses) {
+    Write-Step "Found $($nodeProcesses.Count) Node.js process(es), stopping them..."
+    foreach ($nodeProc in $nodeProcesses) {
+      try {
+        Stop-Process -Id $nodeProc.Id -Force -ErrorAction Stop
+        Write-Success "Stopped Node.js process PID: $($nodeProc.Id)"
+      } catch {
+        Write-Warning "Could not stop Node.js process PID $($nodeProc.Id): $($_.Exception.Message)"
+      }
+    }
+  } else {
+    Write-Success "No Node.js processes found"
+  }
+} catch {
+  Write-Warning "Error checking Node.js processes: $($_.Exception.Message)"
+}
+
+# Stop PowerShell windows that were spawned
+Write-Step "Closing spawned PowerShell windows..."
+try {
+  $currentPid = $PID
+  $powershellProcesses = Get-Process -Name "powershell" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $currentPid }
+  if ($powershellProcesses) {
+    foreach ($psProc in $powershellProcesses) {
+      try {
+        Stop-Process -Id $psProc.Id -Force -ErrorAction Stop
+        Write-Success "Stopped PowerShell process PID: $($psProc.Id)"
+      } catch {
+        Write-Warning "Could not stop PowerShell process PID $($psProc.Id): $($_.Exception.Message)"
+      }
+    }
+  }
+} catch {
+  Write-Warning "Error checking PowerShell processes: $($_.Exception.Message)"
+}
+
+# Stop MQTT Broker (Mosquitto)
+if (-not $NoMqtt) {
+  Write-Step "Stopping MQTT broker..."
+  try {
+    $mqttProcesses = Get-Process -Name "mosquitto" -ErrorAction SilentlyContinue
+    if ($mqttProcesses) {
+      foreach ($mqttProc in $mqttProcesses) {
+        try {
+          Stop-Process -Id $mqttProc.Id -Force -ErrorAction Stop
+          Write-Success "Stopped Mosquitto process PID: $($mqttProc.Id)"
+        } catch {
+          Write-Warning "Could not stop Mosquitto process PID $($mqttProc.Id): $($_.Exception.Message)"
+          Write-Host "  Try running as Administrator or use: taskkill /IM mosquitto.exe /F" -ForegroundColor Yellow
+        }
+      }
+    } else {
+      Write-Success "No Mosquitto processes found"
+    }
+  } catch {
+    Write-Warning "Error checking Mosquitto processes: $($_.Exception.Message)"
+  }
+}
+
+# Drop database if requested
+if (-not $NoDropDb) {
+  Write-Step "Dropping database '$DbName'..."
+  try {
+    # Terminate active connections first
+    $null = psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$DbName' AND pid <> pg_backend_pid();" 2>&1
+    # Drop database
+    psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "DROP DATABASE IF EXISTS `"$DbName`"" 2>&1 | Out-Null
+    Write-Success "Database '$DbName' dropped successfully"
+  } catch {
+    Write-Warning "Could not drop database: $($_.Exception.Message)"
+  }
+} else {
+  Write-Warning "Keeping database '$DbName' (-NoDropDb specified)"
+}
+
+Write-Host ""
+Write-Header "Cleanup Complete" 'Green'
+Write-Host "All services stopped. Thank you for using RFID Tapping System!" -ForegroundColor Green
 Write-Host ""

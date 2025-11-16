@@ -1,66 +1,68 @@
 # Local Deployment Script
 
-Simple PowerShell script for easy local deployment of the RFID Tapping System.
+Simple PowerShell script for easy local deployment of the RFID Tapping System with automatic cleanup on exit.
 
 ## Quick Start
 
 ### For First-Time Users
 
-1. **Edit configuration variables** (lines 10-20 in the script):
-   ```powershell
-   notepad deploy-local.ps1
-   ```
-   Change these values:
-   - `$DbName` - Database name (default: 'rfid')
-   - `$DbHost` - Database host (default: 'localhost')
-   - `$DbPort` - Database port (default: 5432)
-   - `$DbUser` - Database user (default: 'postgres')
-   - `$PgPassword` - **Database password (CHANGE THIS!)**
-   - Network settings (ports for backend, frontend, MQTT)
-
-2. **Run deployment**:
+1. **Run deployment**:
    ```powershell
    .\deploy-local.ps1
    ```
 
+   Or with custom settings:
+   ```powershell
+   .\deploy-local.ps1 -PgPassword "YourPassword" -BackendPort 4000
+   ```
+
 That's it! The script will:
+- Verify all prerequisites (PostgreSQL, Node.js, npm)
 - Generate configuration files (.env files)
 - Initialize the PostgreSQL database
 - Start the MQTT broker (Mosquitto)
 - Launch the backend API server
 - Launch the frontend application
+- Wait for all services to be ready
 
-## Configuration Variables
+**When you're done, press ENTER to automatically:**
+- Stop all Node.js processes (backend & frontend)
+- Close spawned PowerShell windows
+- Stop Mosquitto MQTT broker
+- Drop the database (unless `-NoDropDb` specified)
+- Clean up all resources
 
-Edit these at the top of `deploy-local.ps1` (lines 10-20):
+## Command-Line Parameters
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `$DbName` | `rfid` | PostgreSQL database name |
-| `$DbHost` | `localhost` | Database server host |
-| `$DbPort` | `5432` | Database server port |
-| `$DbUser` | `postgres` | Database user |
-| `$PgPassword` | `CHANGE_ME` | Database password (⚠️ **MUST CHANGE THIS!**) |
-| `$NetworkIP` | `localhost` | Network IP for services |
-| `$BackendPort` | `4000` | Backend API port |
-| `$FrontendPort` | `5173` | Frontend dev server port |
-| `$MqttPort` | `1883` | MQTT broker port |
+All configuration is now done via command-line parameters (no need to edit the script):
 
-## Deployment Options
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-DbName` | string | `rfid` | PostgreSQL database name |
+| `-DbHost` | string | `localhost` | Database server host |
+| `-DbPort` | int | `5432` | Database server port |
+| `-DbUser` | string | `postgres` | Database user |
+| `-PgPassword` | string | `Gana11602` | Database password ⚠️ **Change this!** |
+| `-NetworkIP` | string | `localhost` | Network IP for services |
+| `-BackendPort` | int | `4000` | Backend API port |
+| `-FrontendPort` | int | `5173` | Frontend dev server port |
+| `-MqttPort` | int | `1883` | MQTT broker port |
 
-Uncomment these in `deploy-local.ps1` to customize behavior:
+## Deployment Switches
 
-| Option | Description |
+Control deployment behavior with these switches:
+
+| Switch | Description |
 |--------|-------------|
-| `$NoInitDb = $true` | Skip database initialization |
-| `$NoDropDb = $true` | Don't drop existing database before creating |
-| `$NoMqtt = $true` | Skip MQTT broker startup |
-| `$SkipFrontend = $true` | Don't start frontend |
-| `$SkipBackend = $true` | Don't start backend |
-| `$ProdMode = $true` | Run in production mode |
-| `$NoConfig = $true` | Skip config file generation |
+| `-NoInitDb` | Skip database initialization |
+| `-NoDropDb` | Don't drop existing database (keeps data on cleanup) |
+| `-NoMqtt` | Skip MQTT broker startup |
+| `-SkipFrontend` | Don't start frontend |
+| `-SkipBackend` | Don't start backend |
+| `-ProdMode` | Run in production mode |
+| `-NoConfig` | Skip config file generation |
 
-## Examples
+## Usage Examples
 
 ### Basic deployment with default settings:
 ```powershell
@@ -68,38 +70,38 @@ Uncomment these in `deploy-local.ps1` to customize behavior:
 ```
 
 ### Change database password:
-Edit `deploy-local.ps1` and set:
 ```powershell
-$PgPassword = 'MySecurePassword123'
+.\deploy-local.ps1 -PgPassword "MySecurePassword123"
 ```
 
 ### Skip database initialization (if already set up):
-Edit `deploy-local.ps1` and uncomment:
 ```powershell
-$NoInitDb = $true
+.\deploy-local.ps1 -NoInitDb
+```
+
+### Keep database when cleaning up:
+```powershell
+.\deploy-local.ps1 -NoDropDb
 ```
 
 ### Use different ports:
-Edit `deploy-local.ps1` and set:
 ```powershell
-$BackendPort = 8080
-$FrontendPort = 3000
-$MqttPort = 1884
+.\deploy-local.ps1 -BackendPort 8080 -FrontendPort 3000 -MqttPort 1884
 ```
 
-### Direct command-line usage:
+### Production mode with custom settings:
 ```powershell
-# Full deployment with custom settings
-.\start-local.ps1 -DbPassword "MyPassword" -BackendPort 8080 -FrontendPort 3000
+.\deploy-local.ps1 -ProdMode -PgPassword "ProductionPassword" -NoDropDb
+```
 
-# Skip database init and MQTT
-.\start-local.ps1 -NoInitDb -NoMqtt
+### Skip database init and MQTT:
+```powershell
+.\deploy-local.ps1 -NoInitDb -NoMqtt
+```
 
-# Production mode
-.\start-local.ps1 -ProdMode
-
-# Don't drop database before creating
-.\start-local.ps1 -NoDropDb
+### Multiple options combined:
+```powershell
+.\deploy-local.ps1 -DbName my_rfid -PgPassword "Pass123" -BackendPort 8080 -NoDropDb -NoConfig
 ```
 
 ## Prerequisites
@@ -129,16 +131,19 @@ After deployment completes, access:
 - **Database**: postgresql://postgres@localhost:5432/rfid
 - **MQTT**: mqtt://localhost:1883
 
-## Stopping the System
+## Automatic Cleanup on Exit
 
-To stop all services:
+When you press ENTER after deployment, the script automatically:
 
-1. Close the backend PowerShell window
-2. Close the frontend PowerShell window
-3. Stop Mosquitto:
-   ```powershell
-   Get-Process mosquitto | Stop-Process
-   ```
+1. **Stops all Node.js processes** - Backend and frontend servers
+2. **Closes PowerShell windows** - Any spawned service windows
+3. **Stops Mosquitto** - MQTT broker (requires admin rights)
+4. **Drops database** - Unless `-NoDropDb` was specified
+5. **Terminates connections** - All active database sessions
+
+**Note:** Stopping Mosquitto may require administrator privileges. If you get an "Access Denied" error:
+- The script will show a warning but continue with other cleanup
+- Manually stop Mosquitto by running PowerShell as Administrator: `taskkill /IM mosquitto.exe /F`
 
 ## Troubleshooting
 

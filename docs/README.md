@@ -133,11 +133,13 @@ graph LR
 **One command deployment:**
 
 ```powershell
-# Edit configuration (database password, etc.)
-notepad deploy-local.ps1
-
-# Deploy the entire system
+# Run with default settings
 .\deploy-local.ps1
+
+# Or customize with parameters
+.\deploy-local.ps1 -PgPassword "YourPassword" -BackendPort 4000
+
+# When done, press ENTER to automatically cleanup everything
 ```
 
 **Access your system:**
@@ -146,7 +148,9 @@ notepad deploy-local.ps1
 - 💾 **Database**: localhost:5432
 - 📡 **MQTT**: localhost:1883
 
-> 📖 **Need more details?** Check the [complete documentation](../README.md) in the main repository.
+**Automatic Cleanup:** Press ENTER when finished to stop all services, close windows, stop Mosquitto, and drop database (unless `-NoDropDb` specified).
+
+> 📖 **Need more details?** Check the [complete documentation](../README.md) or [deployment guide](../DEPLOYMENT.md) for all available parameters and options.
 
 </div>
 
