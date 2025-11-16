@@ -175,6 +175,70 @@ For manual step-by-step installation, follow the detailed [Installation](#-insta
 
 ## 🔧 Installation
 
+### Option 1: Automated Installation (Recommended)
+
+**Using the deployment script:**
+
+1. **Install Prerequisites:**
+   
+   **Windows:**
+   ```powershell
+   # Install PostgreSQL
+   winget install PostgreSQL.PostgreSQL
+   
+   # Install MQTT Broker (Mosquitto)
+   winget install EclipseMosquitto.Mosquitto
+   
+   # Install Node.js 18+ (if not already installed)
+   winget install OpenJS.NodeJS
+   ```
+   
+   **macOS:**
+   ```bash
+   # Using Homebrew
+   brew install postgresql mosquitto node
+   brew services start postgresql
+   brew services start mosquitto
+   ```
+   
+   **Ubuntu/Debian:**
+   ```bash
+   sudo apt update
+   sudo apt install postgresql postgresql-contrib mosquitto mosquitto-clients nodejs npm
+   sudo systemctl start postgresql
+   sudo systemctl start mosquitto
+   ```
+
+2. **Configure and Deploy:**
+   
+   ```powershell
+   # Edit lines 10-20 in the script (database password, ports, etc.)
+   notepad deploy-local.ps1
+   
+   # Run automated deployment
+   .\deploy-local.ps1
+   ```
+
+The script automatically:
+- Generates all configuration files (.env files)
+- Creates and initializes the PostgreSQL database
+- Starts Mosquitto MQTT broker
+- Installs dependencies for backend and frontend
+- Launches backend API server
+- Launches frontend application
+
+**System URLs after deployment:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:4000
+- **Database**: postgresql://postgres@localhost:5432/rfid
+- **MQTT Broker**: mqtt://localhost:1883
+
+---
+
+### Option 2: Manual Installation (Advanced)
+
+For users who prefer step-by-step manual setup:
+
 ### 1. Install Prerequisites
 
 **Windows:**
@@ -215,39 +279,45 @@ sudo systemctl start mosquitto
 
 ```bash
 # Login as postgres user
-psql -U postgres #here postgres is the password
+psql -U postgres
 
 # In PostgreSQL shell:
 CREATE DATABASE rfid;
-CREATE USER rfiduser WITH PASSWORD 'rfidpass';
-GRANT ALL PRIVILEGES ON DATABASE rfid TO rfiduser;
 \q
 ```
 
 **Import Schema:**
 
 ```bash
+# Set PostgreSQL password as environment variable
+export PGPASSWORD=your_postgres_password
+
 # Import database schema
-psql -U rfiduser -d rfid -f infra/db/schema.sql
+psql -U postgres -d rfid -f infra/db/schema.sql
 ```
 
 ### 3. Configure Environment
 
-**Initialize Configuration System:**
+**Generate Configuration Files:**
 
 ```bash
 # Generate configuration files for local setup
 npm run config:dev
 ```
 
-**Manual Configuration (if needed):**
+This will automatically create:
+- `apps/backend/.env`
+- `apps/frontend/.env`
+- `firmware/config.h`
+
+**Or manually create configuration files:**
 
 Create `apps/backend/.env`:
 
 ```env
 NODE_ENV=development
 PORT=4000
-DATABASE_URL=postgresql://rfiduser:rfidpass@localhost:5432/rfid
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/rfid
 MQTT_URL=mqtt://localhost:1883
 PG_SSL=false
 GAMELITE_ADMIN_KEY=dev-admin-key-2024
@@ -289,7 +359,7 @@ npm run dev
 
 ```bash
 # Test PostgreSQL connection
-psql -U rfiduser -d rfid -c "SELECT version();"
+psql -U postgres -d rfid -c "SELECT version();"
 
 # Test MQTT broker
 mosquitto_pub -h localhost -t test/topic -m "Hello MQTT"
