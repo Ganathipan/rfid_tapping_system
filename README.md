@@ -22,12 +22,12 @@ This RFID system is **100% complete and launch-ready** with comprehensive testin
 - **Configuration Management**: Centralized config system for all environments
 
 ### 🔧 **Quick Start**
-```bash
-# Option 1: Simple startup (Recommended)
-start-system.bat
+```powershell
+# 1. Edit configuration (set database password, ports, etc.)
+notepad deploy-local.ps1
 
-# Option 2: PowerShell version
-.\start-system.ps1
+# 2. Run deployment
+.\deploy-local.ps1
 ```
 
 **System URLs After Startup:**
@@ -35,6 +35,8 @@ start-system.bat
 - **Backend API**: http://localhost:4000 (REST endpoints)
 - **Database**: localhost:5432 (PostgreSQL)
 - **MQTT Broker**: localhost:1883 (Mosquitto)
+
+> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and configuration options.
 
 ## ✨ Core Features & Capabilities
 
@@ -119,6 +121,29 @@ This system enables real-time tracking of RFID card interactions across multiple
 
 ## 🚀 Quick Start
 
+### Option 1: Automated Deployment (Recommended)
+
+**Windows PowerShell:**
+
+```powershell
+# 1. Edit configuration variables
+notepad deploy-local.ps1
+
+# 2. Run automated deployment
+.\deploy-local.ps1
+```
+
+This script automatically:
+- Generates all configuration files
+- Initializes PostgreSQL database with schema and seed data
+- Starts Mosquitto MQTT broker
+- Launches backend API server
+- Launches frontend application
+
+**See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.**
+
+### Option 2: Manual Setup
+
 ### 1. Clone Repository
 
 ```bash
@@ -126,7 +151,9 @@ git clone <repository-url>
 cd rfid_tapping_system
 ```
 
-### 2. Installation
+### 2. Manual Installation
+
+Follow the detailed [Installation](#-installation) section below for manual setup steps.
 
 ---
 
@@ -700,7 +727,7 @@ sudo systemctl status mosquitto  # Linux
 
 Your RFID system is ready for immediate use! To get started:
 
-1. **Run the startup script**: `start-system.bat`
+1. **Run the deployment script**: `.\deploy-local.ps1` (see [DEPLOYMENT.md](DEPLOYMENT.md))
 2. **Open the web interface**: http://localhost:5173
 3. **Test MQTT communication**: Use the built-in MQTT monitor
 4. **Flash ESP8266 hardware**: Use auto-generated firmware configs
@@ -730,7 +757,7 @@ docs/
 
 #### **🚀 New Users - Quick Start**
 - Follow the [Quick Start](#-quick-start) section above
-- Use `start-system.bat` for immediate system launch
+- Use `.\deploy-local.ps1` for automated deployment (see [DEPLOYMENT.md](DEPLOYMENT.md))
 - Access web interface at http://localhost:5173
 
 #### **🔧 Developers - Development Setup**

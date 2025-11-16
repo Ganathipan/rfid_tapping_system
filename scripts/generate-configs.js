@@ -197,100 +197,6 @@ ${generateArduinoConfig(8)}
 }
 
 // =============================================================================
-// DOCKER COMPOSE CONFIGURATION
-// =============================================================================
-function generateDockerConfig() {
-  console.log('\n🐳 Generating Docker Configuration...');
-  
-  const { DATABASE, BACKEND, MQTT } = config.NETWORK;
-  const { GAME_LITE_ADMIN_KEY } = config.SECURITY;
-  
-  const dockerComposeContent = `version: "3.9"
-services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_PASSWORD: ${DATABASE.PASSWORD}
-      POSTGRES_DB: ${DATABASE.NAME}
-      POSTGRES_USER: ${DATABASE.USERNAME}
-    ports: ["${DATABASE.PORT}:5432"]
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
-    networks: [rfid-network]
-
-  mosquitto:
-    image: eclipse-mosquitto:2
-    command: mosquitto -c /mosquitto-no-auth/mosquitto.conf
-    volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto-no-auth/mosquitto.conf:ro
-    ports: ["${MQTT.PORT}:1883"]
-    networks: [rfid-network]
-
-  backend:
-    build:
-      context: ../apps/backend
-      dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=${ENVIRONMENT}
-      - PORT=${BACKEND.PORT}
-      - DATABASE_URL=postgresql://${DATABASE.USERNAME}:${DATABASE.PASSWORD}@postgres:5432/${DATABASE.NAME}
-      - PG_SSL=${DATABASE.SSL}
-      - MQTT_URL=mqtt://mosquitto:1883
-      - GAMELITE_ADMIN_KEY=${GAME_LITE_ADMIN_KEY}
-    depends_on: [postgres, mosquitto]
-    ports: ["${BACKEND.PORT}:${BACKEND.PORT}"]
-    networks: [rfid-network]
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ../apps/frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE=http://backend:${BACKEND.PORT}
-    ports: ["8080:80"]
-    depends_on: [backend]
-    networks: [rfid-network]
-    restart: unless-stopped
-
-volumes:
-  pgdata:
-
-networks:
-  rfid-network:
-    driver: bridge
-`;
-
-  writeFileWithBackup('../infra/docker-compose.yml', dockerComposeContent);
-  
-  // Generate environment file for Docker Compose
-  const dockerEnvContent = `# Docker Compose Environment Variables
-# Auto-generated from master-config.js
-# Environment: ${ENVIRONMENT}
-# Generated: ${new Date().toISOString()}
-
-COMPOSE_PROJECT_NAME=rfid-system
-NODE_ENV=${ENVIRONMENT}
-
-# Database
-POSTGRES_PASSWORD=${DATABASE.PASSWORD}
-POSTGRES_DB=${DATABASE.NAME}
-POSTGRES_USER=${DATABASE.USERNAME}
-
-# Backend
-BACKEND_PORT=${BACKEND.PORT}
-GAMELITE_ADMIN_KEY=${GAME_LITE_ADMIN_KEY}
-
-# MQTT
-MQTT_PORT=${MQTT.PORT}
-`;
-
-  writeFileWithBackup('./infra/.env', dockerEnvContent);
-}
-
-// =============================================================================
 // DOCUMENTATION GENERATION
 // =============================================================================
 function generateConfigDocumentation() {
@@ -385,8 +291,6 @@ This configuration generates the following files:
 - \`apps/frontend/src/config.js\` - Frontend configuration module
 - \`firmware/esp01_rdm6300_mqtt/config.h\` - Arduino configuration header
 - \`firmware/config/reader-*-config.h\` - Individual reader configurations
-- \`infra/docker-compose.yml\` - Docker Compose configuration
-- \`infra/.env\` - Docker environment variables
 
 ## Usage
 
@@ -418,7 +322,6 @@ function main() {
     generateBackendConfig();
     generateFrontendConfig();
     generateFirmwareConfigs();
-    generateDockerConfig();
     generateConfigDocumentation();
     
     console.log('\n✅ Configuration generation completed successfully!');
@@ -443,6 +346,5 @@ module.exports = {
   generateBackendConfig,
   generateFrontendConfig,
   generateFirmwareConfigs,
-  generateDockerConfig,
   generateConfigDocumentation
 };
