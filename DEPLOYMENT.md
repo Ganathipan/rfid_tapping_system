@@ -163,5 +163,4 @@ To stop all services:
 ## Files
 
 - `deploy-local.ps1` - Simple configuration and launcher (edit this)
-- `start-local.ps1` - Main deployment script (don't edit)
 - `DEPLOYMENT.md` - This documentation file
