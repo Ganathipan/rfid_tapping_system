@@ -15,7 +15,7 @@ $DbName = 'rfid'                    # Database name
 $DbHost = 'localhost'               # Database host  
 $DbPort = 5432                      # Database port
 $DbUser = 'postgres'                # Database user
-$PgPassword = 'CHANGE_ME'           # Database password (CHANGE THIS!)
+$PgPassword = 'Gana11602'           # Database password (CHANGE THIS!)
 
 $NetworkIP = 'localhost'            # Network IP for services
 $BackendPort = 4000                 # Backend API port
@@ -55,7 +55,7 @@ function Write-Step {
 
 function Write-Success {
   param([string]$Message)
-  Write-Host "✓ $Message" -ForegroundColor Green
+  Write-Host "[OK] $Message" -ForegroundColor Green
 }
 
 function Write-Warning {
@@ -65,7 +65,7 @@ function Write-Warning {
 
 function Write-Error {
   param([string]$Message)
-  Write-Host "✗ $Message" -ForegroundColor Red
+  Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
 # --- Path Configuration ---
@@ -106,7 +106,7 @@ $MosquittoPath = $MosquittoPaths | Where-Object { Test-Path $_ } | Select-Object
 Write-Header "RFID Tapping System - Local Deployment"
 
 Write-Host "Configuration:" -ForegroundColor Cyan
-Write-Host "  Database:  $DbHost:$DbPort/$DbName (user: $DbUser)" -ForegroundColor Gray
+Write-Host "  Database:  ${DbHost}:${DbPort}/${DbName} (user: $DbUser)" -ForegroundColor Gray
 Write-Host "  Backend:   http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
 Write-Host "  Frontend:  http://$NetworkIP`:$FrontendPort" -ForegroundColor Gray
 Write-Host "  MQTT:      mqtt://$NetworkIP`:$MqttPort" -ForegroundColor Gray
@@ -147,7 +147,7 @@ if (-not $NoConfig) {
   }
 }
 else {
-  Write-Warning "Skipping configuration generation (--NoConfig)"
+  Write-Warning 'Skipping configuration generation (--NoConfig)'
 }
 
 # ============================================================================
@@ -171,7 +171,7 @@ if (-not $NoInitDb) {
     Write-Success "PostgreSQL is accessible"
   }
   catch {
-    Write-Error "Cannot connect to PostgreSQL at $DbHost:$DbPort"
+    Write-Error "Cannot connect to PostgreSQL at ${DbHost}:${DbPort}"
     Write-Host "Ensure PostgreSQL is running and credentials are correct" -ForegroundColor Red
     exit 1
   }
@@ -227,7 +227,7 @@ if (-not $NoInitDb) {
   }
 }
 else {
-  Write-Warning "Skipping database initialization (--NoInitDb)"
+  Write-Warning 'Skipping database initialization (--NoInitDb)'
 }
 
 # ============================================================================
@@ -270,7 +270,7 @@ if (-not $NoMqtt) {
   }
 }
 else {
-  Write-Warning "Skipping MQTT broker startup (--NoMqtt)"
+  Write-Warning 'Skipping MQTT broker startup (--NoMqtt)'
 }
 
 # ============================================================================
@@ -298,10 +298,10 @@ if (-not $SkipBackend) {
   Write-Step "Starting backend server on port $BackendPort..."
   
   if ($ProdMode) {
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$BackendDir'; npm start" -WindowStyle Normal
+    Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $BackendDir; npm start" -WindowStyle Normal
   }
   else {
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$BackendDir'; npm run dev" -WindowStyle Normal
+    Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $BackendDir; npm run dev" -WindowStyle Normal
   }
   
   Pop-Location
@@ -309,7 +309,7 @@ if (-not $SkipBackend) {
   Write-Host "  URL: http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
 }
 else {
-  Write-Warning "Skipping backend startup (--SkipBackend)"
+  Write-Warning 'Skipping backend startup (--SkipBackend)'
 }
 
 # ============================================================================
@@ -339,10 +339,10 @@ if (-not $SkipFrontend) {
   if ($ProdMode) {
     Write-Step "Building frontend for production..."
     npm run build 2>&1 | Out-Null
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$FrontendDir'; npm run preview" -WindowStyle Normal
+    Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $FrontendDir; npm run preview" -WindowStyle Normal
   }
   else {
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$FrontendDir'; npm run dev" -WindowStyle Normal
+    Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $FrontendDir; npm run dev" -WindowStyle Normal
   }
   
   Pop-Location
@@ -350,7 +350,7 @@ if (-not $SkipFrontend) {
   Write-Host "  URL: http://$NetworkIP`:$FrontendPort" -ForegroundColor Gray
 }
 else {
-  Write-Warning "Skipping frontend startup (--SkipFrontend)"
+  Write-Warning 'Skipping frontend startup (--SkipFrontend)'
 }
 
 # ============================================================================
@@ -362,7 +362,7 @@ Write-Header "Deployment Complete!"
 Write-Host "System URLs:" -ForegroundColor Cyan
 Write-Host "  Frontend:  http://$NetworkIP`:$FrontendPort" -ForegroundColor Green
 Write-Host "  Backend:   http://$NetworkIP`:$BackendPort" -ForegroundColor Green
-Write-Host "  Database:  postgresql://$DbUser@$DbHost:$DbPort/$DbName" -ForegroundColor Green
+Write-Host "  Database:  postgresql://$DbUser@${DbHost}:${DbPort}/${DbName}" -ForegroundColor Green
 Write-Host "  MQTT:      mqtt://$NetworkIP`:$MqttPort" -ForegroundColor Green
 Write-Host ""
 
@@ -374,5 +374,6 @@ Write-Host ""
 
 Write-Host "To stop all services:" -ForegroundColor Yellow
 Write-Host "  - Close the backend and frontend PowerShell windows" -ForegroundColor Gray
-Write-Host "  - Stop Mosquitto: Get-Process mosquitto | Stop-Process" -ForegroundColor Gray
+Write-Host "  - Stop Mosquitto (requires admin): taskkill /IM mosquitto.exe /F" -ForegroundColor Gray
+Write-Host "    Or run PowerShell as Administrator and use: Get-Process mosquitto | Stop-Process" -ForegroundColor Gray
 Write-Host ""
