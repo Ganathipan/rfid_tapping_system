@@ -3,10 +3,10 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_PASSWORD: Gana11602
-      POSTGRES_DB: rfid
-      POSTGRES_USER: postgres
-    ports: ["5432:5432"]
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Gana11602}
+      POSTGRES_DB: ${DB_NAME:-rfid}
+      POSTGRES_USER: ${DB_USER:-postgres}
+    ports: ["${DB_PORT:-5432}:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
@@ -18,7 +18,7 @@ services:
     command: mosquitto -c /mosquitto-no-auth/mosquitto.conf
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto-no-auth/mosquitto.conf:ro
-    ports: ["1883:1883"]
+    ports: ["${MQTT_PORT:-1883}:1883"]
     networks: [rfid-network]
 
   backend:
@@ -26,14 +26,22 @@ services:
       context: ../apps/backend
       dockerfile: Dockerfile
     environment:
-      - NODE_ENV=development
-      - PORT=4000
-      - DATABASE_URL=postgresql://postgres:New1@postgres:5432/rfid
-      - PG_SSL=false
-      - MQTT_URL=mqtt://mosquitto:1883
-      - GAMELITE_ADMIN_KEY=dev-admin-key-2024
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${BACKEND_PORT:-4000}
+      - DB_HOST=postgres
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-rfid}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-New1}
+      - DB_SSL=${DB_SSL:-false}
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=${MQTT_PORT:-1883}
+      - MQTT_PROTOCOL=${MQTT_PROTOCOL:-mqtt}
+      - GAMELITE_ADMIN_KEY=${GAMELITE_ADMIN_KEY:-dev-admin-key-2024}
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key-here}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
     depends_on: [postgres, mosquitto]
-    ports: ["4000:4000"]
+    ports: ["${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}"]
     networks: [rfid-network]
     restart: unless-stopped
 
@@ -42,8 +50,8 @@ services:
       context: ../apps/frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE=http://backend:4000
-    ports: ["8080:80"]
+        - VITE_API_BASE=http://${BACKEND_HOST:-backend}:${BACKEND_PORT:-4000}
+    ports: ["${FRONTEND_PORT:-8080}:80"]
     depends_on: [backend]
     networks: [rfid-network]
     restart: unless-stopped

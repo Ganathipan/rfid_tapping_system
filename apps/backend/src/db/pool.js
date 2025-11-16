@@ -1,23 +1,19 @@
 require('dotenv').config();
 const { Pool } = require('pg');
-// (env.js appears unused after centralization, but keep import in case future vars are added)
-const { DATABASE_URL: LEGACY_DATABASE_URL, PG_SSL } = require('../config/env');
-
-// Use centralized configuration
 const { getDatabaseUrl, config } = require('../../../../config/master-config.js');
 
-// Allow an explicit override via process.env.DATABASE_URL (e.g. for local dev / docker differences)
-const resolvedConnectionString = process.env.DATABASE_URL || LEGACY_DATABASE_URL || getDatabaseUrl();
+// Priority order for connection:
+// 1. Explicit DATABASE_URL environment variable (allows local overrides)
+// 2. Connection string from master-config (built from individual env vars)
+const resolvedConnectionString = process.env.DATABASE_URL || getDatabaseUrl();
 
-// Determine SSL preference: explicit PG_SSL env overrides master-config, else derive
-const sslEnabled = (typeof process.env.PG_SSL !== 'undefined')
-  ? (process.env.PG_SSL === 'true' || process.env.PG_SSL === '1')
+// Determine SSL preference
+const sslEnabled = (typeof process.env.DB_SSL !== 'undefined')
+  ? (process.env.DB_SSL === 'true' || process.env.DB_SSL === '1')
   : !!config.NETWORK.DATABASE.SSL;
 
 if (process.env.DATABASE_URL) {
   console.log('[DB] Using process.env.DATABASE_URL override');
-} else if (LEGACY_DATABASE_URL) {
-  console.log('[DB] Using legacy env DATABASE_URL from config/env');
 } else {
   console.log('[DB] Using master-config connection string');
 }
@@ -51,7 +47,7 @@ async function verifyInitialConnection(retries = 3, delayMs = 1500) {
       console.error(`[DB] Connection attempt ${attempt} failed${authCode ? ' (code ' + authCode + ')' : ''}:`, err.message);
       // For auth failures (28P01) no point retrying repeatedly unless password might change soon
       if (authCode === '28P01') {
-        console.error('[DB] Authentication failed: verify username/password or override DATABASE_URL. Aborting further retries.');
+        console.error('[DB] Authentication failed: verify DB_PASSWORD, DB_USER, and other DB_* env vars, or override DATABASE_URL. Aborting further retries.');
         break;
       }
       if (attempt < retries) {
@@ -72,3 +68,4 @@ pool.on('error', (err) => {
 });
 
 module.exports = pool;
+
