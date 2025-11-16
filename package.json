@@ -10,7 +10,6 @@
     "config:prod": "node scripts/generate-configs.js production",
     "docs": "echo 'Configuration documentation is available in README.md'",
     "validate": "node -c config/master-config.js && echo 'Configuration is valid'",
-    "start:full": "npm run config:dev && cd infra && docker compose up -d",
     "start:local": "npm run config:dev && concurrently \"cd apps/backend && npm run dev\" \"cd apps/frontend && npm run dev\"",
     "clean": "powershell -ExecutionPolicy Bypass -File scripts/cleanup-simple.ps1",
     "clean:deep": "powershell -ExecutionPolicy Bypass -File scripts/cleanup-simple.ps1",
