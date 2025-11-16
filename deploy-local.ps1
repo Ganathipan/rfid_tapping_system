@@ -106,10 +106,10 @@ $MosquittoPath = $MosquittoPaths | Where-Object { Test-Path $_ } | Select-Object
 Write-Header "RFID Tapping System - Local Deployment"
 
 Write-Host "Configuration:" -ForegroundColor Cyan
-Write-Host "  Database:  $DbHost:$DbPort/$DbName (user: $DbUser)" -ForegroundColor Gray
-Write-Host "  Backend:   http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
-Write-Host "  Frontend:  http://$NetworkIP`:$FrontendPort" -ForegroundColor Gray
-Write-Host "  MQTT:      mqtt://$NetworkIP`:$MqttPort" -ForegroundColor Gray
+Write-Host "  Database:  ${DbHost}:${DbPort}/${DbName} (user: $DbUser)" -ForegroundColor Gray
+Write-Host "  Backend:   http://${NetworkIP}:${BackendPort}" -ForegroundColor Gray
+Write-Host "  Frontend:  http://${NetworkIP}:${FrontendPort}" -ForegroundColor Gray
+Write-Host "  MQTT:      mqtt://${NetworkIP}:${MqttPort}" -ForegroundColor Gray
 Write-Host ""
 
 # ============================================================================
@@ -147,7 +147,7 @@ if (-not $NoConfig) {
   }
 }
 else {
-  Write-Warning "Skipping configuration generation (--NoConfig)"
+  Write-Warning "Skipping configuration generation (-NoConfig)"
 }
 
 # ============================================================================
@@ -227,7 +227,7 @@ if (-not $NoInitDb) {
   }
 }
 else {
-  Write-Warning "Skipping database initialization (--NoInitDb)"
+  Write-Warning "Skipping database initialization (-NoInitDb)"
 }
 
 # ============================================================================
@@ -270,7 +270,7 @@ if (-not $NoMqtt) {
   }
 }
 else {
-  Write-Warning "Skipping MQTT broker startup (--NoMqtt)"
+  Write-Warning "Skipping MQTT broker startup (-NoMqtt)"
 }
 
 # ============================================================================
@@ -309,7 +309,7 @@ if (-not $SkipBackend) {
   Write-Host "  URL: http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
 }
 else {
-  Write-Warning "Skipping backend startup (--SkipBackend)"
+  Write-Warning "Skipping backend startup (-SkipBackend)"
 }
 
 # ============================================================================
@@ -350,7 +350,7 @@ if (-not $SkipFrontend) {
   Write-Host "  URL: http://$NetworkIP`:$FrontendPort" -ForegroundColor Gray
 }
 else {
-  Write-Warning "Skipping frontend startup (--SkipFrontend)"
+  Write-Warning "Skipping frontend startup (-SkipFrontend)"
 }
 
 # ============================================================================
