@@ -43,40 +43,48 @@ An **intelligent RFID-based system** designed for large-scale events like exhibi
 <tr>
 <td width="50%">
 
-### 🔄 Real-Time Tracking
-- Instant RFID card detection
-- Live visitor flow monitoring
-- Multi-zone booth tracking
-- FIFO queue management
+<h3>🔄 Real-Time Tracking</h3>
+<ul>
+<li>Instant RFID card detection</li>
+<li>Live visitor flow monitoring</li>
+<li>Multi-zone booth tracking</li>
+<li>FIFO queue management</li>
+</ul>
 
 </td>
 <td width="50%">
 
-### 📊 Smart Analytics
-- Real-time crowd metrics
-- Historical trend analysis
-- Venue occupancy insights
-- Visitor behavior patterns
+<h3>📊 Smart Analytics</h3>
+<ul>
+<li>Real-time crowd metrics</li>
+<li>Historical trend analysis</li>
+<li>Venue occupancy insights</li>
+<li>Visitor behavior patterns</li>
+</ul>
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-### 🎮 Interactive Gaming
-- Team-based scoring system
-- Live leaderboards
-- Achievement tracking
-- Engagement rewards
+<h3>🎮 Interactive Gaming</h3>
+<ul>
+<li>Team-based scoring system</li>
+<li>Live leaderboards</li>
+<li>Achievement tracking</li>
+<li>Engagement rewards</li>
+</ul>
 
 </td>
 <td width="50%">
 
-### 🛠️ Admin Control
-- System configuration panel
-- Live event monitoring
-- User management
-- Complete data control
+<h3>🛠️ Admin Control</h3>
+<ul>
+<li>System configuration panel</li>
+<li>Live event monitoring</li>
+<li>User management</li>
+<li>Complete data control</li>
+</ul>
 
 </td>
 </tr>
@@ -90,20 +98,22 @@ An **intelligent RFID-based system** designed for large-scale events like exhibi
 
 ## 🏗️ How It Works
 
-```mermaid
+<div class="mermaid">
 graph LR
     A[RFID Reader] -->|WiFi/MQTT| B[Message Broker]
     B -->|Real-time| C[Backend API]
     C -->|Store| D[Database]
     C -->|Updates| E[Live Dashboard]
     E -->|Control| C
-```
+</div>
 
-📡 **RFID readers** detect cards at registration, exits, and activity zones <br>
-🔄 **MQTT broker** routes messages in real-time across the system <br>
-⚙️ **Backend API** processes events, updates database, and manages game logic <br>
-📊 **Live dashboards** display analytics, leaderboards, and admin controls <br>
-🎮 **Interactive interface** engages visitors with games and feedback <br>
+<p>
+📡 <strong>RFID readers</strong> detect cards at registration, exits, and activity zones <br>
+🔄 <strong>MQTT broker</strong> routes messages in real-time across the system <br>
+⚙️ <strong>Backend API</strong> processes events, updates database, and manages game logic <br>
+📊 <strong>Live dashboards</strong> display analytics, leaderboards, and admin controls <br>
+🎮 <strong>Interactive interface</strong> engages visitors with games and feedback
+</p>
 
 </div>
 

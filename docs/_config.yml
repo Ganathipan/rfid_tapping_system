@@ -11,3 +11,7 @@ kramdown:
   syntax_highlighter_opts:
     block:
       line_numbers: false
+
+# Enable mermaid diagrams
+mermaid:
+  enabled: true
