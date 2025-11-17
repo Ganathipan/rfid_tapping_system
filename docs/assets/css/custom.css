@@ -1,0 +1,24 @@
+/* Custom styles for PowerShell code blocks */
+.language-powershell {
+  background-color: #012456 !important;
+  color: #ffffff !important;
+  padding: 1em !important;
+  border-radius: 5px !important;
+}
+
+.language-powershell code {
+  background-color: #012456 !important;
+  color: #ffffff !important;
+}
+
+/* Style for inline code in PowerShell blocks */
+pre.highlight {
+  background-color: #012456 !important;
+  border-radius: 5px !important;
+}
+
+/* PowerShell comments */
+.language-powershell .c,
+.language-powershell .c1 {
+  color: #6a9955 !important;
+}
