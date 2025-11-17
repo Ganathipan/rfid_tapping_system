@@ -98,14 +98,7 @@ An **intelligent RFID-based system** designed for large-scale events like exhibi
 
 ## 🏗️ How It Works
 
-<div class="mermaid">
-graph LR
-    A[RFID Reader] -->|WiFi/MQTT| B[Message Broker]
-    B -->|Real-time| C[Backend API]
-    C -->|Store| D[Database]
-    C -->|Updates| E[Live Dashboard]
-    E -->|Control| C
-</div>
+![System Architecture](./images/image.png)
 
 <p>
 📡 <strong>RFID readers</strong> detect cards at registration, exits, and activity zones <br>
