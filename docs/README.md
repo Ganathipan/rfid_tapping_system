@@ -99,11 +99,11 @@ graph LR
     E -->|Control| C
 ```
 
-**RFID readers** detect cards at registration, exits, and activity zones <br>
-**MQTT broker** routes messages in real-time across the system <br>
-**Backend API** processes events, updates database, and manages game logic <br>
-**Live dashboards** display analytics, leaderboards, and admin controls <br>
-**Interactive interface** engages visitors with games and feedback <br>
+📡 **RFID readers** detect cards at registration, exits, and activity zones <br>
+🔄 **MQTT broker** routes messages in real-time across the system <br>
+⚙️ **Backend API** processes events, updates database, and manages game logic <br>
+📊 **Live dashboards** display analytics, leaderboards, and admin controls <br>
+🎮 **Interactive interface** engages visitors with games and feedback <br>
 
 </div>
 
@@ -146,7 +146,7 @@ graph LR
 
 <div align="center">
 
-**Access your system:**
+**Access your system:** <br>
 🌐 **Dashboard**: http://localhost:5173 <br>
 🔌 **API**: http://localhost:4000 <br>
 💾 **Database**: localhost:5432 <br>
@@ -162,7 +162,7 @@ graph LR
 
 <div align="center">
 
-## 📊 System Highlights
+## 📊 System Highlights <br>
 
 ✅ **Production Ready** - Fully tested and deployment-ready <br>
 🧪 **99.9% Test Success** - 1,455+ passing tests across all components <br>
@@ -178,9 +178,9 @@ graph LR
 
 <div align="center">
 
-## 👥 Team
+## 👥 Team 
 
-**University of Peradeniya - Department of Computer Engineering**
+**University of Peradeniya - Department of Computer Engineering** <br>
 S. Ganathipan - [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) <br>
 V.G. Amirsha - [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) <br>
 K. Kartheepan - [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) <br>
