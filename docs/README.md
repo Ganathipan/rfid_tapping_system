@@ -1,6 +1,6 @@
 ---
-layout: home
-permalink: index.html
+# layout: home
+# permalink: index.html
 
 # Please update this with your repository name and title
 repository-name: e21-co227-RFID-Hardware-and-Tag-Lifecycle
