@@ -99,11 +99,11 @@ graph LR
     E -->|Control| C
 ```
 
-**RFID readers** detect cards at registration, exits, and activity zones
-**MQTT broker** routes messages in real-time across the system
-**Backend API** processes events, updates database, and manages game logic
-**Live dashboards** display analytics, leaderboards, and admin controls
-**Interactive interface** engages visitors with games and feedback
+**RFID readers** detect cards at registration, exits, and activity zones <br>
+**MQTT broker** routes messages in real-time across the system <br>
+**Backend API** processes events, updates database, and manages game logic <br>
+**Live dashboards** display analytics, leaderboards, and admin controls <br>
+**Interactive interface** engages visitors with games and feedback <br>
 
 </div>
 
@@ -132,6 +132,8 @@ graph LR
 
 **One command deployment:**
 
+</div>
+
 ```powershell
 # Run with default settings
 .\deploy-local.ps1
@@ -142,11 +144,13 @@ graph LR
 # When done, press ENTER to automatically cleanup everything
 ```
 
+<div align="center">
+
 **Access your system:**
-🌐 **Dashboard**: http://localhost:5173
-🔌 **API**: http://localhost:4000
-💾 **Database**: localhost:5432
-📡 **MQTT**: localhost:1883
+🌐 **Dashboard**: http://localhost:5173 <br>
+🔌 **API**: http://localhost:4000 <br>
+💾 **Database**: localhost:5432 <br>
+📡 **MQTT**: localhost:1883 <br>
 
 **Automatic Cleanup:** Press ENTER when finished to stop all services, close windows, stop Mosquitto, and drop database (unless `-NoDropDb` specified).
 
@@ -160,13 +164,13 @@ graph LR
 
 ## 📊 System Highlights
 
-✅ **Production Ready** - Fully tested and deployment-ready
-🧪 **99.9% Test Success** - 1,455+ passing tests across all components  
-📈 **89% Code Coverage** - Comprehensive test coverage
-🔒 **Secure** - No hardcoded credentials, proper secret management
-🎨 **Modern UI** - Responsive design for mobile and desktop
-⚡ **Real-Time** - Live updates via WebSocket and MQTT
-🔧 **Easy Setup** - Single-script automated deployment
+✅ **Production Ready** - Fully tested and deployment-ready <br>
+🧪 **99.9% Test Success** - 1,455+ passing tests across all components <br>
+📈 **89% Code Coverage** - Comprehensive test coverage <br>
+🔒 **Secure** - No hardcoded credentials, proper secret management <br>
+🎨 **Modern UI** - Responsive design for mobile and desktop <br>
+⚡ **Real-Time** - Live updates via WebSocket and MQTT <br>
+🔧 **Easy Setup** - Single-script automated deployment <br>
 
 </div>
 
@@ -177,10 +181,10 @@ graph LR
 ## 👥 Team
 
 **University of Peradeniya - Department of Computer Engineering**
-S. Ganathipan - [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) |
-V.G. Amirsha - [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) |
-K. Kartheepan - [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) |
-S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) |
+S. Ganathipan - [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) <br>
+V.G. Amirsha - [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) <br>
+K. Kartheepan - [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) <br>
+S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) <br>
 
 **Supervisor:** Ms. Yasodha Vimukthi ([yasodhav@eng.pdn.ac.lk](mailto:yasodhav@eng.pdn.ac.lk))
 
@@ -192,11 +196,11 @@ S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) |
 
 ## 🔗 Links
 
-📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code
-📖 [**Complete Documentation**](../README.md) - Detailed setup & API docs
-🚀 [**Deployment Guide**](../DEPLOYMENT.md) - Step-by-step installation
-🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/)
-🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/)
+📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code <br>
+📖 [**Complete Documentation**](../README.md) - Detailed setup & API docs <br>
+🚀 [**Deployment Guide**](../DEPLOYMENT.md) - Step-by-step installation <br>
+🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/) <br>
+🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/) <br>
 
 </div>
 
@@ -206,10 +210,10 @@ S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) |
 
 ## 🎓 Academic Context
 
-**Course:** CO227 Computer Engineering Project  
-**Institution:** University of Peradeniya  
-**Year:** 2024-2025  
-**Event:** EngEx 2025 - Engineering Exhibition
+**Course:** CO227 Computer Engineering Project  <br>
+**Institution:** University of Peradeniya  <br>
+**Year:** 2024-2025  <br>
+**Event:** EngEx 2025 - Engineering Exhibition <br>
 
 This project demonstrates the integration of IoT hardware, real-time systems, web technologies, and database management to solve real-world event management challenges.
 
