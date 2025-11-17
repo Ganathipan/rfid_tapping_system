@@ -98,7 +98,7 @@ An **intelligent RFID-based system** designed for large-scale events like exhibi
 
 ## 🏗️ How It Works
 
-![System Architecture](./images/image.png)
+<img src="./images/image.png" alt="System Architecture" style="max-width: 85%; height: auto; width: 60%;">
 
 <p>
 📡 <strong>RFID readers</strong> detect cards at registration, exits, and activity zones <br>
