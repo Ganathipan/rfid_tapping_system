@@ -237,6 +237,7 @@ if (-not $NoConfig) {
     # Verify critical config files were created
     $backendEnv = Join-Path $BackendDir '.env'
     $frontendEnv = Join-Path $FrontendDir '.env'
+    $infraEnv = Join-Path $InfraDir '.env'
     
     if (-not (Test-Path $backendEnv)) {
       Write-Warning "Backend .env file not found, creating from template..."
@@ -255,21 +256,27 @@ DB_USER=$DbUser
 DB_PASSWORD=$PgPassword
 DB_SSL=false
 DB_MAX_CONNECTIONS=20
+DATABASE_URL=postgresql://${DbUser}:${PgPassword}@${DbHost}:${DbPort}/${DbName}
 
 # MQTT Configuration
 MQTT_HOST=$NetworkIP
 MQTT_PORT=$MqttPort
 MQTT_PROTOCOL=mqtt
+MQTT_URL=mqtt://${NetworkIP}:${MqttPort}
 
 # CORS Configuration
 CORS_ORIGIN=http://$NetworkIP`:$FrontendPort
 
 # Game Configuration
-GAME_LITE_ADMIN_KEY=your-admin-key-here
+GAME_LITE_ADMIN_KEY=dev-admin-key-2024
+JWT_SECRET=your-jwt-secret-key-here
 
 # Logging
 LOG_LEVEL=info
 LOG_FILE=logs/backend.log
+
+# Game Lite Debug Mode
+GAMELITE_DEBUG=true
 "@
       Set-Content -Path $backendEnv -Value $backendEnvContent
       Write-Success "Created backend .env file from template"
@@ -285,10 +292,36 @@ VITE_API_BASE=http://$NetworkIP`:$BackendPort
 VITE_BACKEND_HOST=$NetworkIP
 VITE_BACKEND_PORT=$BackendPort
 VITE_WS_URL=ws://$NetworkIP`:$BackendPort
-VITE_GAMELITE_KEY=your-admin-key-here
+VITE_GAMELITE_KEY=dev-admin-key-2024
+VITE_DEV_HOST=0.0.0.0
 "@
       Set-Content -Path $frontendEnv -Value $frontendEnvContent
       Write-Success "Created frontend .env file from template"
+    }
+    
+    if (-not (Test-Path $infraEnv)) {
+      Write-Warning "Infrastructure .env file not found, creating from template..."
+      $infraEnvContent = @"
+# Docker Compose Environment Variables
+# Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+COMPOSE_PROJECT_NAME=rfid-system
+NODE_ENV=development
+
+# Database
+POSTGRES_PASSWORD=$PgPassword
+POSTGRES_DB=$DbName
+POSTGRES_USER=$DbUser
+
+# Backend
+BACKEND_PORT=$BackendPort
+GAMELITE_ADMIN_KEY=dev-admin-key-2024
+
+# MQTT
+MQTT_PORT=$MqttPort
+"@
+      Set-Content -Path $infraEnv -Value $infraEnvContent
+      Write-Success "Created infrastructure .env file from template"
     }
     
     Write-Success "All configuration files verified"

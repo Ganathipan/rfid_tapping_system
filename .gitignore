@@ -13,8 +13,8 @@ yarn.lock
 # Environment variables and sensitive configuration
 .env
 .env.*
-!.env.template
 !.env.example
+!.env.template
 .env.local
 .env.development
 .env.staging  

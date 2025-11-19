@@ -197,6 +197,36 @@ ${generateArduinoConfig(8)}
 }
 
 // =============================================================================
+// DOCKER INFRASTRUCTURE CONFIGURATION
+// =============================================================================
+function generateInfraConfig() {
+  console.log('\n🐳 Generating Infrastructure Configuration...');
+  
+  const infraEnvContent = `# Docker Compose Environment Variables
+# Auto-generated from master-config.js
+# Environment: ${ENVIRONMENT}
+# Generated: ${new Date().toISOString()}
+
+COMPOSE_PROJECT_NAME=rfid-system
+NODE_ENV=${ENVIRONMENT}
+
+# Database
+POSTGRES_PASSWORD=${config.NETWORK.DATABASE.PASSWORD}
+POSTGRES_DB=${config.NETWORK.DATABASE.NAME}
+POSTGRES_USER=${config.NETWORK.DATABASE.USERNAME}
+
+# Backend
+BACKEND_PORT=${config.NETWORK.BACKEND.PORT}
+GAMELITE_ADMIN_KEY=${config.SECURITY.GAME_LITE_ADMIN_KEY}
+
+# MQTT
+MQTT_PORT=${config.NETWORK.MQTT.PORT}
+`;
+  
+  writeFileWithBackup('../infra/.env', infraEnvContent);
+}
+
+// =============================================================================
 // DOCUMENTATION GENERATION
 // =============================================================================
 function generateConfigDocumentation() {
@@ -322,6 +352,7 @@ function main() {
     generateBackendConfig();
     generateFrontendConfig();
     generateFirmwareConfigs();
+    generateInfraConfig();
     generateConfigDocumentation();
     
     console.log('\n✅ Configuration generation completed successfully!');
@@ -346,5 +377,6 @@ module.exports = {
   generateBackendConfig,
   generateFrontendConfig,
   generateFirmwareConfigs,
+  generateInfraConfig,
   generateConfigDocumentation
 };
