@@ -29,7 +29,7 @@ title: RFID Tapping System - Production Ready Event Management Solution
 
 An **intelligent RFID-based system** designed for large-scale events like exhibitions and conferences. It combines IoT hardware, real-time data processing, and interactive dashboards to transform how events track visitors, manage crowds, and engage attendees.
 
-**Built for EngEx 2025** | University of Peradeniya
+**Built for EngEx 2025** - University of Peradeniya
 
 </div>
 
@@ -157,7 +157,7 @@ An **intelligent RFID-based system** designed for large-scale events like exhibi
 
 **Automatic Cleanup:** Press ENTER when finished to stop all services, close windows, stop Mosquitto, and drop database (unless `-NoDropDb` specified).
 
-> 📖 **Need more details?** Check the [complete documentation](../README.md) or [deployment guide](../DEPLOYMENT.md) for all available parameters and options.
+> 📖 **Need more details?** Check the [complete documentation](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/README.md) or [deployment guide](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/DEPLOYMENT.md) for all available parameters and options.
 
 </div>
 
@@ -200,8 +200,8 @@ S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) <br>
 ## 🔗 Links
 
 📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code <br>
-📖 [**Complete Documentation**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/README.md) - Detailed setup & API docs <br>
-🚀 [**Deployment Guide**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/DEPLOYMENT.md) - Step-by-step installation <br>
+📖 [**Complete Documentation**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/README.md) - Detailed setup & API docs <br>
+🚀 [**Deployment Guide**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/DEPLOYMENT.md) - Step-by-step installation <br>
 🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/) <br>
 🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/) <br>
 

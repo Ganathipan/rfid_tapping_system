@@ -60,7 +60,35 @@ Before running the deployment script, ensure you have installed:
 
 ## 🚀 Quick Start
 
-### For First-Time Users (Recommended)
+### ⚠️ First-Time Windows Setup (IMPORTANT!)
+
+If you get this error:
+```
+deploy-local.ps1 cannot be loaded. The file is not digitally signed.
+You cannot run this script on the current system.
+```
+
+**This is a Windows security feature.** Choose the fix based on how you got the code:
+
+**If you downloaded as ZIP:**
+```powershell
+# Unblock the script file (quickest fix)
+Unblock-File -Path .\deploy-local.ps1
+```
+
+**If you cloned with Git:**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+**Or** bypass for single execution:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy-local.ps1 -PgPassword "YourPassword"
+```
+
+---
+
+### For First-Time Users
 
 Simply run the deployment script with your database password:
 
@@ -410,6 +438,61 @@ If deployed with custom NetworkIP:
 ---
 
 ## 🔧 Troubleshooting
+
+### Issue: "Script cannot be loaded - not digitally signed"
+**Full Error:**
+```
+deploy-local.ps1 cannot be loaded. The file is not digitally signed.
+You cannot run this script on the current system.
+PSSecurityException: UnauthorizedAccess
+```
+
+**Cause**: Windows marks files downloaded from the internet (ZIP downloads) as "blocked" and requires unblocking OR changing execution policy.
+
+**Solutions (Pick ONE based on how you got the code):**
+
+1. **If downloaded as ZIP - Unblock the file** (Quickest fix):
+   ```powershell
+   # Unblock just the deploy script
+   Unblock-File -Path .\deploy-local.ps1
+   ```
+   Or unblock all PowerShell scripts:
+   ```powershell
+   Get-ChildItem -Path . -Recurse -Include *.ps1 | Unblock-File
+   ```
+   Then run normally:
+   ```powershell
+   .\deploy-local.ps1 -PgPassword "YourPassword"
+   ```
+
+2. **If cloned with Git - Change execution policy** (Recommended):
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+   Then run normally:
+   ```powershell
+   .\deploy-local.ps1 -PgPassword "YourPassword"
+   ```
+
+3. **One-time bypass**:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\deploy-local.ps1 -PgPassword "YourPassword"
+   ```
+
+4. **Check current policy**:
+   ```powershell
+   Get-ExecutionPolicy -List
+   ```
+
+**What each policy means:**
+- `Restricted` - No scripts allowed (Windows default)
+- `RemoteSigned` - Local scripts OK, downloaded scripts need signature (Recommended)
+- `Unrestricted` - All scripts allowed (Less secure)
+- `Bypass` - Nothing blocked (One-time use only)
+
+**Security Note**: `RemoteSigned` is safe - it only requires internet-downloaded scripts to be signed, while allowing your own scripts to run. However, for ZIP downloads, using `Unblock-File` is faster and more targeted.
+
+---
 
 ### Issue: "psql command not found"
 **Cause**: PostgreSQL not in PATH

@@ -22,9 +22,26 @@ This RFID system is **100% complete and launch-ready** with comprehensive testin
 - **Configuration Management**: Centralized config system for all environments
 
 ### 🔧 **Quick Start**
+
+⚠️ **Windows Users - First Time Setup:**
+
+If you get "script cannot be loaded" error:
+
+**If you downloaded as ZIP:**
+```powershell
+# Unblock the script file (run from project directory)
+Unblock-File -Path .\deploy-local.ps1
+```
+
+**If you cloned with Git:**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+**Then deploy:**
 ```powershell
 # Run deployment with default settings
-.\deploy-local.ps1
+.\deploy-local.ps1 -PgPassword "YourPassword"
 
 # Or customize with parameters
 .\deploy-local.ps1 -PgPassword "YourPassword" -BackendPort 4000
@@ -123,62 +140,6 @@ This system enables real-time tracking of RFID card interactions across multiple
 - **Admin Dashboard**: Web-based administration panel for monitoring and management
 - **Kiosk Display**: Public displays showing live cluster occupancy and information
 
-## 🚀 Quick Start
-
-### Automated Deployment (Recommended)
-
-**For first-time users:**
-
-1. **Run deployment with default settings**:
-   ```powershell
-   .\deploy-local.ps1
-   ```
-
-   **Or customize with parameters**:
-   ```powershell
-   # Change database password
-   .\deploy-local.ps1 -PgPassword "YourSecurePassword"
-   
-   # Use different ports
-   .\deploy-local.ps1 -BackendPort 8080 -FrontendPort 3000
-   
-   # Skip database initialization
-   .\deploy-local.ps1 -NoInitDb
-   
-   # Keep database on cleanup
-   .\deploy-local.ps1 -NoDropDb
-   ```
-
-The script automatically:
-- Verifies all prerequisites (PostgreSQL, Node.js, npm)
-- Generates all configuration files (.env files)
-- Initializes PostgreSQL database with schema and seed data
-- Starts Mosquitto MQTT broker
-- Launches backend API server
-- Launches frontend application
-- Waits for all services to be ready
-
-**When finished, press ENTER to automatically:**
-- Stop all Node.js processes (backend & frontend)
-- Close spawned PowerShell windows
-- Stop Mosquitto MQTT broker
-- Drop database (unless `-NoDropDb` specified)
-- Clean up all resources
-
-**System URLs After Deployment:**
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:4000
-- **Database**: localhost:5432
-- **MQTT Broker**: localhost:1883
-
-> 📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for all parameters, advanced options and troubleshooting.
-
-### Manual Setup
-
-For manual step-by-step installation, follow the detailed [Installation](#-installation) section below.
-
----
-
 ## 📋 Prerequisites
 
 - **Node.js 18+** and **npm**
@@ -225,29 +186,33 @@ For manual step-by-step installation, follow the detailed [Installation](#-insta
    sudo systemctl start mosquitto
    ```
 
-2. **Configure and Deploy:**
+2. **Run Deployment:**
    
    ```powershell
-   # Edit lines 10-20 in the script (database password, ports, etc.)
-   notepad deploy-local.ps1
+   # Basic deployment (will prompt for missing parameters)
+   .\deploy-local.ps1 -PgPassword "YourPassword"
    
-   # Run automated deployment
-   .\deploy-local.ps1
+   # Or customize with parameters
+   .\deploy-local.ps1 -PgPassword "YourPassword" -BackendPort 4000 -FrontendPort 5173
    ```
 
 The script automatically:
-- Generates all configuration files (.env files)
-- Creates and initializes the PostgreSQL database
-- Starts Mosquitto MQTT broker
-- Installs dependencies for backend and frontend
-- Launches backend API server
-- Launches frontend application
+- ✅ Installs root dependencies if missing (first-time setup)
+- ✅ Generates all configuration files (.env files) with fallback templates
+- ✅ Creates and initializes the PostgreSQL database
+- ✅ Starts Mosquitto MQTT broker
+- ✅ Installs backend and frontend dependencies
+- ✅ Launches backend API server
+- ✅ Launches frontend application
+- ✅ Waits for all services to be ready
 
 **System URLs after deployment:**
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:4000
 - **Database**: postgresql://postgres@localhost:5432/rfid
 - **MQTT Broker**: mqtt://localhost:1883
+
+**Press ENTER when done** to automatically stop all services and cleanup.
 
 ---
 
@@ -317,14 +282,23 @@ psql -U postgres -d rfid -f infra/db/schema.sql
 **Generate Configuration Files:**
 
 ```bash
+# Install root dependencies first
+npm install
+
 # Generate configuration files for local setup
 npm run config:dev
 ```
 
 This will automatically create:
-- `apps/backend/.env`
-- `apps/frontend/.env`
-- `firmware/config.h`
+- `apps/backend/.env` - Backend environment variables
+- `apps/frontend/.env` - Frontend environment variables  
+- `infra/.env` - Docker Compose environment variables
+- `firmware/config/*.h` - ESP8266 firmware configurations
+
+**If config generation fails**, the deployment script creates fallback templates from:
+- `apps/backend/.env.example`
+- `apps/frontend/.env.example`
+- `infra/.env.example`
 
 **Or manually create configuration files:**
 
@@ -349,6 +323,7 @@ VITE_BACKEND_HOST=localhost
 VITE_BACKEND_PORT=4000
 VITE_WS_URL=ws://localhost:4000
 VITE_GAMELITE_KEY=dev-admin-key-2024
+VITE_DEV_HOST=0.0.0.0
 ```
 
 ### 4. Start Applications
@@ -603,45 +578,35 @@ apps/frontend/src/
 
 ## 🚀 Deployment
 
-### Environment Preparation
+For comprehensive deployment instructions including:
+- **Quick Start**: One-command deployment with automatic setup
+- **First-Time Setup**: Step-by-step guide for new PC deployment
+- **Configuration**: Master config management and customization
+- **Command-Line Parameters**: All available flags and options
+- **Usage Examples**: 10+ real-world deployment scenarios
+- **Troubleshooting**: Common issues and solutions
+- **System URLs**: Access points for all services
 
-**Staging:**
-```bash
-npm run config:staging
+**Please refer to [DEPLOYMENT.md](DEPLOYMENT.md) for the complete deployment guide.**
+
+### Quick Reference
+
+**One-Command Deployment:**
+```powershell
+# First-time setup on Windows (if downloaded as ZIP)
+Unblock-File -Path .\deploy-local.ps1
+
+# Deploy with automatic configuration
+.\deploy-local.ps1 -PgPassword "YourPassword"
 ```
 
-**Production:**
-```bash
-npm run config:prod
-```
+**System URLs after deployment:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:4000
+- **Database**: postgresql://postgres@localhost:5432/rfid
+- **MQTT Broker**: mqtt://localhost:1883
 
-### Production Setup
-
-1. **Prepare the server** with PostgreSQL and Mosquitto installed
-2. **Generate production configs**: `npm run config:prod`
-3. **Install dependencies**: `npm run install:all`
-4. **Setup database schema**: Apply `infra/db/schema.sql` to your PostgreSQL instance
-5. **Configure environment**: Update `.env` files with production credentials
-6. **Start services**: Use a process manager like PM2 or systemd
-
-**Example with PM2:**
-```bash
-# Install PM2
-npm install -g pm2
-
-# Start backend
-cd apps/backend
-pm2 start npm --name "rfid-backend" -- start
-
-# Build and serve frontend
-cd apps/frontend
-npm run build
-pm2 serve dist 5173 --name "rfid-frontend"
-
-# Save PM2 configuration
-pm2 save
-pm2 startup
-```
+**For production deployment**, see [DEPLOYMENT.md](DEPLOYMENT.md) for PM2 setup, environment configuration, and cloud deployment options.
 
 ---
 
