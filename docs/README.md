@@ -200,8 +200,8 @@ S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) <br>
 ## 🔗 Links
 
 📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code <br>
-📖 [**Complete Documentation**](../README.md) - Detailed setup & API docs <br>
-🚀 [**Deployment Guide**](../DEPLOYMENT.md) - Step-by-step installation <br>
+📖 [**Complete Documentation**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/README.md) - Detailed setup & API docs <br>
+🚀 [**Deployment Guide**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/DEPLOYMENT.md) - Step-by-step installation <br>
 🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/) <br>
 🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/) <br>
 

@@ -2,7 +2,7 @@ param(
   [string] $DbName = 'rfid',
   [string] $DbHost = 'localhost',       # Change this to your actual database host
   [int]    $DbPort = 5432,              # Port for PostgreSQL database
-  [string] $DbUser = 'rfidDatabase',    # Change this to your actual rfid database user
+  [string] $DbUser = 'DatabaseUser',    # Change this to your actual rfid database user
   [string] $PgPassword = 'ChangeMe',    # Change this to your actual rfid database password
   [string] $NetworkIP = 'localhost',    # Change this to your machine's network IP if needed
   [int]    $BackendPort = 4000,         # Port for backend server
@@ -355,13 +355,20 @@ if (-not $SkipBackend) {
   }
   
   Write-Step "Installing backend dependencies..."
-  Push-Location $BackendDir
   try {
-    npm install 2>&1 | Out-Null
+    Push-Location $BackendDir
+    Write-Host "  Running: npm install in $BackendDir" -ForegroundColor Gray
+    npm install
+    if ($LASTEXITCODE -ne 0) {
+      throw "npm install failed with exit code $LASTEXITCODE"
+    }
     Write-Success "Backend dependencies installed"
   }
   catch {
     Write-Warning "Backend npm install had issues: $_"
+  }
+  finally {
+    Pop-Location
   }
   
   Write-Step "Starting backend server on port $BackendPort..."
@@ -373,7 +380,6 @@ if (-not $SkipBackend) {
     Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $BackendDir; npm run dev" -WindowStyle Normal
   }
   
-  Pop-Location
   Write-Success "Backend server starting in new window"
   Write-Host "  URL: http://$NetworkIP`:$BackendPort" -ForegroundColor Gray
   
@@ -401,27 +407,35 @@ if (-not $SkipFrontend) {
   }
   
   Write-Step "Installing frontend dependencies..."
-  Push-Location $FrontendDir
   try {
-    npm install 2>&1 | Out-Null
+    Push-Location $FrontendDir
+    Write-Host "  Running: npm install in $FrontendDir" -ForegroundColor Gray
+    npm install
+    if ($LASTEXITCODE -ne 0) {
+      throw "npm install failed with exit code $LASTEXITCODE"
+    }
     Write-Success "Frontend dependencies installed"
   }
   catch {
     Write-Warning "Frontend npm install had issues: $_"
+  }
+  finally {
+    Pop-Location
   }
   
   Write-Step "Starting frontend dev server on port $FrontendPort..."
   
   if ($ProdMode) {
     Write-Step "Building frontend for production..."
-    npm run build 2>&1 | Out-Null
+    Push-Location $FrontendDir
+    npm run build
+    Pop-Location
     Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $FrontendDir; npm run preview" -WindowStyle Normal
   }
   else {
     Start-Process powershell -ArgumentList '-NoExit', '-Command', "cd $FrontendDir; npm run dev" -WindowStyle Normal
   }
   
-  Pop-Location
   Write-Success "Frontend server starting in new window"
   Write-Host "  URL: http://$NetworkIP`:$FrontendPort" -ForegroundColor Gray
   
