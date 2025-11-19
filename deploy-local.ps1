@@ -170,6 +170,32 @@ try {
   exit 1
 }
 
+# Check and install root package.json dependencies (needed for config generation)
+Write-Step "Checking root dependencies for configuration generator..."
+$rootPackageJson = Join-Path $Root 'package.json'
+if (Test-Path $rootPackageJson) {
+  $nodeModulesExists = Test-Path (Join-Path $Root 'node_modules')
+  if (-not $nodeModulesExists) {
+    Write-Step "Installing root dependencies (first time setup)..."
+    try {
+      Push-Location $Root
+      npm install
+      if ($LASTEXITCODE -ne 0) {
+        throw "npm install failed in root directory"
+      }
+      Write-Success "Root dependencies installed"
+    }
+    catch {
+      Write-Warning "Root npm install had issues: $_"
+    }
+    finally {
+      Pop-Location
+    }
+  } else {
+    Write-Success "Root dependencies already installed"
+  }
+}
+
 Write-Host ""
 Write-Host "Configuration:" -ForegroundColor Cyan
 Write-Host "  Database:  ${DbHost}:${DbPort}/${DbName} (user: $DbUser)" -ForegroundColor Gray
@@ -203,10 +229,92 @@ if (-not $NoConfig) {
   try {
     Push-Location $Root
     npm run config:dev
+    if ($LASTEXITCODE -ne 0) {
+      throw "Configuration generation failed with exit code $LASTEXITCODE"
+    }
     Write-Success "Configuration files generated"
+    
+    # Verify critical config files were created
+    $backendEnv = Join-Path $BackendDir '.env'
+    $frontendEnv = Join-Path $FrontendDir '.env'
+    
+    if (-not (Test-Path $backendEnv)) {
+      Write-Warning "Backend .env file not found, creating from template..."
+      $backendEnvContent = @"
+# Backend Environment Configuration
+# Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+NODE_ENV=development
+PORT=$BackendPort
+
+# Database Configuration
+DB_HOST=$DbHost
+DB_PORT=$DbPort
+DB_NAME=$DbName
+DB_USER=$DbUser
+DB_PASSWORD=$PgPassword
+DB_SSL=false
+DB_MAX_CONNECTIONS=20
+
+# MQTT Configuration
+MQTT_HOST=$NetworkIP
+MQTT_PORT=$MqttPort
+MQTT_PROTOCOL=mqtt
+
+# CORS Configuration
+CORS_ORIGIN=http://$NetworkIP`:$FrontendPort
+
+# Game Configuration
+GAME_LITE_ADMIN_KEY=your-admin-key-here
+
+# Logging
+LOG_LEVEL=info
+LOG_FILE=logs/backend.log
+"@
+      Set-Content -Path $backendEnv -Value $backendEnvContent
+      Write-Success "Created backend .env file from template"
+    }
+    
+    if (-not (Test-Path $frontendEnv)) {
+      Write-Warning "Frontend .env file not found, creating from template..."
+      $frontendEnvContent = @"
+# Frontend Environment Configuration
+# Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+VITE_API_BASE=http://$NetworkIP`:$BackendPort
+VITE_BACKEND_HOST=$NetworkIP
+VITE_BACKEND_PORT=$BackendPort
+VITE_WS_URL=ws://$NetworkIP`:$BackendPort
+VITE_GAMELITE_KEY=your-admin-key-here
+"@
+      Set-Content -Path $frontendEnv -Value $frontendEnvContent
+      Write-Success "Created frontend .env file from template"
+    }
+    
+    Write-Success "All configuration files verified"
   }
   catch {
-    Write-Warning "Config generation failed (continuing anyway): $_"
+    Write-Error "Config generation failed: $_"
+    Write-Host "Attempting to create minimal configuration files..." -ForegroundColor Yellow
+    
+    # Create minimal .env files as fallback
+    try {
+      $backendEnv = Join-Path $BackendDir '.env'
+      $frontendEnv = Join-Path $FrontendDir '.env'
+      
+      $backendEnvContent = "NODE_ENV=development`nPORT=$BackendPort`nDB_HOST=$DbHost`nDB_PORT=$DbPort`nDB_NAME=$DbName`nDB_USER=$DbUser`nDB_PASSWORD=$PgPassword`nMQTT_HOST=$NetworkIP`nMQTT_PORT=$MqttPort`nCORS_ORIGIN=http://$NetworkIP`:$FrontendPort"
+      Set-Content -Path $backendEnv -Value $backendEnvContent -Force
+      
+      $frontendEnvContent = "VITE_API_BASE=http://$NetworkIP`:$BackendPort`nVITE_BACKEND_HOST=$NetworkIP`nVITE_BACKEND_PORT=$BackendPort`nVITE_WS_URL=ws://$NetworkIP`:$BackendPort"
+      Set-Content -Path $frontendEnv -Value $frontendEnvContent -Force
+      
+      Write-Success "Created minimal configuration files"
+    }
+    catch {
+      Write-Error "Could not create configuration files: $_"
+      Write-Host "Please create .env files manually in apps/backend and apps/frontend" -ForegroundColor Red
+      exit 1
+    }
   }
   finally {
     Pop-Location
