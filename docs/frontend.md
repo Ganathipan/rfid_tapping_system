@@ -4,7 +4,7 @@ title: Frontend Implementation
 permalink: /frontend/
 ---
 
-<div class="markdown-body" data-aos="fade-up">
+<div class="markdown-body" data-aos="fade-up" markdown="1">
 
 # Frontend Implementation
 

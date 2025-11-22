@@ -4,7 +4,7 @@ title: Hardware Implementation
 permalink: /hardware/
 ---
 
-<div class="markdown-body" data-aos="fade-up">
+<div class="markdown-body" data-aos="fade-up" markdown="1">
 
 # Hardware Implementation
 
