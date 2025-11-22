@@ -1,14 +1,345 @@
 <!-- Custom Assets Include -->
-<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<!-- Inlined Custom CSS -->
+<style>
+    /* Custom Styles for RFID Tapping System Project Page */
+
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #1e40af;
+        --accent-color: #3b82f6;
+        --text-color: #1f2937;
+        --bg-color: #f3f4f6;
+        --card-bg: #ffffff;
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        line-height: 1.6;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        color: white !important;
+        padding: 5rem 2rem;
+        text-align: center;
+        border-radius: 0 0 2rem 2rem;
+        margin-bottom: 4rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 150%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%);
+        pointer-events: none;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.025em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        opacity: 0.95;
+        max-width: 800px;
+        margin: 0 auto 2.5rem;
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all var(--transition-speed);
+    }
+
+    .btn-primary {
+        background-color: white;
+        color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: #f8fafc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline {
+        border: 2px solid white;
+        color: white;
+    }
+
+    .btn-outline:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Feature Grid */
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2.5rem;
+        padding: 2rem 0;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: var(--card-bg);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        transition: all var(--transition-speed);
+        border-top: 5px solid var(--primary-color);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom right, rgba(37, 99, 235, 0.05), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+    }
+
+    .feature-card:hover::after {
+        opacity: 1;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Architecture Diagram */
+    .architecture-diagram {
+        max-width: 100%;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin: 2rem 0;
+        transition: transform 0.3s ease;
+    }
+
+    .architecture-diagram:hover {
+        transform: scale(1.02);
+    }
+
+    /* Image Carousel */
+    .carousel-container {
+        position: relative;
+        max-width: 800px;
+        margin: 2rem auto;
+        overflow: hidden;
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .carousel-slide {
+        display: none;
+        width: 100%;
+    }
+
+    .carousel-slide.active {
+        display: block;
+        animation: fadeEffect 1s;
+    }
+
+    @keyframes fadeEffect {
+        from {
+            opacity: 0.4
+        }
+
+        to {
+            opacity: 1
+        }
+    }
+
+    /* Tech Stack Badges */
+    .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 1rem 0;
+    }
+
+    .tech-badge {
+        background-color: #e0e7ff;
+        color: #3730a3;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* Navigation Cards */
+    .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .nav-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
+    }
+
+    .nav-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        background-color: #f8fafc;
+    }
+
+    .nav-card h3 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Footer */
+    .site-footer {
+        background-color: #1f2937;
+        color: white;
+        padding: 3rem 0;
+        margin-top: 4rem;
+        text-align: center;
+    }
+
+    /* Markdown Content Overrides */
+    .markdown-body {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <!-- Scripts -->
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-<script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
 
+<!-- Inlined Main JS -->
 <script>
+    // Main JavaScript for RFID Tapping System Project Page
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize AOS (Animate On Scroll)
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-out-cubic',
+                once: true,
+                offset: 50
+            });
+        }
+
+        // Carousel Logic
+        const carousels = document.querySelectorAll('.carousel-container');
+
+        carousels.forEach(carousel => {
+            let slideIndex = 0;
+            const slides = carousel.querySelectorAll('.carousel-slide');
+
+            if (slides.length > 0) {
+                showSlides();
+
+                function showSlides() {
+                    for (let i = 0; i < slides.length; i++) {
+                        slides[i].style.display = "none";
+                        slides[i].classList.remove('active');
+                    }
+
+                    slideIndex++;
+                    if (slideIndex > slides.length) { slideIndex = 1 }
+
+                    slides[slideIndex - 1].style.display = "block";
+                    slides[slideIndex - 1].classList.add('active');
+
+                    setTimeout(showSlides, 3000); // Change image every 3 seconds
+                }
+            }
+        });
+
+        // Typing Effect for Hero Subtitle (Optional)
+        const subtitle = document.querySelector('.hero-subtitle');
+        if (subtitle && subtitle.dataset.text) {
+            const text = subtitle.dataset.text;
+            subtitle.textContent = '';
+            let i = 0;
+
+            function typeWriter() {
+                if (i < text.length) {
+                    subtitle.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 50);
+                }
+            }
+
+            typeWriter();
+        }
+    });
+
     // Initialize Mermaid
     document.addEventListener('DOMContentLoaded', function () {
         mermaid.initialize({
