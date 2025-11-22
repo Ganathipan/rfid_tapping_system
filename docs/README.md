@@ -1,232 +1,97 @@
 ---
- layout: home
- permalink: index.html
-
-# Please update this with your repository name and title
+layout: home
+permalink: index.html
 repository-name: e21-co227-RFID-Hardware-and-Tag-Lifecycle
-title: RFID Tapping System - Production Ready Event Management Solution
+title: RFID Tapping System
 ---
 
-<div align="center">
-
-# 🎫 RFID Tapping System
-
-### Production-Ready Event Management & Visitor Tracking
-
-*Real-time analytics • Interactive gaming • IoT integration*
-
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=flat-square)](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
-[![Tests](https://img.shields.io/badge/Tests-99.9%25%20Passing-brightgreen?style=flat-square)](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
-[![Coverage](https://img.shields.io/badge/Coverage-89.33%25-green?style=flat-square)](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle)
-
+<div class="hero-section" data-aos="fade-down">
+  <h1 class="hero-title">RFID Tapping System</h1>
+  <p class="hero-subtitle" data-text="Production-Ready Event Management & Visitor Tracking">Production-Ready Event Management & Visitor Tracking</p>
+  
+  <div class="hero-buttons">
+    <a href="https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle" class="btn btn-outline">View on GitHub</a>
+    <a href="#features" class="btn btn-primary">Explore Features</a>
+  </div>
 </div>
 
----
+<div class="container" data-aos="fade-up">
+  <div align="center" style="margin-bottom: 3rem;">
+    <img src="https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge&logo=github" alt="Status">
+    <img src="https://img.shields.io/badge/Tests-99.9%25%20Passing-brightgreen?style=for-the-badge&logo=jest" alt="Tests">
+    <img src="https://img.shields.io/badge/Coverage-89.33%25-green?style=for-the-badge&logo=codecov" alt="Coverage">
+  </div>
 
-<div align="center">
+  <div style="text-align: center; max-width: 800px; margin: 0 auto 4rem;">
+    <h2>Transforming Event Experiences</h2>
+    <p style="font-size: 1.2rem; color: #4b5563;">
+      An intelligent RFID-based system designed for large-scale events like exhibitions and conferences. 
+      It combines IoT hardware, real-time data processing, and interactive dashboards to transform how events track visitors, manage crowds, and engage attendees.
+    </p>
+  </div>
 
-## 🎯 What is this?
+  <h2 id="features" style="text-align: center; margin-bottom: 2rem;">Key Features</h2>
+  
+  <div class="feature-grid">
+    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+      <div class="feature-icon">🔄</div>
+      <h3>Real-Time Tracking</h3>
+      <p>Instant RFID card detection with live visitor flow monitoring and multi-zone booth tracking using FIFO queue management.</p>
+    </div>
+    
+    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+      <div class="feature-icon">📊</div>
+      <h3>Smart Analytics</h3>
+      <p>Real-time crowd metrics, historical trend analysis, venue occupancy insights, and visitor behavior patterns.</p>
+    </div>
+    
+    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+      <div class="feature-icon">🎮</div>
+      <h3>Interactive Gaming</h3>
+      <p>Team-based scoring system with live leaderboards, achievement tracking, and engagement rewards.</p>
+    </div>
+    
+    <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+      <div class="feature-icon">🛠️</div>
+      <h3>Admin Control</h3>
+      <p>Complete system configuration panel, live event monitoring, user management, and data control.</p>
+    </div>
+  </div>
 
-An **intelligent RFID-based system** designed for large-scale events like exhibitions and conferences. It combines IoT hardware, real-time data processing, and interactive dashboards to transform how events track visitors, manage crowds, and engage attendees.
-
-**Built for EngEx 2025** - University of Peradeniya
-
+  <div style="margin-top: 5rem;">
+    <h2 style="text-align: center; margin-bottom: 2rem;">Explore the System</h2>
+    <div class="nav-grid">
+      <a href="{{ '/architecture' | relative_url }}" class="nav-card" data-aos="zoom-in" data-aos-delay="100">
+        <h3>🏗️ Architecture</h3>
+        <p>Deep dive into the system design and data flow.</p>
+      </a>
+      <a href="{{ '/frontend' | relative_url }}" class="nav-card" data-aos="zoom-in" data-aos-delay="200">
+        <h3>💻 Frontend</h3>
+        <p>React-based dashboards and user interfaces.</p>
+      </a>
+      <a href="{{ '/backend' | relative_url }}" class="nav-card" data-aos="zoom-in" data-aos-delay="300">
+        <h3>⚙️ Backend</h3>
+        <p>Node.js API, MQTT, and Database logic.</p>
+      </a>
+      <a href="{{ '/hardware' | relative_url }}" class="nav-card" data-aos="zoom-in" data-aos-delay="400">
+        <h3>🔌 Hardware</h3>
+        <p>ESP8266 and RFID reader integration.</p>
+      </a>
+    </div>
+  </div>
 </div>
 
----
-
-<div align="center">
-
-## ✨ Key Features
-
-<table>
-<tr>
-<td width="50%">
-
-<h3>🔄 Real-Time Tracking</h3>
-<ul>
-<li>Instant RFID card detection</li>
-<li>Live visitor flow monitoring</li>
-<li>Multi-zone booth tracking</li>
-<li>FIFO queue management</li>
-</ul>
-
-</td>
-<td width="50%">
-
-<h3>📊 Smart Analytics</h3>
-<ul>
-<li>Real-time crowd metrics</li>
-<li>Historical trend analysis</li>
-<li>Venue occupancy insights</li>
-<li>Visitor behavior patterns</li>
-</ul>
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-<h3>🎮 Interactive Gaming</h3>
-<ul>
-<li>Team-based scoring system</li>
-<li>Live leaderboards</li>
-<li>Achievement tracking</li>
-<li>Engagement rewards</li>
-</ul>
-
-</td>
-<td width="50%">
-
-<h3>🛠️ Admin Control</h3>
-<ul>
-<li>System configuration panel</li>
-<li>Live event monitoring</li>
-<li>User management</li>
-<li>Complete data control</li>
-</ul>
-
-</td>
-</tr>
-</table>
-
-</div>
-
----
-
-<div align="center">
-
-## 🏗️ How It Works
-
-<img src="./images/image.png" alt="System Architecture" style="max-width: 85%; height: auto; width: 60%;">
-
-<p>
-📡 <strong>RFID readers</strong> detect cards at registration, exits, and activity zones <br>
-🔄 <strong>MQTT broker</strong> routes messages in real-time across the system <br>
-⚙️ <strong>Backend API</strong> processes events, updates database, and manages game logic <br>
-📊 <strong>Live dashboards</strong> display analytics, leaderboards, and admin controls <br>
-🎮 <strong>Interactive interface</strong> engages visitors with games and feedback
-</p>
-
-</div>
-
----
-
-<div align="center">
-
-## 💻 Technology Stack
-
-| Component | Technology |
-|-----------|------------|
-| **Hardware** | ESP8266 + RDM6300 RFID (125kHz) |
-| **IoT** | MQTT (Mosquitto), WiFi, JSON |
-| **Backend** | Node.js, Express, WebSocket |
-| **Frontend** | React, Vite, TailwindCSS |
-| **Database** | PostgreSQL |
-| **Testing** | Jest, Vitest (1,455+ tests) |
-
-</div>
-
----
-
-<div align="center">
-
-## 🚀 Quick Start
-
-**One command deployment:**
-
-</div>
-
-```powershell
-# Run with default settings
-.\deploy-local.ps1
-
-# Or customize with parameters
-.\deploy-local.ps1 -PgPassword "YourPassword" -BackendPort 4000
-
-# When done, press ENTER to automatically cleanup everything
-```
-
-<div align="center">
-
-**Access your system:** <br>
-🌐 **Dashboard**: http://localhost:5173 <br>
-🔌 **API**: http://localhost:4000 <br>
-💾 **Database**: localhost:5432 <br>
-📡 **MQTT**: localhost:1883 <br>
-
-**Automatic Cleanup:** Press ENTER when finished to stop all services, close windows, stop Mosquitto, and drop database (unless `-NoDropDb` specified).
-
-> 📖 **Need more details?** Check the [complete documentation](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/README.md) or [deployment guide](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/DEPLOYMENT.md) for all available parameters and options.
-
-</div>
-
----
-
-<div align="center">
-
-## 📊 System Highlights <br>
-
-✅ **Production Ready** - Fully tested and deployment-ready <br>
-🧪 **99.9% Test Success** - 1,455+ passing tests across all components <br>
-📈 **89% Code Coverage** - Comprehensive test coverage <br>
-🔒 **Secure** - No hardcoded credentials, proper secret management <br>
-🎨 **Modern UI** - Responsive design for mobile and desktop <br>
-⚡ **Real-Time** - Live updates via WebSocket and MQTT <br>
-🔧 **Easy Setup** - Single-script automated deployment <br>
-
-</div>
-
----
-
-<div align="center">
-
-## 👥 Team 
-
-**University of Peradeniya - Department of Computer Engineering** <br>
-S. Ganathipan - [e21148@eng.pdn.ac.lk](mailto:e21148@eng.pdn.ac.lk) <br>
-V.G. Amirsha - [e21152@eng.pdn.ac.lk](mailto:e21152@eng.pdn.ac.lk) <br>
-K. Kartheepan - [e21214@eng.pdn.ac.lk](mailto:e21214@eng.pdn.ac.lk) <br>
-S. Kavishanthan - [e21220@eng.pdn.ac.lk](mailto:e21220@eng.pdn.ac.lk) <br>
-
-**Supervisor:** Ms. Yasodha Vimukthi ([yasodhav@eng.pdn.ac.lk](mailto:yasodhav@eng.pdn.ac.lk))
-
-</div>
-
----
-
-<div align="center">
-
-## 🔗 Links
-
-📦 [**GitHub Repository**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle) - View source code <br>
-📖 [**Complete Documentation**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/README.md) - Detailed setup & API docs <br>
-🚀 [**Deployment Guide**](https://github.com/cepdnaclk/e21-co227-RFID-Hardware-and-Tag-Lifecycle/blob/58fa5ad16faed29d805a64dbd598fc3b583b5a35/DEPLOYMENT.md) - Step-by-step installation <br>
-🏛️ [**Department of Computer Engineering**](http://www.ce.pdn.ac.lk/) <br>
-🎓 [**University of Peradeniya**](https://eng.pdn.ac.lk/) <br>
-
-</div>
-
----
-
-<div align="center">
-
-## 🎓 Academic Context
-
-**Course:** CO227 Computer Engineering Project  <br>
-**Institution:** University of Peradeniya  <br>
-**Year:** 2024-2025  <br>
-**Event:** EngEx 2025 - Engineering Exhibition <br>
-
-This project demonstrates the integration of IoT hardware, real-time systems, web technologies, and database management to solve real-world event management challenges.
-
-</div>
-
----
-
-<div align="center">
-
-**Made with ❤️ for EngEx 2025**
-*Transforming event experiences through intelligent RFID technology*
-
+<div class="site-footer">
+  <div class="container">
+    <h3>Team</h3>
+    <p><strong>University of Peradeniya - Department of Computer Engineering</strong></p>
+    <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;">
+      <span>S. Ganathipan</span>
+      <span>V.G. Amirsha</span>
+      <span>K. Kartheepan</span>
+      <span>S. Kavishanthan</span>
+    </div>
+    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">Supervisor: Ms. Yasodha Vimukthi</p>
+    <p style="margin-top: 2rem;">Made with ❤️ for EngEx 2025</p>
+  </div>
 </div>
